@@ -1,0 +1,70 @@
+# ==========================================================================
+# Campus AI - monorepo .gitignore  (place at: E:\campus-ai\.gitignore)
+# Covers: Python backend + AI worker (uv/venv) and Next.js frontend.
+# ==========================================================================
+
+# --- Secrets / environment (NEVER commit these) ---------------------------
+.env
+.env.*
+*.env
+!.env.example
+!.env.sample
+
+# --- Python ----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual envs (uv / venv)
+.venv/
+venv/
+env/
+.uv/
+
+# --- Node / Next.js --------------------------------------------------------
+node_modules/
+.next/
+out/
+build/
+.turbo/
+*.tsbuildinfo
+next-env.d.ts
+.vercel/
+
+# npm / pnpm / yarn logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# --- AI / vector store local data ------------------------------------------
+chroma/
+.chroma/
+chroma_db/
+*.sqlite
+*.sqlite3
+qdrant_storage/
+
+# --- Logs ------------------------------------------------------------------
+*.log
+logs/
+
+# --- OS / editor -----------------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# --- Misc ------------------------------------------------------------------
+*.tmp
+*.bak
