@@ -4,7 +4,8 @@ Validated 'contracts' at the HTTP boundary - separate from the SQLAlchemy ORM
 models, which represent database rows.
 """
 
-from datetime import date
+from datetime import date, datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
@@ -29,6 +30,7 @@ class UserOut(BaseModel):
     full_name: str
     role: UserRole
     is_active: bool
+    section_id: int | None = None  # a student's class/section (None for staff)
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -56,6 +58,12 @@ class UserRoleUpdate(BaseModel):
 
 class UserStatusUpdate(BaseModel):
     is_active: bool
+
+
+class UserSectionUpdate(BaseModel):
+    """Assign a student to a section (or clear it with section_id=null)."""
+
+    section_id: int | None = None
 
 
 # --- Admin: Departments ----------------------------------------------------
@@ -421,3 +429,107 @@ class ApplicantOut(BaseModel):
     verified_skills: int
     verified_projects: int
     note: str | None
+
+
+# --- Marketing: Leads & Feedback -------------------------------------------
+class LeadCreate(BaseModel):
+    """Public contact / demo-request submission from the marketing site."""
+
+    name: str = Field(min_length=1, max_length=255, examples=["Asha Mehta"])
+    email: EmailStr
+    institute: str | None = Field(default=None, max_length=255)
+    role: str | None = Field(
+        default=None, max_length=100, examples=["Administrator"]
+    )
+    message: str = Field(min_length=1, max_length=4000)
+
+
+class LeadOut(BaseModel):
+    id: int
+    name: str
+    email: EmailStr
+    institute: str | None
+    role: str | None
+    message: str
+    handled: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class FeedbackCreate(BaseModel):
+    """Anonymous in-product feedback. Rating is an optional 1-5 score."""
+
+    message: str = Field(min_length=1, max_length=4000)
+    category: str | None = Field(default=None, max_length=50, examples=["bug"])
+    rating: int | None = Field(default=None, ge=1, le=5, examples=[5])
+
+
+class FeedbackOut(BaseModel):
+    id: int
+    category: str | None
+    rating: int | None
+    message: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# --- Announcements ---------------------------------------------------------
+class AnnouncementCreate(BaseModel):
+    """Admin posts an announcement to everyone or to a single role."""
+
+    title: str = Field(min_length=1, max_length=200, examples=["Mid-sem exams"])
+    body: str = Field(min_length=1, max_length=5000)
+    audience: Literal["all", "student", "teacher", "tpo"] = "all"
+
+
+class AnnouncementOut(BaseModel):
+    id: int
+    title: str
+    body: str
+    audience: str
+    author_id: int | None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# --- Academic Calendar -----------------------------------------------------
+class CalendarEventCreate(BaseModel):
+    """Admin adds an academic-calendar entry (holiday/exam/event/deadline)."""
+
+    title: str = Field(
+        min_length=1, max_length=200, examples=["Semester exams begin"]
+    )
+    description: str | None = Field(default=None, max_length=2000)
+    event_date: date
+    end_date: date | None = None
+    category: Literal["holiday", "exam", "event", "deadline"] = "event"
+    audience: Literal["all", "student", "teacher", "tpo"] = "all"
+
+
+class CalendarEventOut(BaseModel):
+    id: int
+    title: str
+    description: str | None
+    event_date: date
+    end_date: date | None
+    category: str
+    audience: str
+    created_by_id: int | None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# --- Audit Log -------------------------------------------------------------
+class AuditLogOut(BaseModel):
+    id: int
+    actor_id: int | None
+    actor_email: str | None
+    action: str
+    target_type: str | None
+    target_id: str | None
+    summary: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)

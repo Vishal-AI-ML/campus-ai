@@ -12,6 +12,8 @@ Tables so far:
   * project_members     - one row per contributor, verified individually
   * drives              - placement/recruitment drives + eligibility criteria
   * applications        - a student's application to a drive + its status
+  * leads               - public demo-request/contact leads (no FK; prospects)
+  * feedback            - anonymous in-product feedback
 
 SQLAlchemy 2.x typed-mapping style (`Mapped` / `mapped_column`).
 """
@@ -100,6 +102,11 @@ class User(Base):
         nullable=False,
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # A student's class/section - used to build attendance rosters & gradebook.
+    # Nullable: staff accounts (teacher/tpo/admin) and not-yet-assigned students.
+    section_id: Mapped[int | None] = mapped_column(
+        ForeignKey("sections.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -487,3 +494,156 @@ class Application(Base):
             f"<Application drive={self.drive_id} student={self.student_id} "
             f"status={self.status.value}>"
         )
+
+
+class Lead(Base):
+    """A demo-request/contact lead captured from the public marketing site.
+
+    These are unauthenticated, public submissions (prospects, not users yet),
+    so there are no foreign keys. The admin reviews them and flips `handled`.
+    """
+
+    __tablename__ = "leads"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    email: Mapped[str] = mapped_column(
+        String(255), nullable=False, index=True
+    )
+    institute: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    role: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    handled: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return f"<Lead id={self.id} email={self.email!r} handled={self.handled}>"
+
+
+class Feedback(Base):
+    """Anonymous in-product feedback.
+
+    Stored without a user link so it can be submitted from anywhere (including
+    logged-out surfaces). `rating` is an optional 1-5 score.
+    """
+
+    __tablename__ = "feedback"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    category: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    rating: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return f"<Feedback id={self.id} rating={self.rating}>"
+
+
+class Announcement(Base):
+    """An institute broadcast posted by an admin to everyone or one role.
+
+    `audience` is one of "all", "student", "teacher", "tpo": a reader sees an
+    announcement when it targets everyone or their own role. Stored as a short
+    string (not an Enum) so new audiences can be added without a DB migration.
+    The author link is SET NULL so deleting an admin keeps historical posts.
+    """
+
+    __tablename__ = "announcements"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    # "all" | "student" | "teacher" | "tpo" - who should see this announcement.
+    audience: Mapped[str] = mapped_column(
+        String(20), default="all", nullable=False, index=True
+    )
+    author_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<Announcement id={self.id} title={self.title!r} "
+            f"audience={self.audience}>"
+        )
+
+
+class CalendarEvent(Base):
+    """An academic-calendar entry posted by an admin.
+
+    `category` is one of "holiday", "exam", "event", "deadline" (drives the
+    colour/label in the UI). Like announcements, `audience` is a short string
+    ("all" | "student" | "teacher" | "tpo") so a reader sees entries meant for
+    everyone or their own role. An optional `end_date` supports multi-day
+    entries (exam weeks, holidays). Both stored as plain strings (no Enum) so
+    new categories/audiences need no DB migration.
+    """
+
+    __tablename__ = "calendar_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    event_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
+    end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    # "holiday" | "exam" | "event" | "deadline"
+    category: Mapped[str] = mapped_column(
+        String(20), default="event", nullable=False
+    )
+    # "all" | "student" | "teacher" | "tpo" - who should see this entry.
+    audience: Mapped[str] = mapped_column(
+        String(20), default="all", nullable=False, index=True
+    )
+    created_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<CalendarEvent id={self.id} title={self.title!r} "
+            f"date={self.event_date}>"
+        )
+
+
+class AuditLog(Base):
+    """Append-only record of a governance action (for compliance / traceability).
+
+    Written via `record_audit()` whenever an admin changes something sensitive
+    (roles, account status, structure, etc.). `actor_email` is denormalised so
+    the trail survives even if the acting user is later deleted (then
+    `actor_id` becomes NULL). Rows are never updated or deleted in normal use.
+    """
+
+    __tablename__ = "audit_logs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    actor_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    # Snapshot of the actor's email so the trail is readable after user deletion.
+    actor_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # Machine-readable key, e.g. "user.role_change", "department.create".
+    action: Mapped[str] = mapped_column(String(60), nullable=False, index=True)
+    # What was acted on, e.g. "user", "department", "section".
+    target_type: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    target_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    # Human-readable one-line description shown in the UI.
+    summary: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return f"<AuditLog id={self.id} action={self.action!r}>"

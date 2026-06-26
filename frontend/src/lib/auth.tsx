@@ -82,6 +82,7 @@ export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
 		{ label: "Academics", href: "/dashboard/academics", icon: "\u{1F4CA}" },
 		{ label: "Skills", href: "/dashboard/skills", icon: "\u{1F6E1}\uFE0F" },
 		{ label: "Projects", href: "/dashboard/projects", icon: "\u{1F9E9}" },
+		{ label: "Placements", href: "/dashboard/placements", icon: "\u{1F3E2}" },
 		{ label: "AI Mentor", href: "/dashboard/mentor", icon: "\u{1F916}" },
 	],
 	teacher: [
@@ -99,5 +100,8 @@ export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
 		{ label: "Overview", href: "/dashboard", icon: "\u{1F3E0}" },
 		{ label: "Users", href: "/dashboard/users", icon: "\u{1F465}" },
 		{ label: "Departments", href: "/dashboard/departments", icon: "\u{1F3EB}" },
+		{ label: "Announcements", href: "/dashboard/announcements", icon: "\u{1F4E3}" },
+		{ label: "Calendar", href: "/dashboard/calendar", icon: "\u{1F5D3}\uFE0F" },
+		{ label: "Audit Log", href: "/dashboard/audit", icon: "\u{1F6E1}\uFE0F" },
 	],
 }

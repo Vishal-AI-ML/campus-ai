@@ -16,6 +16,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from audit import record_audit
 from db import get_db
 from models import Department, Section, User, UserRole
 from schemas import (
@@ -26,6 +27,7 @@ from schemas import (
     SectionOut,
     UserOut,
     UserRoleUpdate,
+    UserSectionUpdate,
     UserStatusUpdate,
 )
 from security import get_current_user, hash_password, require_roles
@@ -55,9 +57,12 @@ def list_users(
     "/users",
     response_model=UserOut,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(admin_only)],
 )
-def create_user(payload: AdminUserCreate, db: Session = Depends(get_db)) -> User:
+def create_user(
+    payload: AdminUserCreate,
+    db: Session = Depends(get_db),
+    admin: User = Depends(admin_only),
+) -> User:
     """Create an account with an explicit role. Email must be unique."""
     exists = db.scalar(select(User).where(User.email == payload.email))
     if exists is not None:
@@ -72,6 +77,15 @@ def create_user(payload: AdminUserCreate, db: Session = Depends(get_db)) -> User
         role=payload.role,
     )
     db.add(user)
+    db.flush()
+    record_audit(
+        db,
+        admin,
+        action="user.create",
+        summary=f"Created {payload.role.value} account {payload.email}",
+        target_type="user",
+        target_id=user.id,
+    )
     db.commit()
     db.refresh(user)
     return user
@@ -96,6 +110,14 @@ def update_user_role(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
     user.role = payload.role
+    record_audit(
+        db,
+        admin,
+        action="user.role_change",
+        summary=f"Changed role of {user.email} to {payload.role.value}",
+        target_type="user",
+        target_id=user.id,
+    )
     db.commit()
     db.refresh(user)
     return user
@@ -120,6 +142,55 @@ def update_user_status(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
     user.is_active = payload.is_active
+    record_audit(
+        db,
+        admin,
+        action="user.status_change",
+        summary=f"{'Enabled' if payload.is_active else 'Disabled'} account {user.email}",
+        target_type="user",
+        target_id=user.id,
+    )
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@router.patch("/users/{user_id}/section", response_model=UserOut)
+def update_user_section(
+    user_id: int,
+    payload: UserSectionUpdate,
+    db: Session = Depends(get_db),
+    admin: User = Depends(admin_only),
+) -> User:
+    """Assign a user to a section (or clear it with section_id=null).
+
+    Builds the class roster so teachers can mark attendance and enter marks
+    for the students in a section.
+    """
+    user = db.get(User, user_id)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+    if payload.section_id is not None:
+        section = db.get(Section, payload.section_id)
+        if section is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Section not found"
+            )
+    user.section_id = payload.section_id
+    record_audit(
+        db,
+        admin,
+        action="user.section_assign",
+        summary=(
+            f"Cleared section of {user.email}"
+            if payload.section_id is None
+            else f"Assigned {user.email} to section #{payload.section_id}"
+        ),
+        target_type="user",
+        target_id=user.id,
+    )
     db.commit()
     db.refresh(user)
     return user
@@ -130,13 +201,25 @@ def update_user_status(
     "/departments",
     response_model=DepartmentOut,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(admin_only)],
 )
-def create_department(payload: DepartmentCreate, db: Session = Depends(get_db)) -> Department:
+def create_department(
+    payload: DepartmentCreate,
+    db: Session = Depends(get_db),
+    admin: User = Depends(admin_only),
+) -> Department:
     """Create a department. Name and code must both be unique."""
     dept = Department(name=payload.name, code=payload.code)
     db.add(dept)
     try:
+        db.flush()
+        record_audit(
+            db,
+            admin,
+            action="department.create",
+            summary=f"Created department {payload.name} ({payload.code})",
+            target_type="department",
+            target_id=dept.id,
+        )
         db.commit()
     except IntegrityError:
         db.rollback()
@@ -162,12 +245,12 @@ def list_departments(
     "/departments/{department_id}/sections",
     response_model=SectionOut,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(admin_only)],
 )
 def create_section(
     department_id: int,
     payload: SectionCreate,
     db: Session = Depends(get_db),
+    admin: User = Depends(admin_only),
 ) -> Section:
     """Create a section inside a department. Name unique within the department."""
     department = db.get(Department, department_id)
@@ -180,6 +263,15 @@ def create_section(
     )
     db.add(section)
     try:
+        db.flush()
+        record_audit(
+            db,
+            admin,
+            action="section.create",
+            summary=f"Created section {payload.name} in department #{department_id}",
+            target_type="section",
+            target_id=section.id,
+        )
         db.commit()
     except IntegrityError:
         db.rollback()

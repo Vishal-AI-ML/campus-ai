@@ -11,6 +11,9 @@ Progress:
   * AI Career Mentor: grounded chat over the student's verified profile.
   * Placement: drives + verified-data eligibility engine.
   * Placement applications: students apply to eligible drives; TPO shortlists.
+  * Announcements: admin broadcasts; users read their own role's feed.
+  * Academic calendar: admin posts holidays/exams/events; users see their feed.
+  * Audit log: append-only trail of admin governance actions.
 
 Location:
     E:\\campus-ai\\backend\\main.py
@@ -30,6 +33,10 @@ Key URLs:
     /projects/*    -> create, verify per member, view projects
     /mentor/*      -> AI career mentor chat
     /drives/*      -> placement drives, eligibility, applications & shortlisting
+    /people/*      -> staff roster: list students (optionally by section)
+    /announcements/* -> institute broadcasts (admin posts, everyone reads)
+    /calendar/*    -> academic calendar (admin manages, everyone reads)
+    /audit         -> append-only governance audit log (admin only)
 """
 
 from fastapi import FastAPI
@@ -38,16 +45,21 @@ from sqlalchemy import text
 
 from academics import router as academics_router
 from admin import router as admin_router
+from announcements import router as announcements_router
 from attendance import router as attendance_router
+from audit import router as audit_router
 from auth import router as auth_router
+from calendar_events import router as calendar_router
 from config import settings
 from db import engine
+from leads import router as leads_router
 from mentor import router as mentor_router
+from people import router as people_router
 from placement import router as placement_router
 from projects import router as projects_router
 from skills import router as skills_router
 
-app = FastAPI(title=settings.PROJECT_NAME, version="0.11.1")
+app = FastAPI(title=settings.PROJECT_NAME, version="0.16.0")
 
 # CORS: allow the local Next.js dev frontend to call the API from the browser.
 # Add your deployed frontend origin(s) to this list when you go to production.
@@ -65,12 +77,17 @@ app.add_middleware(
 # Feature routers. Add new modules here as they are built.
 app.include_router(auth_router)
 app.include_router(admin_router)
+app.include_router(announcements_router)
+app.include_router(calendar_router)
+app.include_router(audit_router)
 app.include_router(attendance_router)
 app.include_router(academics_router)
 app.include_router(skills_router)
 app.include_router(projects_router)
 app.include_router(mentor_router)
 app.include_router(placement_router)
+app.include_router(leads_router)
+app.include_router(people_router)
 
 
 @app.get("/")

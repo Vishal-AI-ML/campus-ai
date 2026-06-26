@@ -1,204 +1,189 @@
 /**
- * Campus AI - public landing page (App Router home route).
+ * Campus AI - public Home / landing page.
  *
- * Place this file at: src/app/page.tsx  (replace the default scaffold page)
+ * Place this file at: src/app/page.tsx  (REPLACES the existing landing page)
  *
- * Pure server component (no client-side state), styled with Tailwind. The
- * "Get started" / "Login" buttons point at /login, which is built in a later
- * step - until then they will 404, which is expected.
+ * Hero -> Verify/Build/Place story -> 9 feature cards -> role sections -> CTA,
+ * all driven by src/lib/marketing.ts. Server component (static / SEO-friendly).
  */
 
 import Link from "next/link"
 import type { Metadata } from "next"
+import MarketingShell from "@/components/MarketingShell"
+import FeatureCard from "@/components/FeatureCard"
+import { FEATURES, ROLES } from "@/lib/marketing"
 
-// Route-level metadata (overrides the default title from layout.tsx).
 export const metadata: Metadata = {
-	title: "Campus AI - Verified Student Success & Placements",
+	title: "Campus AI — From the first check-in to the final offer letter",
 	description:
-		"Campus AI turns proof-backed student data into placements: verified skills, an AI career mentor, and an eligibility engine recruiters can trust.",
+		"Campus AI turns everyday campus data into a verified student profile, powering attendance, skills, resumes and placements on one trusted platform.",
+	openGraph: {
+		title: "Campus AI",
+		description:
+			"The verified student-success and placement platform for modern institutes.",
+		type: "website",
+	},
 }
 
-// Core product pillars shown in the features grid.
-const features = [
+const STEPS = [
 	{
-		icon: "\u{1F6E1}\uFE0F",
-		title: "Verified Skills Moat",
-		body: "Every skill and project is proof-backed, AI-scored, and mentor-verified. No more fake resumes - only data that holds up.",
+		label: "Verify",
+		icon: "🛡️",
+		text: "Capture real, verified data — attendance, skills, projects — scored by AI and confirmed by mentors.",
 	},
 	{
-		icon: "\u{1F916}",
-		title: "AI Career Mentor",
-		body: "A RAG-powered mentor that answers only from YOUR verified profile plus a curated career knowledge base. Grounded, cited, zero hallucination.",
+		label: "Build",
+		icon: "🤖",
+		text: "Turn that verified data into ATS-ready resumes and grounded AI career guidance.",
 	},
 	{
-		icon: "\u{1F3AF}",
-		title: "Placement Eligibility Engine",
-		body: "TPO posts a drive; the engine instantly decides who qualifies - explainable, criterion by criterion, from verified data only.",
-	},
-	{
-		icon: "\u{1F4CA}",
-		title: "Attendance & Academics",
-		body: "Built-in attendance, results, and credit-weighted CGPA form the trusted data backbone the whole platform stands on.",
-	},
-]
-
-// The verified-data pipeline, shown as a numbered "how it works" flow.
-const steps = [
-	{
-		n: "01",
-		title: "Claim with proof",
-		body: "Students add skills and projects with evidence links and notes.",
-	},
-	{
-		n: "02",
-		title: "AI scores it",
-		body: "The AI worker analyzes the proof and assigns a confidence score.",
-	},
-	{
-		n: "03",
-		title: "Mentor verifies",
-		body: "Teachers verify or flag each claim. Only verified data ever counts.",
-	},
-	{
-		n: "04",
-		title: "Placement-ready",
-		body: "Verified data powers eligibility, applications, and recruiter trust.",
+		label: "Place",
+		icon: "🏢",
+		text: "Match verified, ranked candidates to the right drives — from eligibility to offer letter.",
 	},
 ]
 
 export default function HomePage() {
 	return (
-		<div className="min-h-screen bg-slate-950 text-slate-100">
-			{/* Navigation */}
-			<header className="sticky top-0 z-20 border-b border-white/10 bg-slate-950/80 backdrop-blur">
-				<nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-					<Link href="/" className="flex items-center gap-2 font-semibold">
-						<span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 text-sm font-bold">
-							C
-						</span>
-						<span className="text-lg">Campus AI</span>
-					</Link>
-					<div className="flex items-center gap-6 text-sm">
-						<a href="#features" className="hidden text-slate-300 hover:text-white sm:block">
-							Features
-						</a>
-						<a href="#how" className="hidden text-slate-300 hover:text-white sm:block">
-							How it works
-						</a>
-						<Link
-							href="/login"
-							className="rounded-lg bg-white px-4 py-2 font-medium text-slate-900 transition hover:bg-slate-200"
-						>
-							Login
-						</Link>
-					</div>
-				</nav>
-			</header>
-
+		<MarketingShell>
 			{/* Hero */}
 			<section className="relative overflow-hidden">
-				<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_0%,rgba(99,102,241,0.25),transparent)]" />
+				<div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-indigo-500/10 via-transparent to-transparent" />
 				<div className="mx-auto max-w-4xl px-6 py-24 text-center">
-					<span className="inline-block rounded-full border border-white/15 bg-white/5 px-4 py-1 text-sm text-slate-300">
-						The verified-data platform for campuses
+					<span className="inline-block rounded-full border border-white/15 bg-white/5 px-4 py-1 text-xs text-slate-300">
+						Student success & placement platform
 					</span>
-					<h1 className="mt-6 text-4xl font-bold tracking-tight sm:text-6xl">
-						Turn{" "}
+					<h1 className="mt-6 text-4xl font-bold leading-tight sm:text-6xl">
+						From the first check-in to the{" "}
 						<span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
-							verified student data
-						</span>{" "}
-						into placements
+							final offer letter
+						</span>
+						.
 					</h1>
 					<p className="mx-auto mt-6 max-w-2xl text-lg text-slate-300">
-						Campus AI verifies every skill and project with proof, AI, and
-						mentor review - then powers an eligibility engine and an AI career
-						mentor recruiters and students can actually trust.
+						Campus AI turns everyday campus data into a verified student
+						profile — powering attendance, skills, resumes and placements on
+						one trusted platform.
 					</p>
-					<div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+					<div className="mt-10 flex flex-wrap justify-center gap-4">
 						<Link
 							href="/login"
-							className="w-full rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 px-6 py-3 font-medium text-white transition hover:opacity-90 sm:w-auto"
+							className="rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 px-6 py-3 text-sm font-medium text-white transition hover:opacity-90"
 						>
 							Get started
 						</Link>
-						<a
-							href="#features"
-							className="w-full rounded-lg border border-white/15 px-6 py-3 font-medium text-slate-200 transition hover:bg-white/5 sm:w-auto"
+						<Link
+							href="/#features"
+							className="rounded-lg border border-white/15 px-6 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/5"
 						>
 							Explore features
-						</a>
+						</Link>
 					</div>
 				</div>
 			</section>
 
-			{/* Features */}
-			<section id="features" className="mx-auto max-w-6xl px-6 py-20">
-				<div className="mx-auto max-w-2xl text-center">
-					<h2 className="text-3xl font-bold sm:text-4xl">One platform, one source of truth</h2>
-					<p className="mt-4 text-slate-300">
-						Everything is built around a single principle: only verified data
-						reaches resumes, recruiters, and reports.
-					</p>
-				</div>
-				<div className="mt-12 grid gap-6 sm:grid-cols-2">
-					{features.map((f) => (
+			{/* Verify -> Build -> Place story */}
+			<section className="mx-auto max-w-6xl px-6 py-16">
+				<div className="grid gap-6 md:grid-cols-3">
+					{STEPS.map((step, index) => (
 						<div
-							key={f.title}
-							className="rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:border-white/20 hover:bg-white/[0.07]"
+							key={step.label}
+							className="rounded-2xl border border-white/10 bg-white/5 p-6"
 						>
-							<div className="text-3xl">{f.icon}</div>
-							<h3 className="mt-4 text-xl font-semibold">{f.title}</h3>
-							<p className="mt-2 text-slate-300">{f.body}</p>
+							<div className="flex items-center gap-3">
+								<span className="text-2xl">{step.icon}</span>
+								<span className="text-xs text-slate-400">
+									Step {index + 1}
+								</span>
+							</div>
+							<h3 className="mt-3 text-xl font-semibold">{step.label}</h3>
+							<p className="mt-2 text-sm text-slate-400">{step.text}</p>
 						</div>
 					))}
 				</div>
 			</section>
 
-			{/* How it works */}
-			<section id="how" className="border-y border-white/10 bg-white/[0.02]">
-				<div className="mx-auto max-w-6xl px-6 py-20">
-					<div className="mx-auto max-w-2xl text-center">
-						<h2 className="text-3xl font-bold sm:text-4xl">How the moat works</h2>
-						<p className="mt-4 text-slate-300">
-							From a raw claim to placement-ready proof in four steps.
-						</p>
-					</div>
-					<div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-						{steps.map((s) => (
-							<div key={s.n} className="rounded-2xl border border-white/10 bg-slate-950 p-6">
-								<div className="text-sm font-bold text-indigo-400">{s.n}</div>
-								<h3 className="mt-2 text-lg font-semibold">{s.title}</h3>
-								<p className="mt-2 text-sm text-slate-300">{s.body}</p>
+			{/* Features grid */}
+			<section id="features" className="mx-auto max-w-6xl scroll-mt-20 px-6 py-16">
+				<div className="text-center">
+					<h2 className="text-3xl font-bold">One platform, the whole journey</h2>
+					<p className="mx-auto mt-3 max-w-2xl text-slate-400">
+						Nine modules that work together on a single source of verified
+						truth.
+					</p>
+				</div>
+				<div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+					{FEATURES.map((feature) => (
+						<FeatureCard key={feature.slug} feature={feature} />
+					))}
+				</div>
+			</section>
+
+			{/* Role sections */}
+			<section className="mx-auto max-w-6xl px-6 py-16">
+				<div className="text-center">
+					<h2 className="text-3xl font-bold">Built for every role on campus</h2>
+					<p className="mx-auto mt-3 max-w-2xl text-slate-400">
+						Students, teachers, TPOs and admins — each gets a focused
+						experience.
+					</p>
+				</div>
+				<div className="mt-10 grid gap-6 sm:grid-cols-2">
+					{ROLES.map((role) => (
+						<div
+							key={role.slug}
+							className="rounded-2xl border border-white/10 bg-white/5 p-6"
+						>
+							<div className="flex items-center gap-3">
+								<span className="text-2xl">{role.emoji}</span>
+								<h3 className="text-xl font-semibold">{role.title}</h3>
 							</div>
-						))}
-					</div>
+							<p className="mt-2 text-sm text-indigo-300">{role.pitch}</p>
+							<ul className="mt-4 space-y-2 text-sm text-slate-300">
+								{role.points.map((point) => (
+									<li key={point} className="flex gap-2">
+										<span className="text-emerald-400">✓</span>
+										{point}
+									</li>
+								))}
+							</ul>
+							<Link
+								href={`/for-${role.slug}`}
+								className="mt-5 inline-block text-sm text-indigo-300 hover:text-indigo-200"
+							>
+								Learn more →
+							</Link>
+						</div>
+					))}
 				</div>
 			</section>
 
 			{/* Final CTA */}
-			<section className="mx-auto max-w-4xl px-6 py-24 text-center">
-				<h2 className="text-3xl font-bold sm:text-4xl">
-					Ready to make your placements data-driven?
-				</h2>
-				<p className="mx-auto mt-4 max-w-xl text-slate-300">
-					Bring verified skills, AI mentoring, and an eligibility engine to
-					your campus.
-				</p>
-				<Link
-					href="/login"
-					className="mt-8 inline-block rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 px-8 py-3 font-medium text-white transition hover:opacity-90"
-				>
-					Get started
-				</Link>
-			</section>
-
-			{/* Footer */}
-			<footer className="border-t border-white/10">
-				<div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-6 py-8 text-sm text-slate-400 sm:flex-row">
-					<span>&copy; 2026 Campus AI</span>
-					<span>Built on verified data.</span>
+			<section className="mx-auto max-w-4xl px-6 py-20">
+				<div className="rounded-3xl border border-white/10 bg-gradient-to-r from-indigo-500/15 to-violet-500/15 p-10 text-center">
+					<h2 className="text-3xl font-bold">
+						Ready to build your campus's verified advantage?
+					</h2>
+					<p className="mx-auto mt-3 max-w-xl text-slate-300">
+						See how Campus AI connects attendance, skills and placements on one
+						trusted platform.
+					</p>
+					<div className="mt-8 flex flex-wrap justify-center gap-4">
+						<Link
+							href="/contact"
+							className="rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 px-6 py-3 text-sm font-medium text-white transition hover:opacity-90"
+						>
+							Request a demo
+						</Link>
+						<Link
+							href="/login"
+							className="rounded-lg border border-white/15 px-6 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/5"
+						>
+							Log in
+						</Link>
+					</div>
 				</div>
-			</footer>
-		</div>
+			</section>
+		</MarketingShell>
 	)
 }
