@@ -9,6 +9,7 @@ Progress:
   * Projects: individual/group projects, verified per member.
   * AI auto-scoring of skills/projects via the AI worker (BackgroundTask).
   * AI Career Mentor: grounded chat over the student's verified profile.
+  * AI Resume: build a Markdown resume from verified data + ATS score vs a JD.
   * Placement: drives + verified-data eligibility engine.
   * Placement applications: students apply to eligible drives; TPO shortlists.
   * Announcements: admin broadcasts; users read their own role's feed.
@@ -32,6 +33,7 @@ Key URLs:
     /skills/*      -> claim, verify/flag, view skills
     /projects/*    -> create, verify per member, view projects
     /mentor/*      -> AI career mentor chat
+    /resume/*      -> AI resume builder + ATS scoring (student)
     /drives/*      -> placement drives, eligibility, applications & shortlisting
     /people/*      -> staff roster: list students (optionally by section)
     /announcements/* -> institute broadcasts (admin posts, everyone reads)
@@ -57,9 +59,10 @@ from mentor import router as mentor_router
 from people import router as people_router
 from placement import router as placement_router
 from projects import router as projects_router
+from resume import router as resume_router
 from skills import router as skills_router
 
-app = FastAPI(title=settings.PROJECT_NAME, version="0.16.0")
+app = FastAPI(title=settings.PROJECT_NAME, version="0.17.0")
 
 # CORS: allow the local Next.js dev frontend to call the API from the browser.
 # Add your deployed frontend origin(s) to this list when you go to production.
@@ -85,6 +88,7 @@ app.include_router(academics_router)
 app.include_router(skills_router)
 app.include_router(projects_router)
 app.include_router(mentor_router)
+app.include_router(resume_router)
 app.include_router(placement_router)
 app.include_router(leads_router)
 app.include_router(people_router)

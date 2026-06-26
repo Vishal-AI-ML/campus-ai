@@ -27,6 +27,8 @@ logger = logging.getLogger("campus_ai.ai_client")
 # Scoring is one quick LLM round-trip; mentor chat can take a little longer.
 _SCORE_TIMEOUT = httpx.Timeout(30.0)
 _CHAT_TIMEOUT = httpx.Timeout(60.0)
+# Resume drafting / ATS scoring are each a single (longer) LLM round-trip.
+_RESUME_TIMEOUT = httpx.Timeout(90.0)
 
 
 def _request_score(
@@ -119,4 +121,38 @@ def ask_mentor(
         return resp.json()
     except Exception as exc:  # noqa: BLE001
         logger.warning("AI mentor chat failed: %s", exc)
+        return None
+
+
+def generate_resume(profile: dict) -> dict | None:
+    """Synchronous: send the verified profile to the worker's /resume/draft and
+    return its JSON reply ({markdown, provider}), or None on error.
+    """
+    try:
+        resp = httpx.post(
+            f"{settings.AI_WORKER_URL}/resume/draft",
+            json={"profile": profile},
+            timeout=_RESUME_TIMEOUT,
+        )
+        resp.raise_for_status()
+        return resp.json()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("AI resume draft failed: %s", exc)
+        return None
+
+
+def score_resume_ats(resume_text: str, job_description: str) -> dict | None:
+    """Synchronous: score a resume against a job description via the worker's
+    /resume/ats-score. Returns the JSON reply, or None on error.
+    """
+    try:
+        resp = httpx.post(
+            f"{settings.AI_WORKER_URL}/resume/ats-score",
+            json={"resume_text": resume_text, "job_description": job_description},
+            timeout=_RESUME_TIMEOUT,
+        )
+        resp.raise_for_status()
+        return resp.json()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("AI ATS scoring failed: %s", exc)
         return None
