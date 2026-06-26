@@ -18,6 +18,7 @@ Progress:
   * Face attendance: enroll students' reference faces (worker + Qdrant);
     class-photo matching comes next.
   * Assignments: teachers post assignments per section; students submit; teachers grade.
+  * Study Hub: teachers upload study materials/notes per section; students browse.
 
 Location:
     E:\\campus-ai\\backend\\main.py
@@ -34,6 +35,7 @@ Key URLs:
     /attendance/*  -> mark & view attendance + class-photo face match
     /academics/*   -> subjects, results & SGPA/CGPA
     /assignments/* -> create, submit & grade assignments
+    /materials/*   -> study hub: upload & browse study materials (section-scoped)
     /skills/*      -> claim, verify/flag, view skills
     /projects/*    -> create, verify per member, view projects
     /mentor/*      -> AI career mentor chat
@@ -62,6 +64,7 @@ from config import settings
 from db import engine
 from face import router as face_router
 from leads import router as leads_router
+from materials import router as materials_router
 from mentor import router as mentor_router
 from people import router as people_router
 from placement import router as placement_router
@@ -69,7 +72,7 @@ from projects import router as projects_router
 from resume import router as resume_router
 from skills import router as skills_router
 
-app = FastAPI(title=settings.PROJECT_NAME, version="0.20.0")
+app = FastAPI(title=settings.PROJECT_NAME, version="0.21.0")
 
 # CORS: allow the local Next.js dev frontend to call the API from the browser.
 # Add your deployed frontend origin(s) to this list when you go to production.
@@ -93,6 +96,7 @@ app.include_router(audit_router)
 app.include_router(attendance_router)
 app.include_router(academics_router)
 app.include_router(assignments_router)
+app.include_router(materials_router)
 app.include_router(skills_router)
 app.include_router(projects_router)
 app.include_router(mentor_router)

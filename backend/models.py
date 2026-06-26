@@ -779,3 +779,59 @@ class Submission(Base):
             f"<Submission id={self.id} assignment={self.assignment_id} "
             f"student={self.student_id} status={self.status.value}>"
         )
+
+
+
+class MaterialCategory(str, enum.Enum):
+    """How a Study Hub material is classified (for browsing/filtering)."""
+
+    notes = "notes"
+    slides = "slides"
+    video = "video"
+    link = "link"
+    other = "other"
+
+
+class Material(Base):
+    """A study material/resource shared with a section in the Study Hub.
+
+    Teachers (and admins) upload reference material for a section, optionally
+    tied to a subject. The payload is link-based (an external URL such as a
+    Drive/PDF/YouTube link) and/or inline notes text - no file storage yet
+    (signed-URL uploads can be added later). Students of that section browse
+    these read-only.
+    """
+
+    __tablename__ = "materials"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    section_id: Mapped[int] = mapped_column(
+        ForeignKey("sections.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    subject_id: Mapped[int | None] = mapped_column(
+        ForeignKey("subjects.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Inline notes body and/or an external resource link; at least one is
+    # required (validated at the API layer).
+    content: Mapped[str | None] = mapped_column(Text, nullable=True)
+    link: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    category: Mapped[MaterialCategory] = mapped_column(
+        Enum(MaterialCategory, name="material_category"),
+        default=MaterialCategory.notes,
+        nullable=False,
+        index=True,
+    )
+    uploaded_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<Material id={self.id} title={self.title!r} "
+            f"section={self.section_id} category={self.category.value}>"
+        )

@@ -12,6 +12,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from models import (
     ApplicationStatus,
     AttendanceStatus,
+    MaterialCategory,
     SkillStatus,
     SubmissionStatus,
     UserRole,
@@ -668,5 +669,45 @@ class SubmissionOut(BaseModel):
     graded_by_id: int | None
     submitted_at: datetime
     graded_at: datetime | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# --- Study Hub: Materials --------------------------------------------------
+class MaterialCreate(BaseModel):
+    """Teacher/admin uploads a study material for a section.
+
+    Provide inline `content` (notes text) and/or an external `link` - at least
+    one is required (validated in the router).
+    """
+
+    section_id: int = Field(gt=0, examples=[1])
+    subject_id: int | None = Field(default=None, gt=0, examples=[1])
+    title: str = Field(
+        min_length=1, max_length=200, examples=["Unit 1 - ER Models"]
+    )
+    description: str | None = Field(default=None, max_length=2000)
+    content: str | None = Field(default=None, max_length=20000)
+    link: str | None = Field(
+        default=None,
+        max_length=500,
+        examples=["https://drive.google.com/notes"],
+    )
+    category: MaterialCategory = MaterialCategory.notes
+
+
+class MaterialOut(BaseModel):
+    """A study material as returned to staff and students."""
+
+    id: int
+    section_id: int
+    subject_id: int | None
+    title: str
+    description: str | None
+    content: str | None
+    link: str | None
+    category: MaterialCategory
+    uploaded_by_id: int | None
+    created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
