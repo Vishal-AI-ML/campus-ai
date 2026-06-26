@@ -835,3 +835,121 @@ class Material(Base):
             f"<Material id={self.id} title={self.title!r} "
             f"section={self.section_id} category={self.category.value}>"
         )
+
+
+class DoubtStatus(str, enum.Enum):
+    """Lifecycle of a question in the doubt forum.
+
+      open     -> awaiting a satisfactory answer
+      resolved -> the asker (or staff) accepted an answer as the solution
+    """
+
+    open = "open"
+    resolved = "resolved"
+
+
+class Doubt(Base):
+    """A question posted to a section's doubt forum.
+
+    Posted by a student (only in their own section) or by staff (any section),
+    and optionally tied to a subject. Becomes `resolved` when one of its
+    answers is accepted.
+    """
+
+    __tablename__ = "doubts"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    section_id: Mapped[int] = mapped_column(
+        ForeignKey("sections.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    subject_id: Mapped[int | None] = mapped_column(
+        ForeignKey("subjects.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[DoubtStatus] = mapped_column(
+        Enum(DoubtStatus, name="doubt_status"),
+        default=DoubtStatus.open,
+        nullable=False,
+        index=True,
+    )
+    asked_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    resolved_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    answers: Mapped[list["DoubtAnswer"]] = relationship(
+        back_populates="doubt", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<Doubt id={self.id} section={self.section_id} "
+            f"status={self.status.value}>"
+        )
+
+
+class DoubtAnswer(Base):
+    """An answer to a doubt. Can be upvoted, and one can be accepted as solution."""
+
+    __tablename__ = "doubt_answers"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    doubt_id: Mapped[int] = mapped_column(
+        ForeignKey("doubts.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    answered_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    is_accepted: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    doubt: Mapped["Doubt"] = relationship(back_populates="answers")
+    votes: Mapped[list["AnswerVote"]] = relationship(
+        back_populates="answer", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<DoubtAnswer id={self.id} doubt={self.doubt_id} "
+            f"accepted={self.is_accepted}>"
+        )
+
+
+class AnswerVote(Base):
+    """One upvote on an answer by one user (at most one per answer+user)."""
+
+    __tablename__ = "answer_votes"
+    __table_args__ = (
+        UniqueConstraint("answer_id", "user_id", name="uq_answer_vote_user"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    answer_id: Mapped[int] = mapped_column(
+        ForeignKey("doubt_answers.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    answer: Mapped["DoubtAnswer"] = relationship(back_populates="votes")
+
+    def __repr__(self) -> str:
+        return f"<AnswerVote answer={self.answer_id} user={self.user_id}>"

@@ -19,6 +19,7 @@ Progress:
     class-photo matching comes next.
   * Assignments: teachers post assignments per section; students submit; teachers grade.
   * Study Hub: teachers upload study materials/notes per section; students browse.
+  * Doubt Forum: students post doubts per section; peers/staff answer, upvote & accept.
 
 Location:
     E:\\campus-ai\\backend\\main.py
@@ -36,6 +37,7 @@ Key URLs:
     /academics/*   -> subjects, results & SGPA/CGPA
     /assignments/* -> create, submit & grade assignments
     /materials/*   -> study hub: upload & browse study materials (section-scoped)
+    /doubts/*      -> doubt forum: ask, answer, upvote & accept (section-scoped)
     /skills/*      -> claim, verify/flag, view skills
     /projects/*    -> create, verify per member, view projects
     /mentor/*      -> AI career mentor chat
@@ -62,6 +64,7 @@ from auth import router as auth_router
 from calendar_events import router as calendar_router
 from config import settings
 from db import engine
+from doubts import router as doubts_router
 from face import router as face_router
 from leads import router as leads_router
 from materials import router as materials_router
@@ -72,7 +75,7 @@ from projects import router as projects_router
 from resume import router as resume_router
 from skills import router as skills_router
 
-app = FastAPI(title=settings.PROJECT_NAME, version="0.21.0")
+app = FastAPI(title=settings.PROJECT_NAME, version="0.22.0")
 
 # CORS: allow the local Next.js dev frontend to call the API from the browser.
 # Add your deployed frontend origin(s) to this list when you go to production.
@@ -97,6 +100,7 @@ app.include_router(attendance_router)
 app.include_router(academics_router)
 app.include_router(assignments_router)
 app.include_router(materials_router)
+app.include_router(doubts_router)
 app.include_router(skills_router)
 app.include_router(projects_router)
 app.include_router(mentor_router)

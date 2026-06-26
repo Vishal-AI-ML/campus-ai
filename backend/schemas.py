@@ -12,6 +12,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from models import (
     ApplicationStatus,
     AttendanceStatus,
+    DoubtStatus,
     MaterialCategory,
     SkillStatus,
     SubmissionStatus,
@@ -711,3 +712,55 @@ class MaterialOut(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# --- Doubt Forum -----------------------------------------------------------
+class DoubtCreate(BaseModel):
+    """A student/staff posts a question to a section's doubt forum."""
+
+    section_id: int = Field(gt=0, examples=[1])
+    subject_id: int | None = Field(default=None, gt=0, examples=[1])
+    title: str = Field(
+        min_length=1, max_length=200, examples=["Doubt in normalization"]
+    )
+    body: str = Field(min_length=1, max_length=5000)
+
+
+class AnswerCreate(BaseModel):
+    """An answer to a doubt."""
+
+    body: str = Field(min_length=1, max_length=5000)
+
+
+class AnswerOut(BaseModel):
+    """An answer with its live upvote count + whether the viewer upvoted it."""
+
+    id: int
+    doubt_id: int
+    body: str
+    answered_by_id: int | None
+    is_accepted: bool
+    upvote_count: int
+    viewer_has_upvoted: bool
+    created_at: datetime
+
+
+class DoubtOut(BaseModel):
+    """A doubt list item, with a live answer count."""
+
+    id: int
+    section_id: int
+    subject_id: int | None
+    title: str
+    body: str
+    status: DoubtStatus
+    asked_by_id: int | None
+    answer_count: int
+    created_at: datetime
+    resolved_at: datetime | None
+
+
+class DoubtDetailOut(DoubtOut):
+    """A doubt plus all of its answers (accepted first, then most upvoted)."""
+
+    answers: list[AnswerOut]
