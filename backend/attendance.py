@@ -1,42 +1,52 @@
 """Attendance routes.
 
-Role model (matches the product/prototype):
-  * TEACHER marks (or re-marks) attendance for a section on a date, and views a
-    section's records. In the product this is driven by face/class-photo
-    auto-marking (AI worker, Phase 2.5); this endpoint is the foundation the
-    AI worker will call. Admins do NOT mark attendance.
-  * STUDENT views only their own records + summary.
+  * Teachers/admins mark (or re-mark) attendance for a section on a date.
+  * Students view their own records and a summary.
+  * Teachers/admins view a section's records.
 
 Mounted under the `/attendance` prefix by `main.py`.
 """
 
 from datetime import date as date_type
 
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+import ai_client
 from db import get_db
-from models import AttendanceRecord, AttendanceStatus, Section, User, UserRole
+from models import (
+    AttendanceRecord,
+    AttendanceStatus,
+    FaceEnrollment,
+    Section,
+    User,
+    UserRole,
+)
 from schemas import (
     AttendanceMarkRequest,
     AttendanceRecordOut,
     AttendanceSummaryOut,
+    FaceMatchOutsider,
+    FaceMatchSuggestion,
+    FacePhotoMatchRequest,
+    FacePhotoMatchResponse,
 )
 from security import get_current_user, require_roles
 
 router = APIRouter(prefix="/attendance", tags=["attendance"])
 
-# Attendance is a teacher's job (admins manage structure, not attendance).
-teacher_only = require_roles(UserRole.teacher)
+# Marking/reading a whole section is staff work (teacher or admin).
+staff_only = require_roles(UserRole.teacher, UserRole.admin)
 
 
 @router.post("/mark", response_model=list[AttendanceRecordOut])
 def mark_attendance(
     payload: AttendanceMarkRequest,
     db: Session = Depends(get_db),
-    teacher: User = Depends(teacher_only),
+    staff: User = Depends(staff_only),
 ) -> list[AttendanceRecord]:
     """Create or update attendance rows for the given section + date.
 
@@ -60,7 +70,7 @@ def mark_attendance(
         )
         if existing is not None:
             existing.status = item.status
-            existing.marked_by_id = teacher.id
+            existing.marked_by_id = staff.id
             results.append(existing)
         else:
             record = AttendanceRecord(
@@ -68,7 +78,7 @@ def mark_attendance(
                 section_id=payload.section_id,
                 date=payload.date,
                 status=item.status,
-                marked_by_id=teacher.id,
+                marked_by_id=staff.id,
             )
             db.add(record)
             results.append(record)
@@ -85,6 +95,102 @@ def mark_attendance(
     for record in results:
         db.refresh(record)
     return results
+
+
+@router.post("/photo", response_model=FacePhotoMatchResponse)
+def match_class_photo(
+    payload: FacePhotoMatchRequest,
+    db: Session = Depends(get_db),
+    staff: User = Depends(staff_only),
+) -> FacePhotoMatchResponse:
+    """Match a class photo against a section's enrolled students (teacher/admin).
+
+    This only SUGGESTS who is present - it never writes attendance. The worker
+    detects every face and matches each against the enrolled embeddings; we
+    turn that into a per-student suggestion over THIS section's roster. The
+    teacher reviews/edits the suggestions and confirms by calling
+    POST /attendance/mark - keeping a human in the loop (moat-consistent).
+    """
+    section = db.get(Section, payload.section_id)
+    if section is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Section not found"
+        )
+
+    try:
+        result = ai_client.match_faces(
+            payload.image_base64, payload.score_threshold
+        )
+    except httpx.HTTPStatusError as exc:
+        detail = "Face worker rejected the request."
+        try:
+            detail = exc.response.json().get("detail", detail)
+        except Exception:  # noqa: BLE001 - fall back to the generic message
+            pass
+        raise HTTPException(status_code=exc.response.status_code, detail=detail)
+    except Exception:  # noqa: BLE001 - any transport failure => worker down
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="AI face worker is unavailable. Make sure it is running on :8100.",
+        )
+
+    # Worker matches: student_id -> best cosine score (across all enrolled).
+    matched_by_id: dict[int, float] = {
+        int(m["student_id"]): float(m["score"]) for m in result.get("matched", [])
+    }
+
+    # This section's roster + which of them are enrolled.
+    roster = list(
+        db.scalars(
+            select(User)
+            .where(User.role == UserRole.student)
+            .where(User.section_id == payload.section_id)
+            .order_by(User.full_name)
+        )
+    )
+    roster_ids = {s.id for s in roster}
+    enrolled_ids = {
+        e.student_id
+        for e in db.scalars(
+            select(FaceEnrollment).where(
+                FaceEnrollment.student_id.in_(list(roster_ids) or [0])
+            )
+        )
+    }
+
+    suggestions = [
+        FaceMatchSuggestion(
+            student_id=s.id,
+            full_name=s.full_name,
+            enrolled=s.id in enrolled_ids,
+            matched=s.id in matched_by_id,
+            score=round(matched_by_id[s.id], 4) if s.id in matched_by_id else None,
+            suggested_status=(
+                AttendanceStatus.present
+                if s.id in matched_by_id
+                else AttendanceStatus.absent
+            ),
+        )
+        for s in roster
+    ]
+
+    # Enrolled students matched in the photo but NOT part of this section (e.g.
+    # someone from another class in frame) - surfaced for the teacher's
+    # awareness, never auto-marked here.
+    outside = [
+        FaceMatchOutsider(student_id=sid, score=round(score, 4))
+        for sid, score in matched_by_id.items()
+        if sid not in roster_ids
+    ]
+
+    return FacePhotoMatchResponse(
+        section_id=payload.section_id,
+        detected_faces=int(result.get("detected_faces", 0)),
+        unmatched_faces=int(result.get("unmatched_faces", 0)),
+        threshold=float(result.get("threshold", 0.0)),
+        suggestions=suggestions,
+        matched_outside_section=outside,
+    )
 
 
 @router.get("/me", response_model=list[AttendanceRecordOut])
@@ -129,17 +235,14 @@ def my_attendance_summary(
 @router.get(
     "/section/{section_id}",
     response_model=list[AttendanceRecordOut],
-    dependencies=[Depends(teacher_only)],
+    dependencies=[Depends(staff_only)],
 )
 def section_attendance(
     section_id: int,
     date: date_type | None = None,
     db: Session = Depends(get_db),
 ) -> list[AttendanceRecord]:
-    """List a section's attendance, optionally filtered by date (?date=YYYY-MM-DD).
-
-    Teacher-only (this powers the teacher's attendance report screen).
-    """
+    """List a section's attendance, optionally filtered by date (?date=YYYY-MM-DD)."""
     section = db.get(Section, section_id)
     if section is None:
         raise HTTPException(

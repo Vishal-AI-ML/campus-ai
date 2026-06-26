@@ -9,7 +9,13 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-from models import ApplicationStatus, AttendanceStatus, SkillStatus, UserRole
+from models import (
+    ApplicationStatus,
+    AttendanceStatus,
+    SkillStatus,
+    SubmissionStatus,
+    UserRole,
+)
 
 
 # --- Auth -----------------------------------------------------------------
@@ -149,6 +155,73 @@ class AttendanceSummaryOut(BaseModel):
     absent: int
     late: int
     percentage: float  # (present + late) / total * 100
+
+
+# --- Face attendance / enrollment ------------------------------------------
+class FaceEnrollRequest(BaseModel):
+    """Enroll (or re-enroll) a student's reference face from a base64 photo."""
+
+    student_id: int = Field(gt=0)
+    image_base64: str = Field(min_length=1)
+
+
+class FaceEnrollmentOut(BaseModel):
+    """A stored enrollment record (the embedding itself lives in Qdrant)."""
+
+    student_id: int
+    enrolled_by_id: int | None
+    det_score: float | None
+    enrolled_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class FaceEnrollmentStatusOut(BaseModel):
+    """A roster student + whether they have an enrolled reference face."""
+
+    student_id: int
+    full_name: str
+    email: EmailStr
+    enrolled: bool
+    det_score: float | None = None
+    enrolled_at: datetime | None = None
+
+
+class FacePhotoMatchRequest(BaseModel):
+    """Match a class photo against a section's enrolled students."""
+
+    section_id: int = Field(gt=0)
+    image_base64: str = Field(min_length=1)
+    score_threshold: float | None = Field(default=None, ge=0.0, le=1.0)
+
+
+class FaceMatchSuggestion(BaseModel):
+    """One roster student + whether the class photo matched them."""
+
+    student_id: int
+    full_name: str
+    enrolled: bool
+    matched: bool
+    score: float | None = None
+    suggested_status: AttendanceStatus
+
+
+class FaceMatchOutsider(BaseModel):
+    """An enrolled student matched in the photo but NOT in this section."""
+
+    student_id: int
+    score: float
+
+
+class FacePhotoMatchResponse(BaseModel):
+    """Suggested attendance from a class photo (teacher confirms before marking)."""
+
+    section_id: int
+    detected_faces: int
+    unmatched_faces: int
+    threshold: float
+    suggestions: list[FaceMatchSuggestion]
+    matched_outside_section: list[FaceMatchOutsider]
 
 
 # --- Academics: Results ----------------------------------------------------
@@ -531,5 +604,69 @@ class AuditLogOut(BaseModel):
     target_id: str | None
     summary: str
     created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# --- Assignments -----------------------------------------------------------
+class AssignmentCreate(BaseModel):
+    """Teacher posts an assignment for a section (optionally tied to a subject)."""
+
+    section_id: int = Field(gt=0)
+    subject_id: int | None = Field(default=None, gt=0)
+    title: str = Field(min_length=1, max_length=200)
+    description: str | None = Field(default=None, max_length=5000)
+    due_date: datetime
+    max_marks: float = Field(default=100.0, gt=0)
+
+
+class AssignmentOut(BaseModel):
+    id: int
+    section_id: int
+    subject_id: int | None
+    title: str
+    description: str | None
+    due_date: datetime
+    max_marks: float
+    created_by_id: int | None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AssignmentWithStatusOut(AssignmentOut):
+    """An assignment + the logged-in student's own submission state."""
+
+    submitted: bool = False
+    submission_status: SubmissionStatus | None = None
+    marks: float | None = None
+
+
+class SubmissionCreate(BaseModel):
+    """A student turns in work: free text and/or a link (at least one)."""
+
+    content: str | None = Field(default=None, max_length=10000)
+    link: str | None = Field(default=None, max_length=500)
+
+
+class SubmissionGrade(BaseModel):
+    """A teacher grades a submission (marks must be within the assignment max)."""
+
+    marks: float = Field(ge=0)
+    feedback: str | None = Field(default=None, max_length=2000)
+
+
+class SubmissionOut(BaseModel):
+    id: int
+    assignment_id: int
+    student_id: int
+    content: str | None
+    link: str | None
+    status: SubmissionStatus
+    marks: float | None
+    feedback: str | None
+    graded_by_id: int | None
+    submitted_at: datetime
+    graded_at: datetime | None
 
     model_config = ConfigDict(from_attributes=True)

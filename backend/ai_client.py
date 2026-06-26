@@ -29,6 +29,9 @@ _SCORE_TIMEOUT = httpx.Timeout(30.0)
 _CHAT_TIMEOUT = httpx.Timeout(60.0)
 # Resume drafting / ATS scoring are each a single (longer) LLM round-trip.
 _RESUME_TIMEOUT = httpx.Timeout(90.0)
+# Face ops; the FIRST call after a worker restart also downloads the
+# InsightFace model (~300 MB), so we allow plenty of headroom.
+_FACE_TIMEOUT = httpx.Timeout(180.0)
 
 
 def _request_score(
@@ -156,3 +159,47 @@ def score_resume_ats(resume_text: str, job_description: str) -> dict | None:
     except Exception as exc:  # noqa: BLE001
         logger.warning("AI ATS scoring failed: %s", exc)
         return None
+
+
+def enroll_face(student_id: int, image_base64: str) -> dict:
+    """Enroll a student's reference face via the worker's /face/enroll.
+
+    Returns the worker's JSON ({student_id, enrolled, det_score, message}).
+    Unlike the background scorers, this RAISES on transport/HTTP errors so the
+    caller can map them to a clean response (e.g. a 422 when the photo has zero
+    or multiple faces) instead of silently swallowing them.
+    """
+    resp = httpx.post(
+        f"{settings.AI_WORKER_URL}/face/enroll",
+        json={"student_id": student_id, "image_base64": image_base64},
+        timeout=_FACE_TIMEOUT,
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+
+def delete_face_enrollment(student_id: int) -> None:
+    """Remove a student's enrolled face from the worker (and thus Qdrant)."""
+    resp = httpx.delete(
+        f"{settings.AI_WORKER_URL}/face/enroll/{student_id}",
+        timeout=_SCORE_TIMEOUT,
+    )
+    resp.raise_for_status()
+
+
+def match_faces(image_base64: str, score_threshold: float | None = None) -> dict:
+    """Match every face in a class photo against the enrolled students.
+
+    Returns the worker's JSON ({detected_faces, matched[], unmatched_faces,
+    threshold}). Raises on transport/HTTP errors so the caller can map them.
+    """
+    body: dict = {"image_base64": image_base64}
+    if score_threshold is not None:
+        body["score_threshold"] = score_threshold
+    resp = httpx.post(
+        f"{settings.AI_WORKER_URL}/face/match",
+        json=body,
+        timeout=_FACE_TIMEOUT,
+    )
+    resp.raise_for_status()
+    return resp.json()

@@ -68,3 +68,9 @@ Thumbs.db
 # --- Misc ------------------------------------------------------------------
 *.tmp
 *.bak
+
+# local face test images
+test/
+
+# local face test images (never commit real faces)
+test/

@@ -5,6 +5,7 @@ Tables so far:
   * departments         - top-level academic units (e.g. CSE, ECE)
   * sections            - a class/section inside a department
   * attendance_records  - one row per student, per section, per date
+  * face_enrollments    - a student's enrolled reference face (embedding in Qdrant)
   * subjects            - a subject/course inside a department
   * results             - a student's marks + grade point for one subject
   * skills              - a student's claimed skill + proof + verification state
@@ -202,6 +203,41 @@ class AttendanceRecord(Base):
         return (
             f"<Attendance student={self.student_id} section={self.section_id} "
             f"date={self.date} status={self.status.value}>"
+        )
+
+
+class FaceEnrollment(Base):
+    """A student's enrolled reference face (one row per student).
+
+    The 512-dim face embedding itself lives in Qdrant, keyed by the student's
+    id; this row records WHO is enrolled, who enrolled them, the detection
+    confidence, and when - so staff rosters can show enrollment status without
+    querying the vector store per student. Deleting the user cascades here.
+    """
+
+    __tablename__ = "face_enrollments"
+
+    student_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    enrolled_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    det_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    enrolled_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<FaceEnrollment student={self.student_id} "
+            f"det_score={self.det_score}>"
         )
 
 
@@ -647,3 +683,99 @@ class AuditLog(Base):
 
     def __repr__(self) -> str:
         return f"<AuditLog id={self.id} action={self.action!r}>"
+
+
+# --- Assignments -----------------------------------------------------------
+class SubmissionStatus(str, enum.Enum):
+    """Lifecycle of a student's submission to an assignment.
+
+      submitted -> student turned it in (re-submitting resets grading)
+      graded    -> teacher assigned marks + (optional) feedback
+    """
+
+    submitted = "submitted"
+    graded = "graded"
+
+
+class Assignment(Base):
+    """An assignment a teacher posts for a whole section (optionally tied to a
+    subject). Students in that section submit work against it."""
+
+    __tablename__ = "assignments"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    section_id: Mapped[int] = mapped_column(
+        ForeignKey("sections.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    subject_id: Mapped[int | None] = mapped_column(
+        ForeignKey("subjects.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    due_date: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    max_marks: Mapped[float] = mapped_column(Float, default=100.0, nullable=False)
+    created_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<Assignment id={self.id} title={self.title!r} "
+            f"section={self.section_id}>"
+        )
+
+
+class Submission(Base):
+    """A student's submission to an assignment (one per student per assignment).
+
+    Re-submitting updates the same row and resets it to 'submitted', clearing
+    any earlier grade so the teacher reviews the new work.
+    """
+
+    __tablename__ = "submissions"
+    __table_args__ = (
+        UniqueConstraint(
+            "assignment_id",
+            "student_id",
+            name="uq_submission_assignment_student",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    assignment_id: Mapped[int] = mapped_column(
+        ForeignKey("assignments.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    student_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    content: Mapped[str | None] = mapped_column(Text, nullable=True)
+    link: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    status: Mapped[SubmissionStatus] = mapped_column(
+        Enum(SubmissionStatus, name="submission_status"),
+        default=SubmissionStatus.submitted,
+        nullable=False,
+    )
+    marks: Mapped[float | None] = mapped_column(Float, nullable=True)
+    feedback: Mapped[str | None] = mapped_column(Text, nullable=True)
+    graded_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    submitted_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    graded_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<Submission id={self.id} assignment={self.assignment_id} "
+            f"student={self.student_id} status={self.status.value}>"
+        )
