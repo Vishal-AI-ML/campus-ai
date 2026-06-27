@@ -429,6 +429,7 @@ def drive_applications(
                 verified_skills=len(profile["verified_skills"]),
                 verified_projects=profile["verified_projects"],
                 note=application.note,
+                contact_revealed=application.contact_revealed,
             )
         )
     out.sort(key=lambda a: (rank.get(a.status, 9), -a.cgpa))

@@ -42,12 +42,14 @@ from db import Base
 
 
 class UserRole(str, enum.Enum):
-    """The four core roles in Campus AI (drives RBAC across the product)."""
+    """The core roles in Campus AI (drives RBAC across the product)."""
 
     student = "student"
     teacher = "teacher"
     tpo = "tpo"
     admin = "admin"
+    # External-facing role: recruiters from companies that hire via the portal.
+    recruiter = "recruiter"
 
 
 class AttendanceStatus(str, enum.Enum):
@@ -85,6 +87,38 @@ class ApplicationStatus(str, enum.Enum):
     shortlisted = "shortlisted"
     selected = "selected"
     rejected = "rejected"
+
+
+class RecruiterDecision(str, enum.Enum):
+    """A recruiter's NON-binding assessment of a candidate they can see.
+
+    The TPO still owns the official `ApplicationStatus`; this is the company's
+    signal back to the TPO (and the natural precursor to extending an offer):
+      pending    -> recruiter hasn't acted yet (default)
+      interested -> wants to move forward (likely to make an offer)
+      on_hold    -> keeping the candidate in consideration for now
+      rejected   -> not interested (the recruiter's own view, not the TPO's)
+    """
+
+    pending = "pending"
+    interested = "interested"
+    on_hold = "on_hold"
+    rejected = "rejected"
+
+
+class OfferStatus(str, enum.Enum):
+    """Lifecycle of a formal offer a recruiter extends to a candidate.
+
+      extended  -> recruiter made the offer; awaiting the student's response
+      accepted  -> student accepted the offer
+      declined  -> student declined the offer
+      withdrawn -> recruiter pulled the offer back (only while still extended)
+    """
+
+    extended = "extended"
+    accepted = "accepted"
+    declined = "declined"
+    withdrawn = "withdrawn"
 
 
 class User(Base):
@@ -473,6 +507,14 @@ class Drive(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
+    # Optional link to a recruiting company (Step 27.2). When set, that
+    # company's HR can view this drive's shortlisted/selected candidates.
+    recruiter_id: Mapped[int | None] = mapped_column(
+        ForeignKey("recruiters.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+
     applications: Mapped[list["Application"]] = relationship(
         back_populates="drive", cascade="all, delete-orphan"
     )
@@ -517,6 +559,24 @@ class Application(Base):
     decided_by_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
+    # Privacy gate (Step 27.2): a recruiter sees the candidate's contact
+    # (email) only after the TPO explicitly reveals it for this application.
+    contact_revealed: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+    # Recruiter's own (non-binding) call on this candidate (Step 27.3). The
+    # TPO still owns `status`; this is the company's signal + offer precursor.
+    recruiter_decision: Mapped[RecruiterDecision] = mapped_column(
+        Enum(RecruiterDecision, name="recruiter_decision"),
+        default=RecruiterDecision.pending,
+        nullable=False,
+    )
+    recruiter_decision_note: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )
+    recruiter_decided_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -525,10 +585,82 @@ class Application(Base):
     )
 
     drive: Mapped["Drive"] = relationship(back_populates="applications")
+    offer: Mapped["Offer | None"] = relationship(
+        back_populates="application",
+        cascade="all, delete-orphan",
+        uselist=False,
+    )
 
     def __repr__(self) -> str:
         return (
             f"<Application drive={self.drive_id} student={self.student_id} "
+            f"status={self.status.value}>"
+        )
+
+
+class Offer(Base):
+    """A formal offer a recruiter extends to a candidate (Step 27.3).
+
+    One offer per application (unique). The recruiter sets the terms (role,
+    package, location, joining + expiry dates); the student accepts or declines.
+    The recruiter may withdraw it while it is still `extended`. A withdrawn or
+    declined offer's row is reused if the recruiter later re-extends.
+    """
+
+    __tablename__ = "offers"
+    __table_args__ = (
+        UniqueConstraint("application_id", name="uq_offer_application"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    application_id: Mapped[int] = mapped_column(
+        ForeignKey("applications.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    recruiter_id: Mapped[int] = mapped_column(
+        ForeignKey("recruiters.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    drive_id: Mapped[int] = mapped_column(
+        ForeignKey("drives.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    student_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    role_title: Mapped[str] = mapped_column(String(200), nullable=False)
+    package_lpa: Mapped[float | None] = mapped_column(Float, nullable=True)
+    location: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    joining_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    expires_on: Mapped[date | None] = mapped_column(Date, nullable=True)
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    status: Mapped[OfferStatus] = mapped_column(
+        Enum(OfferStatus, name="offer_status"),
+        default=OfferStatus.extended,
+        nullable=False,
+        index=True,
+    )
+    created_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    student_response_note: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )
+    responded_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    application: Mapped["Application"] = relationship(back_populates="offer")
+
+    def __repr__(self) -> str:
+        return (
+            f"<Offer id={self.id} application={self.application_id} "
             f"status={self.status.value}>"
         )
 
@@ -1010,4 +1142,257 @@ class TimetableEntry(Base):
         return (
             f"<TimetableEntry id={self.id} section={self.section_id} "
             f"day={self.day_of_week} {self.start_time}-{self.end_time}>"
+        )
+
+
+# --- Leave / OD requests --------------------------------------------------
+class LeaveRequestType(str, enum.Enum):
+    """Two kinds of planned absence, with different attendance impact.
+
+    leave -> a personal absence (medical / personal / emergency). Counts
+             against attendance unless explicitly excused.
+    od    -> "on duty": the student is away on OFFICIAL college work (fest,
+             hackathon, sports, paper presentation, NSS/NCC, industrial visit,
+             placement interview, ...). Approved OD is condoned, so it must NOT
+             pull the student's attendance percentage down.
+    """
+
+    leave = "leave"
+    od = "od"
+
+
+class LeaveStatus(str, enum.Enum):
+    """Lifecycle of a leave/OD request (human-in-the-loop approval)."""
+
+    pending = "pending"
+    approved = "approved"
+    rejected = "rejected"
+    cancelled = "cancelled"
+
+
+class LeaveRequest(Base):
+    """A student's leave or on-duty (OD) request covering a date range.
+
+    One row = one student's request for [start_date, end_date]. A student raises
+    their own request (status `pending`) and a class teacher / mentor / admin
+    approves or rejects it.
+
+    Bulk OD: for fests and group events many students go together, so a staff
+    coordinator can raise OD for a whole list of students in one shot. Each
+    selected student still gets their OWN row (so attendance condonation stays
+    per-student), the rows are linked by a shared `bulk_group_id`, and they are
+    auto-approved - the staff member raising it IS the approving authority.
+    """
+
+    __tablename__ = "leave_requests"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    # leave (personal) vs od (official duty) - drives the attendance impact.
+    request_type: Mapped[LeaveRequestType] = mapped_column(
+        Enum(LeaveRequestType, name="leave_request_type"),
+        nullable=False,
+        index=True,
+    )
+    # Sub-category within the type (e.g. "medical" for leave, "fest" for OD).
+    # Kept as a short string (validated in the router) so new event types can be
+    # added without a database migration.
+    category: Mapped[str] = mapped_column(String(50), nullable=False)
+    # The student this request is FOR.
+    student_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    # The student's section at apply time (denormalised for staff filtering).
+    section_id: Mapped[int | None] = mapped_column(
+        ForeignKey("sections.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # For OD: the event/competition name (e.g. "TechFest 2026").
+    event_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    # Optional supporting proof (medical certificate / event invite link).
+    proof_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    start_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
+    end_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
+    status: Mapped[LeaveStatus] = mapped_column(
+        Enum(LeaveStatus, name="leave_status"),
+        nullable=False,
+        default=LeaveStatus.pending,
+        index=True,
+    )
+    # Who actually created the row (the student, or a staff coordinator for OD).
+    applied_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    # The staff member who approved/rejected it.
+    reviewed_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    review_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    # Groups the rows created together by one bulk-OD action (NULL for singles).
+    bulk_group_id: Mapped[str | None] = mapped_column(
+        String(36), nullable=True, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<LeaveRequest id={self.id} type={self.request_type} "
+            f"student={self.student_id} status={self.status}>"
+        )
+
+
+# --- Recruiter portal ------------------------------------------------------
+class RecruiterStatus(str, enum.Enum):
+    """Lifecycle of a recruiting company in the placement portal."""
+
+    pending = "pending"      # invited, awaiting first HR login
+    active = "active"        # at least one HR has accepted & can log in
+    suspended = "suspended"  # access revoked by the TPO
+
+
+class InviteStatus(str, enum.Enum):
+    """Lifecycle of a single-use recruiter invitation token."""
+
+    pending = "pending"
+    accepted = "accepted"
+    revoked = "revoked"
+    expired = "expired"
+
+
+class Recruiter(Base):
+    """A recruiting company onboarded by the TPO (one row per company).
+
+    External companies that hire from the institute. The TPO creates the row
+    when inviting the company's first HR; it flips to `active` once an invite
+    is accepted. All recruiter logins are scoped to exactly one company.
+    """
+
+    __tablename__ = "recruiters"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    company_name: Mapped[str] = mapped_column(
+        String(200), nullable=False, index=True
+    )
+    website: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    about: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status: Mapped[RecruiterStatus] = mapped_column(
+        Enum(RecruiterStatus, name="recruiter_status"),
+        default=RecruiterStatus.pending,
+        nullable=False,
+        index=True,
+    )
+    # The TPO/admin who onboarded this company (kept for the audit trail).
+    created_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    members: Mapped[list["RecruiterUser"]] = relationship(
+        back_populates="recruiter", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<Recruiter id={self.id} company={self.company_name!r} "
+            f"status={self.status.value}>"
+        )
+
+
+class RecruiterUser(Base):
+    """Links a login account (role=recruiter) to its company (multi-HR ready).
+
+    One account belongs to exactly one company (unique on user_id). `is_primary`
+    marks the first/lead HR. Deleting either side cascades this link away.
+    """
+
+    __tablename__ = "recruiter_users"
+    __table_args__ = (
+        UniqueConstraint("user_id", name="uq_recruiter_user_account"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    recruiter_id: Mapped[int] = mapped_column(
+        ForeignKey("recruiters.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    # The HR's designation at the company (e.g. "Talent Lead").
+    title: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    is_primary: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    recruiter: Mapped["Recruiter"] = relationship(back_populates="members")
+
+    def __repr__(self) -> str:
+        return (
+            f"<RecruiterUser user={self.user_id} "
+            f"recruiter={self.recruiter_id} primary={self.is_primary}>"
+        )
+
+
+class RecruiterInvite(Base):
+    """A single-use invite token the TPO sends so a recruiter can self-onboard.
+
+    Created `pending`; becomes `accepted` when the recruiter sets up their
+    account, `expired` past `expires_at`, or `revoked` if the TPO cancels it.
+    The token is unique and unguessable (secrets.token_urlsafe).
+    """
+
+    __tablename__ = "recruiter_invites"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    recruiter_id: Mapped[int] = mapped_column(
+        ForeignKey("recruiters.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    email: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    token: Mapped[str] = mapped_column(
+        String(64), unique=True, nullable=False, index=True
+    )
+    status: Mapped[InviteStatus] = mapped_column(
+        Enum(InviteStatus, name="invite_status"),
+        default=InviteStatus.pending,
+        nullable=False,
+        index=True,
+    )
+    # Optional designation to pre-fill on the new HR's account.
+    title: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    invited_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    accepted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<RecruiterInvite id={self.id} email={self.email!r} "
+            f"status={self.status.value}>"
         )

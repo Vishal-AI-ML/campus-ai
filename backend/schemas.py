@@ -13,7 +13,13 @@ from models import (
     ApplicationStatus,
     AttendanceStatus,
     DoubtStatus,
+    InviteStatus,
+    LeaveRequestType,
+    LeaveStatus,
     MaterialCategory,
+    OfferStatus,
+    RecruiterDecision,
+    RecruiterStatus,
     SkillStatus,
     SubmissionStatus,
     UserRole,
@@ -22,12 +28,17 @@ from models import (
 
 # --- Auth -----------------------------------------------------------------
 class UserCreate(BaseModel):
-    """Payload for public self-registration."""
+    """Payload for public self-registration.
+
+    SECURITY: self-registration ALWAYS creates a `student` account. Staff roles
+    (teacher/tpo/admin) and recruiters are provisioned only by an admin (or via
+    the recruiter invite flow) - never by this public endpoint. The `role` field
+    is intentionally NOT accepted here so it cannot be elevated by the caller.
+    """
 
     email: EmailStr
     full_name: str = Field(min_length=1, max_length=255)
     password: str = Field(min_length=6, max_length=128)
-    role: UserRole = UserRole.student
 
 
 class UserOut(BaseModel):
@@ -145,18 +156,30 @@ class AttendanceRecordOut(BaseModel):
     section_id: int
     date: date
     status: AttendanceStatus
+    # True when an `absent` record falls inside an approved leave/OD and is
+    # therefore excused (does not count against the student's percentage).
+    condoned: bool = False
+    # Short human reason, e.g. "OD: Spring Fest" or "Leave: medical".
+    condone_reason: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class AttendanceSummaryOut(BaseModel):
-    """Aggregated view for a single student."""
+    """Aggregated view for a single student.
+
+    Absences covered by an approved leave/OD are condoned: counted as `excused`
+    and removed from the percentage denominator. `raw_percentage` keeps the
+    pre-condonation value for transparency.
+    """
 
     total: int
     present: int
-    absent: int
+    absent: int  # absences that are NOT condoned
     late: int
-    percentage: float  # (present + late) / total * 100
+    excused: int = 0  # condoned absences (approved OD / leave)
+    percentage: float  # condoned: (present + late) / (total - excused) * 100
+    raw_percentage: float = 0.0  # before condonation: (present + late) / total * 100
 
 
 # --- Face attendance / enrollment ------------------------------------------
@@ -405,6 +428,7 @@ class DriveOut(BaseModel):
     required_skills: str | None
     is_open: bool
     deadline: date | None
+    recruiter_id: int | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -504,6 +528,8 @@ class ApplicantOut(BaseModel):
     verified_skills: int
     verified_projects: int
     note: str | None
+    # Whether the TPO has revealed this candidate's contact to the recruiter.
+    contact_revealed: bool = False
 
 
 # --- Marketing: Leads & Feedback -------------------------------------------
@@ -808,3 +834,377 @@ class TimetableEntryOut(BaseModel):
     start_time: time
     end_time: time
     room: str | None = None
+
+
+# --- Leave / OD -----------------------------------------------------------
+class LeaveRequestCreate(BaseModel):
+    """A user applies for their OWN leave or OD for a date range.
+
+    `category` is validated in the router against the set allowed for the chosen
+    `request_type` (medical/personal/emergency for leave; fest/technical/sports/
+    competition/ncc_nss/industrial_visit/placement/other for OD).
+    """
+
+    request_type: LeaveRequestType
+    category: str = Field(min_length=1, max_length=50, examples=["medical"])
+    title: str = Field(min_length=1, max_length=200, examples=["Fever - need rest"])
+    reason: str | None = Field(default=None, max_length=2000)
+    event_name: str | None = Field(default=None, max_length=200)
+    proof_url: str | None = Field(default=None, max_length=500)
+    start_date: date
+    end_date: date
+
+
+class BulkODCreate(BaseModel):
+    """Staff raises ON-DUTY for many students at once for a single event.
+
+    Each student gets their own auto-approved OD row, linked by a shared bulk
+    group id. Used for fests / sports / group events.
+    """
+
+    student_ids: list[int] = Field(min_length=1, examples=[[6, 7, 8]])
+    category: str = Field(min_length=1, max_length=50, examples=["fest"])
+    title: str = Field(min_length=1, max_length=200, examples=["TechFest 2026"])
+    event_name: str | None = Field(default=None, max_length=200)
+    reason: str | None = Field(default=None, max_length=2000)
+    proof_url: str | None = Field(default=None, max_length=500)
+    start_date: date
+    end_date: date
+
+
+class LeaveDecision(BaseModel):
+    """A staff approve/reject decision on a pending request."""
+
+    status: Literal["approved", "rejected"]
+    review_note: str | None = Field(default=None, max_length=2000)
+
+
+class LeaveRequestOut(BaseModel):
+    """A leave/OD request enriched with student / section / reviewer names."""
+
+    id: int
+    request_type: LeaveRequestType
+    category: str
+    student_id: int
+    student_name: str | None = None
+    section_id: int | None = None
+    section_name: str | None = None
+    title: str
+    reason: str | None = None
+    event_name: str | None = None
+    proof_url: str | None = None
+    start_date: date
+    end_date: date
+    status: LeaveStatus
+    applied_by_id: int | None = None
+    reviewed_by_id: int | None = None
+    reviewer_name: str | None = None
+    review_note: str | None = None
+    reviewed_at: datetime | None = None
+    bulk_group_id: str | None = None
+    days: int = 1
+    created_at: datetime
+
+
+class BulkODResult(BaseModel):
+    """Summary returned after a bulk-OD action."""
+
+    bulk_group_id: str
+    created: int
+    skipped: list[int] = []
+    entries: list[LeaveRequestOut] = []
+
+
+# --- Analytics / At-risk --------------------------------------------------
+class RiskFactorOut(BaseModel):
+    """One explainable contributor to a student's risk score."""
+
+    key: str
+    label: str
+    value: float | None = None
+    risk: float | None = None
+    weight: float
+    available: bool
+
+
+class StudentRiskOut(BaseModel):
+    """A student's at-risk assessment with a transparent factor breakdown."""
+
+    student_id: int
+    student_name: str | None = None
+    risk_score: float
+    band: str  # high | medium | low
+    attendance_pct: float | None = None
+    cgpa: float | None = None
+    submission_rate: float | None = None
+    reasons: list[str] = []
+    factors: list[RiskFactorOut] = []
+
+
+class ClassAnalyticsOut(BaseModel):
+    """Aggregate analytics for one section (teacher dashboard)."""
+
+    section_id: int
+    section_name: str | None = None
+    student_count: int
+    avg_attendance_pct: float | None = None
+    avg_cgpa: float | None = None
+    results_coverage: int = 0
+    total_assignments: int = 0
+    avg_submission_rate: float | None = None
+    risk_high: int = 0
+    risk_medium: int = 0
+    risk_low: int = 0
+    at_risk_count: int = 0
+
+
+# --- Placement analytics (TPO dashboard) -----------------------------------
+class PlacementFunnelOut(BaseModel):
+    """Current status distribution across all applications."""
+
+    applied: int = 0
+    shortlisted: int = 0
+    selected: int = 0
+    rejected: int = 0
+
+
+class DrivePerformanceOut(BaseModel):
+    """Per-drive recruitment performance snapshot."""
+
+    drive_id: int
+    company_name: str
+    role_title: str
+    package_lpa: float | None = None
+    is_open: bool
+    applicants: int = 0
+    shortlisted: int = 0
+    selected: int = 0
+    rejected: int = 0
+    selection_rate: float | None = None
+
+
+class CompanyStatOut(BaseModel):
+    """Aggregated outcomes for one company across its drives."""
+
+    company_name: str
+    drives: int = 0
+    applicants: int = 0
+    selected: int = 0
+    avg_package: float | None = None
+
+
+class PlacementAnalyticsOut(BaseModel):
+    """Whole-program placement analytics for the TPO dashboard."""
+
+    total_drives: int = 0
+    open_drives: int = 0
+    closed_drives: int = 0
+    total_applications: int = 0
+    unique_applicants: int = 0
+    placed_students: int = 0
+    total_active_students: int = 0
+    placement_rate: float | None = None
+    applicant_conversion: float | None = None
+    avg_package: float | None = None
+    highest_package: float | None = None
+    highest_package_company: str | None = None
+    funnel: PlacementFunnelOut
+    drives: list[DrivePerformanceOut] = []
+    companies: list[CompanyStatOut] = []
+
+
+# --- Admin: bulk user import ----------------------------------------------
+class BulkImportRowResult(BaseModel):
+    """Outcome of importing a single CSV row."""
+
+    row: int
+    email: str | None = None
+    status: Literal["created", "skipped"]
+    detail: str
+    user_id: int | None = None
+    role: UserRole | None = None
+    temp_password: str | None = None  # set only when auto-generated
+
+
+class BulkImportResult(BaseModel):
+    """Summary of a bulk user-import run."""
+
+    total_rows: int
+    created: int
+    skipped: int
+    results: list[BulkImportRowResult]
+
+
+# --- Recruiter portal ------------------------------------------------------
+class RecruiterInviteCreate(BaseModel):
+    """TPO payload: onboard a company and invite its first HR."""
+
+    company_name: str = Field(min_length=1, max_length=200)
+    email: EmailStr
+    website: str | None = Field(default=None, max_length=300)
+    about: str | None = None
+    title: str | None = Field(default=None, max_length=150)
+    expires_in_days: int = Field(default=14, ge=1, le=90)
+
+
+class RecruiterOut(BaseModel):
+    """Public view of a recruiting company."""
+
+    id: int
+    company_name: str
+    website: str | None = None
+    about: str | None = None
+    status: RecruiterStatus
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class RecruiterInviteOut(BaseModel):
+    """Public view of a recruiter invite (never exposes the raw token)."""
+
+    id: int
+    recruiter_id: int
+    email: EmailStr
+    status: InviteStatus
+    title: str | None = None
+    expires_at: datetime
+    accepted_at: datetime | None = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class RecruiterInviteCreated(BaseModel):
+    """Returned right after creating an invite (includes the one-time token)."""
+
+    invite: RecruiterInviteOut
+    recruiter: RecruiterOut
+    token: str
+    accept_path: str
+
+
+class RecruiterAcceptInvite(BaseModel):
+    """Payload a recruiter submits to accept an invite & create their account."""
+
+    token: str = Field(min_length=10, max_length=64)
+    full_name: str = Field(min_length=1, max_length=255)
+    password: str = Field(min_length=6, max_length=128)
+
+
+class RecruiterMeOut(BaseModel):
+    """A recruiter's own profile: their account + their company."""
+
+    user: UserOut
+    recruiter: RecruiterOut
+    title: str | None = None
+    is_primary: bool
+
+
+# --- Recruiter portal: candidate viewing (Step 27.2) -----------------------
+class RecruiterDriveOut(BaseModel):
+    """A drive linked to the recruiter's company (recruiter view)."""
+
+    id: int
+    company_name: str
+    role_title: str
+    location: str | None = None
+    package_lpa: float | None = None
+    is_open: bool
+    deadline: date | None = None
+    shortlisted_count: int
+    selected_count: int
+
+
+class RecruiterCandidateOut(BaseModel):
+    """A shortlisted/selected candidate as seen by a recruiter.
+
+    The verified-data snapshot is always visible (the moat's value); contact
+    (email) appears only after the TPO reveals it for this application.
+    """
+
+    application_id: int
+    drive_id: int
+    drive_role: str
+    status: ApplicationStatus
+    full_name: str
+    cgpa: float
+    attendance: float
+    verified_skills: list[str]
+    verified_projects: int
+    contact_revealed: bool
+    email: str | None = None
+    # Recruiter's own (non-binding) call on this candidate (Step 27.3).
+    recruiter_decision: RecruiterDecision = RecruiterDecision.pending
+    recruiter_decision_note: str | None = None
+    # Whether this candidate already has a live offer (extended/accepted).
+    has_active_offer: bool = False
+
+
+class RecruiterDecisionUpdate(BaseModel):
+    """Recruiter records a non-binding call on a visible candidate (27.3).
+
+    `pending` is not allowed here - use interested / on_hold / rejected.
+    """
+
+    decision: RecruiterDecision = Field(examples=["interested"])
+    note: str | None = Field(default=None, max_length=500)
+
+
+class OfferCreate(BaseModel):
+    """Recruiter extends an offer to a candidate (Step 27.3).
+
+    `role_title`, `package_lpa` and `location` default to the drive's values
+    when omitted, so a quick offer just needs the application id.
+    """
+
+    application_id: int = Field(gt=0)
+    role_title: str | None = Field(default=None, max_length=200)
+    package_lpa: float | None = Field(default=None, ge=0, examples=[8.5])
+    location: str | None = Field(default=None, max_length=150)
+    joining_date: date | None = None
+    expires_on: date | None = None
+    note: str | None = Field(default=None, max_length=1000)
+
+
+class OfferRespond(BaseModel):
+    """Student's response to an offer: accept or decline (Step 27.3)."""
+
+    accept: bool
+    note: str | None = Field(default=None, max_length=500)
+
+
+class OfferOut(BaseModel):
+    """A full offer record, enriched with drive/company/student context."""
+
+    id: int
+    application_id: int
+    drive_id: int
+    drive_role: str
+    company_name: str
+    student_id: int
+    student_name: str
+    role_title: str
+    package_lpa: float | None = None
+    location: str | None = None
+    joining_date: date | None = None
+    expires_on: date | None = None
+    status: OfferStatus
+    note: str | None = None
+    student_response_note: str | None = None
+    created_at: datetime
+    responded_at: datetime | None = None
+
+
+class DriveRecruiterLink(BaseModel):
+    """TPO payload to link (or unlink) a drive to a recruiting company."""
+
+    recruiter_id: int | None = Field(
+        default=None, description="Company id to link; null to unlink."
+    )
+
+
+class ContactRevealUpdate(BaseModel):
+    """TPO toggle to reveal/hide a candidate's contact to the recruiter."""
+
+    revealed: bool

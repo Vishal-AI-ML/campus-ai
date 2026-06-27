@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from db import get_db
-from models import User
+from models import User, UserRole
 from schemas import Token, UserCreate, UserOut
 from security import create_access_token, get_current_user, hash_password, verify_password
 
@@ -18,7 +18,12 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 def register(payload: UserCreate, db: Session = Depends(get_db)) -> User:
-    """Create a new account. Fails if the email is already taken."""
+    """Create a new account. Fails if the email is already taken.
+
+    SECURITY: public self-registration always creates a STUDENT account. Staff
+    and recruiter roles are provisioned by an admin or via the recruiter invite
+    flow - the caller cannot choose their own role here.
+    """
     exists = db.scalar(select(User).where(User.email == payload.email))
     if exists is not None:
         raise HTTPException(
@@ -30,7 +35,7 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> User:
         email=payload.email,
         full_name=payload.full_name,
         hashed_password=hash_password(payload.password),
-        role=payload.role,
+        role=UserRole.student,
     )
     db.add(user)
     db.commit()

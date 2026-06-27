@@ -29,6 +29,11 @@ const BLURBS: Record<string, string> = {
 	"/dashboard/applications": "Review applicants and shortlist candidates.",
 	"/dashboard/users": "Manage user accounts, roles and access.",
 	"/dashboard/departments": "Manage departments and sections.",
+	"/dashboard/recruiter-candidates":
+		"Shortlisted candidates, decisions and offers.",
+	"/dashboard/recruiter-offers": "Offers your company has extended.",
+	"/dashboard/recruiters":
+		"Onboard companies, link drives and reveal candidate contacts.",
 }
 
 const ROLE_TAGLINE: Record<Role, string> = {
@@ -36,6 +41,7 @@ const ROLE_TAGLINE: Record<Role, string> = {
 	teacher: "Verify student claims and manage your classes.",
 	tpo: "Run drives and place verified, ranked candidates.",
 	admin: "Set up the institute and manage users.",
+	recruiter: "Review shortlisted candidates and extend offers.",
 }
 
 export default function DashboardHome() {
@@ -54,9 +60,13 @@ export default function DashboardHome() {
 
 			{user.role === "admin" && <AdminStats />}
 
-			<AnnouncementsFeed />
-
-			<UpcomingEvents />
+			{/* Internal college feeds are hidden from external recruiters. */}
+			{user.role !== "recruiter" && (
+				<>
+					<AnnouncementsFeed />
+					<UpcomingEvents />
+				</>
+			)}
 
 			<div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 				{cards.map((item) => (

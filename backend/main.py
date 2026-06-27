@@ -20,6 +20,11 @@ Progress:
   * Assignments: teachers post assignments per section; students submit; teachers grade.
   * Study Hub: teachers upload study materials/notes per section; students browse.
   * Doubt Forum: students post doubts per section; peers/staff answer, upvote & accept.
+  * Leave/OD: students apply for leave/on-duty; staff approve; bulk OD for events.
+  * Attendance condonation: approved leave/OD excuses matching absences so a
+    student's attendance % is never pulled down by official duty/approved leave.
+  * Analytics & at-risk: explainable per-student risk (attendance + CGPA +
+    submissions) + section dashboards for teachers.
 
 Location:
     E:\\campus-ai\\backend\\main.py
@@ -39,11 +44,14 @@ Key URLs:
     /materials/*   -> study hub: upload & browse study materials (section-scoped)
     /doubts/*      -> doubt forum: ask, answer, upvote & accept (section-scoped)
     /timetable/*   -> class timetable: weekly recurring schedule per section
+    /leave/*       -> leave & OD requests (apply, approve, bulk OD for events)
     /skills/*      -> claim, verify/flag, view skills
     /projects/*    -> create, verify per member, view projects
     /mentor/*      -> AI career mentor chat
     /resume/*      -> AI resume builder + ATS scoring (student)
     /drives/*      -> placement drives, eligibility, applications & shortlisting
+    /placement/analytics/* -> placement funnel, rate, per-drive & company stats
+    /recruiters/*  -> recruiter portal: TPO onboards companies; recruiters self-onboard
     /people/*      -> staff roster: list students (optionally by section)
     /face/*        -> face attendance: enroll a student's reference face (staff)
     /announcements/* -> institute broadcasts (admin posts, everyone reads)
@@ -57,6 +65,7 @@ from sqlalchemy import text
 
 from academics import router as academics_router
 from admin import router as admin_router
+from analytics import router as analytics_router
 from announcements import router as announcements_router
 from assignments import router as assignments_router
 from attendance import router as attendance_router
@@ -68,16 +77,19 @@ from db import engine
 from doubts import router as doubts_router
 from face import router as face_router
 from leads import router as leads_router
+from leaveod import router as leaveod_router
 from materials import router as materials_router
 from mentor import router as mentor_router
 from people import router as people_router
 from placement import router as placement_router
+from placement_analytics import router as placement_analytics_router
 from projects import router as projects_router
+from recruiters import router as recruiters_router
 from resume import router as resume_router
 from skills import router as skills_router
 from timetable import router as timetable_router
 
-app = FastAPI(title=settings.PROJECT_NAME, version="0.23.0")
+app = FastAPI(title=settings.PROJECT_NAME, version="0.30.0")
 
 # CORS: allow the local Next.js dev frontend to call the API from the browser.
 # Add your deployed frontend origin(s) to this list when you go to production.
@@ -100,6 +112,7 @@ app.include_router(calendar_router)
 app.include_router(audit_router)
 app.include_router(attendance_router)
 app.include_router(academics_router)
+app.include_router(analytics_router)
 app.include_router(assignments_router)
 app.include_router(materials_router)
 app.include_router(doubts_router)
@@ -108,10 +121,13 @@ app.include_router(projects_router)
 app.include_router(mentor_router)
 app.include_router(resume_router)
 app.include_router(placement_router)
+app.include_router(placement_analytics_router)
+app.include_router(recruiters_router)
 app.include_router(leads_router)
 app.include_router(people_router)
 app.include_router(face_router)
 app.include_router(timetable_router)
+app.include_router(leaveod_router)
 
 
 @app.get("/")

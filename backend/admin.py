@@ -11,7 +11,19 @@ academics routes. All write operations here are admin-only via
 `/admin` prefix by `main.py`.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+import csv
+import io
+import secrets
+
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    HTTPException,
+    Response,
+    UploadFile,
+    status,
+)
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -21,6 +33,8 @@ from db import get_db
 from models import Department, Section, User, UserRole
 from schemas import (
     AdminUserCreate,
+    BulkImportResult,
+    BulkImportRowResult,
     DepartmentCreate,
     DepartmentOut,
     SectionCreate,
@@ -303,4 +317,242 @@ def list_sections(
             .where(Section.department_id == department_id)
             .order_by(Section.name)
         )
+    )
+
+
+# --- Bulk user import ------------------------------------------------------
+_MAX_BULK_ROWS = 1000
+
+
+@router.get("/users/bulk-template")
+def bulk_user_template(_admin: User = Depends(admin_only)) -> Response:
+    """Download a sample CSV showing the columns expected by bulk import."""
+    sample = (
+        "full_name,email,role,password,section_id\n"
+        "Asha Verma,asha.verma@campus.ai,student,,1\n"
+        "Ravi Kumar,ravi.kumar@campus.ai,student,Secret123,1\n"
+        "Prof Iyer,prof.iyer@campus.ai,teacher,,\n"
+    )
+    return Response(
+        content=sample,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": (
+                "attachment; filename=campus_users_template.csv"
+            )
+        },
+    )
+
+
+@router.post("/users/bulk-import", response_model=BulkImportResult)
+async def bulk_import_users(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    admin: User = Depends(admin_only),
+) -> BulkImportResult:
+    """Create many accounts at once from an uploaded CSV.
+
+    Header row is required. Columns: full_name, email, role, password,
+    section_id. `role` defaults to "student"; a password is auto-generated
+    when blank (and returned once so you can share it); `section_id` is
+    optional (only meaningful for students). Each row is validated on its
+    own - invalid rows are skipped with a reason and never abort the rest -
+    and all valid rows are committed together in one transaction.
+    """
+    raw = await file.read()
+    try:
+        text_data = raw.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File must be a UTF-8 encoded CSV",
+        )
+
+    reader = csv.DictReader(io.StringIO(text_data))
+    if reader.fieldnames is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="CSV is empty or missing a header row",
+        )
+
+    # Map normalised (lowercase) header names back to the originals.
+    field_map = {
+        (name or "").strip().lower(): name for name in reader.fieldnames
+    }
+    if "email" not in field_map:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="CSV must include an 'email' column",
+        )
+
+    def cell(row: dict, key: str) -> str:
+        src = field_map.get(key)
+        return (row.get(src) or "").strip() if src else ""
+
+    # Preload existing emails + valid section ids once (transaction-safe).
+    existing_emails = {e.lower() for e in db.scalars(select(User.email))}
+    valid_section_ids = set(db.scalars(select(Section.id)))
+    valid_roles = {r.value for r in UserRole}
+
+    results: list[BulkImportRowResult] = []
+    seen_in_file: set[str] = set()
+    pending: list[tuple[int, User, str | None]] = []
+    total = 0
+
+    for i, row in enumerate(reader, start=2):  # row 1 is the header
+        total += 1
+        if total > _MAX_BULK_ROWS:
+            results.append(
+                BulkImportRowResult(
+                    row=i,
+                    status="skipped",
+                    detail=f"Exceeded the limit of {_MAX_BULK_ROWS} rows",
+                )
+            )
+            continue
+
+        email = cell(row, "email").lower()
+        full_name = cell(row, "full_name") or cell(row, "name")
+        role_raw = (cell(row, "role") or "student").lower()
+        password = cell(row, "password")
+        section_raw = cell(row, "section_id")
+
+        domain = email.split("@")[-1] if "@" in email else ""
+        if not email or "@" not in email or "." not in domain:
+            results.append(
+                BulkImportRowResult(
+                    row=i,
+                    email=email or None,
+                    status="skipped",
+                    detail="Invalid or missing email",
+                )
+            )
+            continue
+        if not full_name:
+            results.append(
+                BulkImportRowResult(
+                    row=i,
+                    email=email,
+                    status="skipped",
+                    detail="Missing full_name",
+                )
+            )
+            continue
+        if role_raw not in valid_roles:
+            results.append(
+                BulkImportRowResult(
+                    row=i,
+                    email=email,
+                    status="skipped",
+                    detail=f"Invalid role '{role_raw}'",
+                )
+            )
+            continue
+        if email in seen_in_file:
+            results.append(
+                BulkImportRowResult(
+                    row=i,
+                    email=email,
+                    status="skipped",
+                    detail="Duplicate email within the file",
+                )
+            )
+            continue
+        if email in existing_emails:
+            results.append(
+                BulkImportRowResult(
+                    row=i,
+                    email=email,
+                    status="skipped",
+                    detail="Email already registered",
+                )
+            )
+            continue
+
+        section_id: int | None = None
+        if section_raw:
+            if (
+                not section_raw.isdigit()
+                or int(section_raw) not in valid_section_ids
+            ):
+                results.append(
+                    BulkImportRowResult(
+                        row=i,
+                        email=email,
+                        status="skipped",
+                        detail=f"Unknown section_id '{section_raw}'",
+                    )
+                )
+                continue
+            section_id = int(section_raw)
+
+        generated: str | None = None
+        if not password:
+            password = secrets.token_urlsafe(9)
+            generated = password
+        elif len(password) < 6:
+            results.append(
+                BulkImportRowResult(
+                    row=i,
+                    email=email,
+                    status="skipped",
+                    detail="Password must be at least 6 characters",
+                )
+            )
+            continue
+
+        seen_in_file.add(email)
+        pending.append(
+            (
+                i,
+                User(
+                    email=email,
+                    full_name=full_name,
+                    hashed_password=hash_password(password),
+                    role=UserRole(role_raw),
+                    section_id=section_id,
+                ),
+                generated,
+            )
+        )
+
+    # Persist every valid row together, then record one audit entry.
+    created_rows: list[tuple[int, int, str, UserRole, str | None]] = []
+    if pending:
+        for _, user, _ in pending:
+            db.add(user)
+        db.flush()
+        for i, user, generated in pending:
+            created_rows.append(
+                (i, user.id, user.email, user.role, generated)
+            )
+        record_audit(
+            db,
+            admin,
+            action="user.bulk_import",
+            summary=f"Bulk-imported {len(pending)} user(s) from CSV",
+            target_type="user",
+        )
+        db.commit()
+
+    for i, uid, email, role, generated in created_rows:
+        results.append(
+            BulkImportRowResult(
+                row=i,
+                email=email,
+                status="created",
+                detail="Created",
+                user_id=uid,
+                role=role,
+                temp_password=generated,
+            )
+        )
+
+    results.sort(key=lambda r: r.row)
+    created = sum(1 for r in results if r.status == "created")
+    return BulkImportResult(
+        total_rows=total,
+        created=created,
+        skipped=total - created,
+        results=results,
     )
