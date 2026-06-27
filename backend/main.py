@@ -93,12 +93,17 @@ app = FastAPI(title=settings.PROJECT_NAME, version="0.30.0")
 
 # CORS: allow the local Next.js dev frontend to call the API from the browser.
 # Add your deployed frontend origin(s) to this list when you go to production.
+# Local dev origins are always allowed; production origins (e.g. the deployed
+# Vercel URL) come from the CORS_ORIGINS env var (comma-separated).
+_cors_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+_cors_origins += [o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

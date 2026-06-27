@@ -33,6 +33,16 @@ class Settings(BaseSettings):
     # Backend calls this over HTTP in a background task to fill `ai_score`.
     AI_WORKER_URL: str = "http://127.0.0.1:8100"
 
+    # Shared secret sent to the AI worker (X-Worker-Token header) so a public
+    # worker (e.g. Hugging Face Space) only answers our backend. Empty = off.
+    AI_WORKER_TOKEN: str = ""
+
+    # --- CORS -------------------------------------------------------------
+    # Comma-separated list of allowed frontend origins for production, e.g.
+    # "https://campus-ai.vercel.app". Local dev origins are always allowed
+    # (see main.py). Set this on the host (Koyeb) to your deployed Vercel URL.
+    CORS_ORIGINS: str = ""
+
 
 @lru_cache
 def get_settings() -> Settings:
