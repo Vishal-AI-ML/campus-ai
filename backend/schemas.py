@@ -4,7 +4,7 @@ Validated 'contracts' at the HTTP boundary - separate from the SQLAlchemy ORM
 models, which represent database rows.
 """
 
-from datetime import date, datetime
+from datetime import date, datetime, time
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
@@ -764,3 +764,47 @@ class DoubtDetailOut(DoubtOut):
     """A doubt plus all of its answers (accepted first, then most upvoted)."""
 
     answers: list[AnswerOut]
+
+
+# --- Timetable (weekly recurring class schedule) ---------------------------
+class TimetableEntryCreate(BaseModel):
+    """Create a recurring weekly class slot for a section (staff only)."""
+
+    section_id: int = Field(gt=0)
+    subject_id: int | None = Field(default=None, gt=0)
+    teacher_id: int | None = Field(default=None, gt=0)
+    day_of_week: int = Field(ge=0, le=6, examples=[0])  # 0=Mon .. 6=Sun
+    start_time: time = Field(examples=["09:00"])
+    end_time: time = Field(examples=["10:00"])
+    room: str | None = Field(default=None, max_length=100, examples=["Room 101"])
+
+
+class TimetableEntryUpdate(BaseModel):
+    """Patch an existing slot. Only the fields you send are changed.
+
+    (`section_id` is intentionally immutable - delete + recreate to move a slot
+    to another section.)
+    """
+
+    subject_id: int | None = Field(default=None, gt=0)
+    teacher_id: int | None = Field(default=None, gt=0)
+    day_of_week: int | None = Field(default=None, ge=0, le=6)
+    start_time: time | None = None
+    end_time: time | None = None
+    room: str | None = Field(default=None, max_length=100)
+
+
+class TimetableEntryOut(BaseModel):
+    """A timetable slot enriched with section/subject/teacher display names."""
+
+    id: int
+    section_id: int
+    section_name: str | None = None
+    subject_id: int | None = None
+    subject_name: str | None = None
+    teacher_id: int | None = None
+    teacher_name: str | None = None
+    day_of_week: int
+    start_time: time
+    end_time: time
+    room: str | None = None

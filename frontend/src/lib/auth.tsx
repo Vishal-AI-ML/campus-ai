@@ -80,6 +80,7 @@ export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
 		{ label: "Overview", href: "/dashboard", icon: "\u{1F3E0}" },
 		{ label: "Attendance", href: "/dashboard/attendance", icon: "\u{1F5D3}\uFE0F" },
 		{ label: "Academics", href: "/dashboard/academics", icon: "\u{1F4CA}" },
+		{ label: "Timetable", href: "/dashboard/timetable", icon: "\u{1F4C5}" },
 		{ label: "Assignments", href: "/dashboard/assignments", icon: "\u{1F4DD}" },
 		{ label: "Study Hub", href: "/dashboard/study-hub", icon: "\u{1F4DA}" },
 		{ label: "Doubts", href: "/dashboard/doubts", icon: "\u{1F4AC}" },
@@ -98,6 +99,7 @@ export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
 		{ label: "Assignments", href: "/dashboard/assignments", icon: "\u{1F4DD}" },
 		{ label: "Study Hub", href: "/dashboard/study-hub", icon: "\u{1F4DA}" },
 		{ label: "Doubts", href: "/dashboard/doubts", icon: "\u{1F4AC}" },
+		{ label: "Timetable", href: "/dashboard/timetable", icon: "\u{1F4C5}" },
 		{ label: "Gradebook", href: "/dashboard/gradebook", icon: "\u{1F4D2}" },
 	],
 	tpo: [
@@ -114,6 +116,7 @@ export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
 		{ label: "Assignments", href: "/dashboard/assignments", icon: "\u{1F4DD}" },
 		{ label: "Study Hub", href: "/dashboard/study-hub", icon: "\u{1F4DA}" },
 		{ label: "Doubts", href: "/dashboard/doubts", icon: "\u{1F4AC}" },
+		{ label: "Timetable", href: "/dashboard/timetable", icon: "\u{1F4C5}" },
 		{ label: "Audit Log", href: "/dashboard/audit", icon: "\u{1F6E1}\uFE0F" },
 	],
 }

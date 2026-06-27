@@ -38,6 +38,7 @@ Key URLs:
     /assignments/* -> create, submit & grade assignments
     /materials/*   -> study hub: upload & browse study materials (section-scoped)
     /doubts/*      -> doubt forum: ask, answer, upvote & accept (section-scoped)
+    /timetable/*   -> class timetable: weekly recurring schedule per section
     /skills/*      -> claim, verify/flag, view skills
     /projects/*    -> create, verify per member, view projects
     /mentor/*      -> AI career mentor chat
@@ -74,8 +75,9 @@ from placement import router as placement_router
 from projects import router as projects_router
 from resume import router as resume_router
 from skills import router as skills_router
+from timetable import router as timetable_router
 
-app = FastAPI(title=settings.PROJECT_NAME, version="0.22.0")
+app = FastAPI(title=settings.PROJECT_NAME, version="0.23.0")
 
 # CORS: allow the local Next.js dev frontend to call the API from the browser.
 # Add your deployed frontend origin(s) to this list when you go to production.
@@ -109,6 +111,7 @@ app.include_router(placement_router)
 app.include_router(leads_router)
 app.include_router(people_router)
 app.include_router(face_router)
+app.include_router(timetable_router)
 
 
 @app.get("/")

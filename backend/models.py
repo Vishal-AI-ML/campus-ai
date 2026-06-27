@@ -20,7 +20,7 @@ SQLAlchemy 2.x typed-mapping style (`Mapped` / `mapped_column`).
 """
 
 import enum
-from datetime import date, datetime
+from datetime import date, datetime, time
 
 from sqlalchemy import (
     Boolean,
@@ -32,6 +32,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    Time,
     UniqueConstraint,
     func,
 )
@@ -953,3 +954,60 @@ class AnswerVote(Base):
 
     def __repr__(self) -> str:
         return f"<AnswerVote answer={self.answer_id} user={self.user_id}>"
+
+
+class TimetableEntry(Base):
+    """A single recurring weekly class slot in a section's timetable.
+
+    The timetable is modelled as recurring weekly slots (the same schedule
+    repeats every week): one row = "Section A, Monday 09:00-10:00, DBMS, taught
+    by Prof X, Room 101". `day_of_week` is 0=Monday .. 6=Sunday. A section may
+    not have two slots that start at the same time on the same weekday
+    (enforced by a unique constraint).
+    """
+
+    __tablename__ = "timetable_entries"
+    __table_args__ = (
+        UniqueConstraint(
+            "section_id",
+            "day_of_week",
+            "start_time",
+            name="uq_timetable_section_day_start",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    section_id: Mapped[int] = mapped_column(
+        ForeignKey("sections.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    # Optional subject taught in this slot (e.g. 'DBMS').
+    subject_id: Mapped[int | None] = mapped_column(
+        ForeignKey("subjects.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    # The teacher who takes this class (optional staff account).
+    teacher_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    # 0=Monday .. 6=Sunday (kept as an int so the grid sorts naturally).
+    day_of_week: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    start_time: Mapped[time] = mapped_column(Time, nullable=False)
+    end_time: Mapped[time] = mapped_column(Time, nullable=False)
+    room: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    created_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<TimetableEntry id={self.id} section={self.section_id} "
+            f"day={self.day_of_week} {self.start_time}-{self.end_time}>"
+        )
