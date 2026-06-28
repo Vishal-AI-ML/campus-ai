@@ -24,6 +24,13 @@ from models import Project, ProjectMember, Skill
 
 logger = logging.getLogger("campus_ai.ai_client")
 
+
+def _worker_headers() -> dict[str, str]:
+    """Send the shared secret to the worker when one is configured."""
+    if settings.AI_WORKER_TOKEN:
+        return {"X-Worker-Token": settings.AI_WORKER_TOKEN}
+    return {}
+
 # Scoring is one quick LLM round-trip; mentor chat can take a little longer.
 _SCORE_TIMEOUT = httpx.Timeout(30.0)
 _CHAT_TIMEOUT = httpx.Timeout(60.0)
@@ -48,6 +55,7 @@ def _request_score(
     try:
         resp = httpx.post(
             f"{settings.AI_WORKER_URL}/score/proof",
+            headers=_worker_headers(),
             json={
                 "claim_type": claim_type,
                 "title": title,
@@ -117,6 +125,7 @@ def ask_mentor(
     try:
         resp = httpx.post(
             f"{settings.AI_WORKER_URL}/mentor/chat",
+            headers=_worker_headers(),
             json={"profile": profile, "question": question, "history": history},
             timeout=_CHAT_TIMEOUT,
         )
@@ -134,6 +143,7 @@ def generate_resume(profile: dict) -> dict | None:
     try:
         resp = httpx.post(
             f"{settings.AI_WORKER_URL}/resume/draft",
+            headers=_worker_headers(),
             json={"profile": profile},
             timeout=_RESUME_TIMEOUT,
         )
@@ -151,6 +161,7 @@ def score_resume_ats(resume_text: str, job_description: str) -> dict | None:
     try:
         resp = httpx.post(
             f"{settings.AI_WORKER_URL}/resume/ats-score",
+            headers=_worker_headers(),
             json={"resume_text": resume_text, "job_description": job_description},
             timeout=_RESUME_TIMEOUT,
         )
@@ -171,6 +182,7 @@ def enroll_face(student_id: int, image_base64: str) -> dict:
     """
     resp = httpx.post(
         f"{settings.AI_WORKER_URL}/face/enroll",
+        headers=_worker_headers(),
         json={"student_id": student_id, "image_base64": image_base64},
         timeout=_FACE_TIMEOUT,
     )
@@ -182,6 +194,7 @@ def delete_face_enrollment(student_id: int) -> None:
     """Remove a student's enrolled face from the worker (and thus Qdrant)."""
     resp = httpx.delete(
         f"{settings.AI_WORKER_URL}/face/enroll/{student_id}",
+        headers=_worker_headers(),
         timeout=_SCORE_TIMEOUT,
     )
     resp.raise_for_status()
@@ -198,6 +211,7 @@ def match_faces(image_base64: str, score_threshold: float | None = None) -> dict
         body["score_threshold"] = score_threshold
     resp = httpx.post(
         f"{settings.AI_WORKER_URL}/face/match",
+        headers=_worker_headers(),
         json=body,
         timeout=_FACE_TIMEOUT,
     )
