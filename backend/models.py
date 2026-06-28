@@ -535,6 +535,48 @@ class ExtraCurricular(Base):
         )
 
 
+class Resume(Base):
+    """A saved, versioned snapshot of a student's AI-generated resume.
+
+    Every call to POST /resume/generate stores one immutable version here, so a
+    student keeps a history, can reopen/compare past drafts, rename them, and
+    mark ONE as their primary copy. The Markdown is built only from VERIFIED
+    data (same moat as the live generator), so stored versions never contain
+    unproven claims.
+
+    At most one version per student is `is_primary` at a time (enforced in the
+    router when toggling, not by a DB constraint).
+    """
+
+    __tablename__ = "resumes"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    student_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    # A friendly label (auto-generated on save, editable later).
+    title: Mapped[str] = mapped_column(String(150), nullable=False)
+    # The role this draft was tailored for, if any (for context in the list).
+    target_role: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    # The full Markdown resume content (the actual saved document).
+    markdown: Mapped[str] = mapped_column(Text, nullable=False)
+    # Which LLM provider produced it (groq | gemini | ...), for transparency.
+    provider: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    # The student's chosen "current" resume (at most one true per student).
+    is_primary: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<Resume id={self.id} student={self.student_id} "
+            f"title={self.title!r} primary={self.is_primary}>"
+        )
+
+
 class Drive(Base):
     """A placement/recruitment drive posted by the TPO.
 

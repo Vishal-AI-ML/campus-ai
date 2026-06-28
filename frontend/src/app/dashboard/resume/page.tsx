@@ -1,11 +1,14 @@
 /**
- * Campus AI - Student: AI Resume builder + ATS checker.
+ * Campus AI - Student: AI Resume builder + ATS checker + version history.
  *
  * Place this file at: src/app/dashboard/resume/page.tsx
  *
- * Two tools on one page:
- *   1. Resume builder  -> POST /resume/generate  (Markdown from VERIFIED data)
- *   2. ATS checker     -> POST /resume/ats-score  (resume vs job description)
+ * Three tools on one page:
+ *   1. Resume builder  -> POST /resume/generate  (Markdown from VERIFIED data;
+ *                         each generate is auto-saved as a new version)
+ *   2. Version history -> GET/PATCH/DELETE /resume/versions[/{id}]
+ *                         (open, rename, mark primary, delete past drafts)
+ *   3. ATS checker     -> POST /resume/ats-score  (resume vs job description)
  *
  * The builder uses only the student's verified skills/projects (the moat), so
  * the document never contains unproven claims. Markdown is shown as-is (with
@@ -14,7 +17,7 @@
 
 "use client"
 
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { api, ApiError } from "@/lib/api"
 
 type AtsResult = {
@@ -26,12 +29,26 @@ type AtsResult = {
 	provider: string
 }
 
+type ResumeVersionSummary = {
+	id: number
+	title: string
+	target_role: string | null
+	provider: string | null
+	is_primary: boolean
+	created_at: string
+	preview: string
+}
+
+type ResumeVersionOut = ResumeVersionSummary & { markdown: string }
+
 const inputClass =
 	"mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
 const primaryBtn =
 	"rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 px-5 py-2.5 text-sm font-medium text-white disabled:opacity-50"
 const ghostBtn =
 	"rounded-lg border border-white/10 px-4 py-2 text-sm text-slate-200 hover:bg-white/5"
+const chipBtn =
+	"rounded-md border border-white/10 px-2.5 py-1 text-xs text-slate-200 hover:bg-white/5 disabled:opacity-50"
 
 function scoreColor(score: number): string {
 	if (score >= 75) return "text-emerald-300"
@@ -45,12 +62,31 @@ function barColor(score: number): string {
 	return "bg-red-400"
 }
 
+function formatDate(iso: string): string {
+	const d = new Date(iso)
+	if (Number.isNaN(d.getTime())) return iso
+	return d.toLocaleString(undefined, {
+		day: "2-digit",
+		month: "short",
+		year: "numeric",
+		hour: "2-digit",
+		minute: "2-digit",
+	})
+}
+
 export default function ResumePage() {
 	// --- Builder state ---
 	const [targetRole, setTargetRole] = useState("")
 	const [markdown, setMarkdown] = useState("")
 	const [genLoading, setGenLoading] = useState(false)
 	const [genError, setGenError] = useState<string | null>(null)
+	const [activeVersionId, setActiveVersionId] = useState<number | null>(null)
+
+	// --- Version history state ---
+	const [versions, setVersions] = useState<ResumeVersionSummary[]>([])
+	const [versionsLoading, setVersionsLoading] = useState(true)
+	const [versionError, setVersionError] = useState<string | null>(null)
+	const [busyVersionId, setBusyVersionId] = useState<number | null>(null)
 
 	// --- ATS state ---
 	const [resumeText, setResumeText] = useState("")
@@ -59,21 +95,119 @@ export default function ResumePage() {
 	const [atsLoading, setAtsLoading] = useState(false)
 	const [atsError, setAtsError] = useState<string | null>(null)
 
+	const loadVersions = useCallback(async () => {
+		setVersionsLoading(true)
+		setVersionError(null)
+		try {
+			const res = await api.get<ResumeVersionSummary[]>("/resume/versions")
+			setVersions(res)
+		} catch (err) {
+			setVersionError(
+				err instanceof ApiError
+					? err.message
+					: "Could not load your saved versions.",
+			)
+		} finally {
+			setVersionsLoading(false)
+		}
+	}, [])
+
+	useEffect(() => {
+		void loadVersions()
+	}, [loadVersions])
+
 	async function handleGenerate() {
 		setGenLoading(true)
 		setGenError(null)
 		try {
-			const res = await api.post<{ markdown: string; provider: string }>(
-				"/resume/generate",
-				{ target_role: targetRole.trim() || null },
-			)
+			const res = await api.post<{
+				markdown: string
+				provider: string
+				version_id: number | null
+			}>("/resume/generate", { target_role: targetRole.trim() || null })
 			setMarkdown(res.markdown)
+			setActiveVersionId(res.version_id)
+			await loadVersions()
 		} catch (err) {
 			setGenError(
 				err instanceof ApiError ? err.message : "Could not generate the resume.",
 			)
 		} finally {
 			setGenLoading(false)
+		}
+	}
+
+	async function openVersion(id: number) {
+		setBusyVersionId(id)
+		setVersionError(null)
+		try {
+			const res = await api.get<ResumeVersionOut>(`/resume/versions/${id}`)
+			setMarkdown(res.markdown)
+			setActiveVersionId(res.id)
+			if (res.target_role) setTargetRole(res.target_role)
+			window.scrollTo({ top: 0, behavior: "smooth" })
+		} catch (err) {
+			setVersionError(
+				err instanceof ApiError ? err.message : "Could not open that version.",
+			)
+		} finally {
+			setBusyVersionId(null)
+		}
+	}
+
+	async function setPrimary(id: number) {
+		setBusyVersionId(id)
+		setVersionError(null)
+		try {
+			await api.patch<ResumeVersionOut>(`/resume/versions/${id}`, {
+				is_primary: true,
+			})
+			await loadVersions()
+		} catch (err) {
+			setVersionError(
+				err instanceof ApiError ? err.message : "Could not update the version.",
+			)
+		} finally {
+			setBusyVersionId(null)
+		}
+	}
+
+	async function renameVersion(id: number, current: string) {
+		const next = window.prompt("Rename this resume version:", current)
+		if (next === null) return
+		const trimmed = next.trim()
+		if (!trimmed || trimmed === current) return
+		setBusyVersionId(id)
+		setVersionError(null)
+		try {
+			await api.patch<ResumeVersionOut>(`/resume/versions/${id}`, {
+				title: trimmed,
+			})
+			await loadVersions()
+		} catch (err) {
+			setVersionError(
+				err instanceof ApiError ? err.message : "Could not rename the version.",
+			)
+		} finally {
+			setBusyVersionId(null)
+		}
+	}
+
+	async function deleteVersion(id: number) {
+		if (!window.confirm("Delete this resume version? This cannot be undone."))
+			return
+		setBusyVersionId(id)
+		setVersionError(null)
+		try {
+			await api.delete<void>(`/resume/versions/${id}`)
+			if (activeVersionId === id) setActiveVersionId(null)
+			await loadVersions()
+		} catch (err) {
+			setVersionError(
+				err instanceof ApiError ? err.message : "Could not delete the version.",
+			)
+		} finally {
+			setBusyVersionId(null)
 		}
 	}
 
@@ -123,7 +257,7 @@ export default function ResumePage() {
 				<p className="mt-1 text-sm text-slate-400">
 					Build a resume from your{" "}
 					<span className="text-slate-200">verified</span> skills & projects,
-					then check it against any job description.
+					keep a version history, then check it against any job description.
 				</p>
 			</div>
 
@@ -131,7 +265,8 @@ export default function ResumePage() {
 			<section className="rounded-2xl border border-white/10 bg-white/5 p-6">
 				<h3 className="text-lg font-semibold">📄 Resume builder</h3>
 				<p className="mt-1 text-sm text-slate-400">
-					Only verified data is used — no invented experience.
+					Only verified data is used — no invented experience. Each generation
+					is saved to your version history below.
 				</p>
 				<label className="mt-4 block text-sm text-slate-300">
 					Target role (optional)
@@ -151,7 +286,7 @@ export default function ResumePage() {
 						{genLoading
 							? "Generating..."
 							: markdown
-								? "Regenerate"
+								? "Regenerate (saves new version)"
 								: "Generate resume"}
 					</button>
 					{markdown && (
@@ -177,6 +312,110 @@ export default function ResumePage() {
 					<pre className="mt-4 max-h-[28rem] overflow-auto whitespace-pre-wrap rounded-xl border border-white/10 bg-slate-950 p-4 text-sm text-slate-200">
 						{markdown}
 					</pre>
+				)}
+			</section>
+
+			{/* --- Version history --- */}
+			<section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+				<div className="flex items-center justify-between">
+					<h3 className="text-lg font-semibold">🕓 Version history</h3>
+					<button
+						className={chipBtn}
+						onClick={() => void loadVersions()}
+						disabled={versionsLoading}
+					>
+						{versionsLoading ? "Refreshing..." : "Refresh"}
+					</button>
+				</div>
+				<p className="mt-1 text-sm text-slate-400">
+					Every resume you generate is saved here. Open an old draft, rename it,
+					or mark one as your primary.
+				</p>
+
+				{versionError && (
+					<p className="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+						{versionError}
+					</p>
+				)}
+
+				{versionsLoading ? (
+					<p className="mt-4 text-sm text-slate-500">Loading versions...</p>
+				) : versions.length === 0 ? (
+					<p className="mt-4 text-sm text-slate-500">
+						No saved versions yet — generate a resume above to start your
+						history.
+					</p>
+				) : (
+					<ul className="mt-4 space-y-3">
+						{versions.map((v) => {
+							const isBusy = busyVersionId === v.id
+							const isActive = activeVersionId === v.id
+							return (
+								<li
+									key={v.id}
+								className={`rounded-xl border p-4 ${
+									isActive
+										? "border-indigo-400/50 bg-indigo-500/5"
+									: "border-white/10 bg-slate-950"
+								}`}
+								>
+									<div className="flex flex-wrap items-center gap-2">
+										<span className="font-medium text-slate-100">
+											{v.title}
+										</span>
+										{v.is_primary && (
+											<span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs text-amber-300">
+												★ Primary
+											</span>
+										)}
+										{isActive && (
+											<span className="rounded-full bg-indigo-500/15 px-2 py-0.5 text-xs text-indigo-300">
+												Shown above
+											</span>
+										)}
+									</div>
+									<div className="mt-1 text-xs text-slate-500">
+										{formatDate(v.created_at)}
+										{v.target_role ? ` · ${v.target_role}` : ""}
+										{v.provider ? ` · ${v.provider}` : ""}
+									</div>
+									<p className="mt-2 line-clamp-2 text-sm text-slate-400">
+										{v.preview}
+									</p>
+									<div className="mt-3 flex flex-wrap gap-2">
+										<button
+											className={chipBtn}
+											onClick={() => void openVersion(v.id)}
+											disabled={isBusy}
+										>
+											Open
+										</button>
+										<button
+											className={chipBtn}
+											onClick={() => void setPrimary(v.id)}
+											disabled={isBusy || v.is_primary}
+										>
+											{v.is_primary ? "★ Primary" : "Set primary"}
+										</button>
+										<button
+											className={chipBtn}
+											onClick={() => void renameVersion(v.id, v.title)}
+											disabled={isBusy}
+										>
+											Rename
+										</button>
+										<button
+											className={chipBtn}
+											onClick={() => void deleteVersion(v.id)}
+											disabled={isBusy}
+										>
+											Delete
+										</button>
+									</div>
+								</li>
+							)
+						})}
+					</ul>
 				)}
 			</section>
 
