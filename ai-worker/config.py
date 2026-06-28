@@ -30,5 +30,9 @@ class Settings(BaseSettings):
     # Lower temperature -> more consistent, less 'creative' scoring.
     LLM_TEMPERATURE: float = 0.2
 
+    # Shared secret. When set, every request except the open paths (/health, /)
+    # must send a matching X-Worker-Token header. Empty = check disabled.
+    AI_WORKER_TOKEN: str = ""
+
 
 settings = Settings()

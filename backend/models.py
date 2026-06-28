@@ -471,6 +471,70 @@ class ProjectMember(Base):
         )
 
 
+class ECACategory(str, enum.Enum):
+    """Buckets for extra-curricular activities (the 'well-rounded' picture)."""
+
+    sports = "sports"
+    cultural = "cultural"
+    technical = "technical"
+    volunteering = "volunteering"
+    leadership = "leadership"
+    other = "other"
+
+
+class ExtraCurricular(Base):
+    """A student-claimed extra-curricular activity + proof + verification state.
+
+    Same 'verified data moat' lifecycle as skills (reuses `SkillStatus`): a
+    claim counts toward the resume/profile only once a teacher/TPO marks it
+    `verified`. Categorised (sports/cultural/...) so recruiters see a
+    well-rounded, *verified* picture beyond academics.
+    A student cannot log the same activity title twice (unique constraint).
+    """
+
+    __tablename__ = "extracurriculars"
+    __table_args__ = (
+        UniqueConstraint("student_id", "title", name="uq_eca_student_title"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    student_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    title: Mapped[str] = mapped_column(String(150), nullable=False)
+    category: Mapped[ECACategory] = mapped_column(
+        Enum(ECACategory, name="eca_category"),
+        default=ECACategory.other,
+        nullable=False,
+        index=True,
+    )
+    organization: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    evidence_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    status: Mapped[SkillStatus] = mapped_column(
+        Enum(SkillStatus, name="skill_status"),
+        default=SkillStatus.pending,
+        nullable=False,
+        index=True,
+    )
+    reviewed_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    review_note: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    reviewed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<ExtraCurricular student={self.student_id} title={self.title!r} "
+            f"status={self.status.value}>"
+        )
+
+
 class Drive(Base):
     """A placement/recruitment drive posted by the TPO.
 

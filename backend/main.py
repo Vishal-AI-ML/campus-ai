@@ -75,6 +75,7 @@ from calendar_events import router as calendar_router
 from config import settings
 from db import engine
 from doubts import router as doubts_router
+from eca import router as eca_router
 from face import router as face_router
 from leads import router as leads_router
 from leaveod import router as leaveod_router
@@ -122,6 +123,7 @@ app.include_router(assignments_router)
 app.include_router(materials_router)
 app.include_router(doubts_router)
 app.include_router(skills_router)
+app.include_router(eca_router)
 app.include_router(projects_router)
 app.include_router(mentor_router)
 app.include_router(resume_router)

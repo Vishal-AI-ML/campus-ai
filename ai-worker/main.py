@@ -19,7 +19,8 @@ Run (from the ai-worker folder):
     uv run uvicorn main:app --reload --port 8100
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
 from config import settings
 from face import router as face_router
@@ -28,6 +29,24 @@ from resume import router as resume_router
 from scoring import router as scoring_router
 
 app = FastAPI(title="Campus AI - AI Worker", version="0.6.0")
+
+# Endpoints that stay open (no token): liveness, sanity, API docs. CORS
+# preflight (OPTIONS) is also allowed through. Everything else requires the
+# shared secret WHEN one is configured (AI_WORKER_TOKEN set).
+_OPEN_PATHS = {"/", "/health", "/docs", "/openapi.json", "/redoc"}
+
+
+@app.middleware("http")
+async def _verify_worker_token(request: Request, call_next):
+    token = settings.AI_WORKER_TOKEN
+    if token and request.method != "OPTIONS" and request.url.path not in _OPEN_PATHS:
+        if request.headers.get("X-Worker-Token") != token:
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Invalid or missing worker token"},
+            )
+    return await call_next(request)
+
 
 app.include_router(scoring_router)
 app.include_router(mentor_router)

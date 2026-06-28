@@ -13,6 +13,7 @@ from models import (
     ApplicationStatus,
     AttendanceStatus,
     DoubtStatus,
+    ECACategory,
     InviteStatus,
     LeaveRequestType,
     LeaveStatus,
@@ -312,6 +313,44 @@ class SkillOut(BaseModel):
 
 class SkillDecision(BaseModel):
     """A mentor's verify/flag decision on a pending skill."""
+
+    status: SkillStatus = Field(examples=["verified"])  # must be verified|flagged
+    review_note: str | None = Field(default=None, max_length=500)
+
+
+# --- Extra-curricular activities (ECA - verified data moat) ----------------
+class ECACreate(BaseModel):
+    """A student logs an extra-curricular activity + optional proof. Starts pending."""
+
+    title: str = Field(
+        min_length=1, max_length=150, examples=["Inter-college Football Captain"]
+    )
+    category: ECACategory = Field(default=ECACategory.other, examples=["sports"])
+    organization: str | None = Field(
+        default=None, max_length=150, examples=["Sports Committee"]
+    )
+    description: str | None = Field(default=None, max_length=2000)
+    evidence_url: str | None = Field(
+        default=None, max_length=500, examples=["https://example.com/certificate.pdf"]
+    )
+
+
+class ECAOut(BaseModel):
+    id: int
+    student_id: int
+    title: str
+    category: ECACategory
+    organization: str | None
+    description: str | None
+    evidence_url: str | None
+    status: SkillStatus
+    review_note: str | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ECADecision(BaseModel):
+    """A teacher/TPO's verify/flag decision on a pending ECA claim."""
 
     status: SkillStatus = Field(examples=["verified"])  # must be verified|flagged
     review_note: str | None = Field(default=None, max_length=500)
