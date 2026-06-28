@@ -93,6 +93,7 @@ export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
     { label: "Resume", href: "/dashboard/resume", icon: "\u{1F4C4}" },
     { label: "Skills", href: "/dashboard/skills", icon: "\u{1F6E1}\uFE0F" },
     { label: "Projects", href: "/dashboard/projects", icon: "\u{1F9E9}" },
+    { label: "Activities", href: "/dashboard/eca", icon: "\u{1F3C6}" },
     { label: "Placements", href: "/dashboard/placements", icon: "\u{1F3E2}" },
     { label: "Leave & OD", href: "/dashboard/leave", icon: "\u{1F3D6}\uFE0F" },
     { label: "My Risk", href: "/dashboard/analytics", icon: "\u{1F4C8}" },

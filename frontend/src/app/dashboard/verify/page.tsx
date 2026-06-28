@@ -43,10 +43,23 @@ type MemberQueue = {
 	status: SkillStatus
 }
 
+type Eca = {
+	id: number
+	student_id: number
+	title: string
+	category: string
+	organization: string | null
+	description: string | null
+	evidence_url: string | null
+	status: SkillStatus
+	review_note: string | null
+}
+
 export default function VerifyPage() {
-	const [tab, setTab] = useState<"skills" | "projects">("skills")
+	const [tab, setTab] = useState<"skills" | "projects" | "eca">("skills")
 	const [skills, setSkills] = useState<Skill[]>([])
 	const [members, setMembers] = useState<MemberQueue[]>([])
+	const [ecas, setEcas] = useState<Eca[]>([])
 	const [notes, setNotes] = useState<Record<string, string>>({})
 	const [loading, setLoading] = useState(true)
 	const [busyKey, setBusyKey] = useState<string | null>(null)
@@ -82,10 +95,27 @@ export default function VerifyPage() {
 		}
 	}, [])
 
+	const loadEca = useCallback(async () => {
+		setLoading(true)
+		setError(null)
+		try {
+			setEcas(await api.get<Eca[]>("/eca/queue"))
+		} catch (err) {
+			setError(
+				err instanceof ApiError
+					? err.message
+					: "Could not load activities queue.",
+			)
+		} finally {
+			setLoading(false)
+		}
+	}, [])
+
 	useEffect(() => {
 		if (tab === "skills") loadSkills()
-		else loadProjects()
-	}, [tab, loadSkills, loadProjects])
+		else if (tab === "projects") loadProjects()
+		else loadEca()
+	}, [tab, loadSkills, loadProjects, loadEca])
 
 	function setNote(key: string, val: string) {
 		setNotes((prev) => ({ ...prev, [key]: val }))
@@ -132,6 +162,25 @@ export default function VerifyPage() {
 		}
 	}
 
+	async function decideEca(eca: Eca, status: "verified" | "flagged") {
+		const key = `e${eca.id}`
+		setBusyKey(key)
+		setError(null)
+		try {
+			const body: Record<string, unknown> = { status }
+			const note = (notes[key] ?? "").trim()
+			if (note) body.review_note = note
+			await api.patch(`/eca/${eca.id}/decision`, body)
+			await loadEca()
+		} catch (err) {
+			setError(
+				err instanceof ApiError ? err.message : "Could not save decision.",
+			)
+		} finally {
+			setBusyKey(null)
+		}
+	}
+
 	const tabClass = (active: boolean) =>
 		`rounded-lg px-4 py-2 text-sm transition ${
 			active ? "bg-indigo-500/15 text-white" : "text-slate-300 hover:bg-white/5"
@@ -160,6 +209,12 @@ export default function VerifyPage() {
 					className={tabClass(tab === "projects")}
 				>
 					Projects
+				</button>
+				<button
+					onClick={() => setTab("eca")}
+					className={tabClass(tab === "eca")}
+				>
+					Activities
 				</button>
 			</div>
 
@@ -296,6 +351,80 @@ export default function VerifyPage() {
 											</button>
 											<button
 												onClick={() => decideMember(member, "flagged")}
+												disabled={busyKey === key}
+												className="rounded-lg border border-red-400/30 px-3 py-1.5 text-sm text-red-300 transition hover:bg-red-400/10 disabled:opacity-40"
+											>
+												Flag
+											</button>
+										</div>
+									</div>
+								)
+							})}
+						</div>
+					)}
+				</div>
+			)}
+
+			{/* Activities (ECA) queue */}
+			{tab === "eca" && (
+				<div className="mt-6">
+					{loading ? (
+						<p className="text-slate-400">Loading queue...</p>
+					) : ecas.length === 0 ? (
+						<p className="text-slate-400">
+							No pending activities. All clear.
+						</p>
+					) : (
+						<div className="space-y-3">
+							{ecas.map((eca) => {
+								const key = `e${eca.id}`
+								return (
+									<div
+										key={eca.id}
+										className="rounded-xl border border-white/10 bg-white/5 p-4"
+									>
+										<div className="flex flex-wrap items-center justify-between gap-2">
+											<span className="font-medium">{eca.title}</span>
+											<span className="text-xs capitalize text-slate-400">
+												{eca.category} · Student #{eca.student_id}
+											</span>
+										</div>
+										{eca.organization && (
+											<p className="mt-1 text-xs text-slate-400">
+												{eca.organization}
+											</p>
+										)}
+										{eca.description && (
+											<p className="mt-2 text-sm text-slate-300">
+												{eca.description}
+											</p>
+										)}
+										{eca.evidence_url && (
+											<a
+												href={eca.evidence_url}
+												target="_blank"
+												rel="noreferrer"
+												className="mt-1 inline-block text-xs text-indigo-300 underline"
+											>
+												{eca.evidence_url}
+											</a>
+										)}
+										<input
+											value={notes[key] ?? ""}
+											onChange={(e) => setNote(key, e.target.value)}
+											className={noteClass}
+											placeholder="Review note (optional)"
+										/>
+										<div className="mt-3 flex gap-2">
+											<button
+												onClick={() => decideEca(eca, "verified")}
+												disabled={busyKey === key}
+												className="rounded-lg border border-emerald-400/30 px-3 py-1.5 text-sm text-emerald-300 transition hover:bg-emerald-400/10 disabled:opacity-40"
+											>
+												Verify
+											</button>
+											<button
+												onClick={() => decideEca(eca, "flagged")}
 												disabled={busyKey === key}
 												className="rounded-lg border border-red-400/30 px-3 py-1.5 text-sm text-red-300 transition hover:bg-red-400/10 disabled:opacity-40"
 											>

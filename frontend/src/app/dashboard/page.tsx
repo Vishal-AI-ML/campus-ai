@@ -22,6 +22,7 @@ const BLURBS: Record<string, string> = {
 	"/dashboard/academics": "Results, CGPA and per-semester SGPA.",
 	"/dashboard/skills": "Claim skills with proof and track verification.",
 	"/dashboard/projects": "Your projects and verified contributions.",
+	"/dashboard/eca": "Log extra-curriculars and track verification.",
 	"/dashboard/mentor": "Ask the AI mentor, grounded on your verified profile.",
 	"/dashboard/verify": "Review and verify student skill & project claims.",
 	"/dashboard/gradebook": "Manage subjects and enter student marks.",

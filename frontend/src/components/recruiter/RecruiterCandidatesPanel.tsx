@@ -270,6 +270,27 @@ function CandidateCard({
         </div>
       </div>
 
+      {/* Verified extra-curriculars (well-rounded signal) */}
+      <div className="mt-4">
+        <div className="text-xs uppercase tracking-wide text-slate-500">
+          Verified activities
+        </div>
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          {(candidate.verified_eca ?? []).length === 0 ? (
+            <span className="text-sm text-slate-500">None verified yet</span>
+          ) : (
+            (candidate.verified_eca ?? []).map((a) => (
+              <span
+                key={a}
+                className="rounded-md bg-sky-500/15 px-2 py-0.5 text-sm text-sky-200"
+              >
+                {a}
+              </span>
+            ))
+          )}
+        </div>
+      </div>
+
       {/* Contact (only when TPO revealed it) */}
       <div className="mt-4 text-sm">
         {candidate.contact_revealed && candidate.email ? (
