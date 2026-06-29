@@ -725,6 +725,11 @@ class Drive(Base):
     __tablename__ = "drives"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    # Tenant (institute) that posted this drive (the TPO's institute). Students
+    # only ever see and apply to drives from their own institute.
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     company_name: Mapped[str] = mapped_column(String(200), nullable=False)
     role_title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -969,6 +974,11 @@ class Announcement(Base):
     __tablename__ = "announcements"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    # Tenant (institute) this announcement was posted in. Readers only ever see
+    # announcements from their own institute.
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
     # "all" | "student" | "teacher" | "tpo" - who should see this announcement.
@@ -1080,6 +1090,11 @@ class Assignment(Base):
     __tablename__ = "assignments"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    # Tenant (institute) of the posting teacher. Mirrored here so reads can
+    # filter by institute directly.
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     section_id: Mapped[int] = mapped_column(
         ForeignKey("sections.id", ondelete="CASCADE"), nullable=False, index=True
     )
@@ -1181,6 +1196,11 @@ class Material(Base):
     __tablename__ = "materials"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    # Tenant (institute) of the uploading staff. Mirrored here so reads can
+    # filter by institute directly.
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     section_id: Mapped[int] = mapped_column(
         ForeignKey("sections.id", ondelete="CASCADE"), nullable=False, index=True
     )

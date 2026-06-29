@@ -35,6 +35,7 @@ def create_announcement(
 ) -> Announcement:
     """Post an announcement (admin). Targets everyone or a single role."""
     announcement = Announcement(
+        tenant_id=admin.tenant_id,
         title=payload.title,
         body=payload.body,
         audience=payload.audience,
@@ -56,7 +57,13 @@ def list_announcements(
     Admins see every announcement (a governance / management view); everyone
     else sees only posts targeted at them (audience "all" or their own role).
     """
-    stmt = select(Announcement).order_by(Announcement.created_at.desc())
+    # Tenant-scoped: everyone (admins included) only ever sees announcements
+    # from their own institute.
+    stmt = (
+        select(Announcement)
+        .where(Announcement.tenant_id == current_user.tenant_id)
+        .order_by(Announcement.created_at.desc())
+    )
     if current_user.role != UserRole.admin:
         stmt = stmt.where(
             or_(
@@ -71,11 +78,12 @@ def list_announcements(
 def delete_announcement(
     announcement_id: int,
     db: Session = Depends(get_db),
-    _admin: User = Depends(admin_only),
+    admin: User = Depends(admin_only),
 ) -> None:
     """Delete an announcement (admin)."""
     announcement = db.get(Announcement, announcement_id)
-    if announcement is None:
+    # Tenant guard: an admin can only delete their own institute's posts.
+    if announcement is None or announcement.tenant_id != admin.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Announcement not found",

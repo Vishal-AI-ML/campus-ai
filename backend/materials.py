@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 from db import get_db
 from models import Material, Section, Subject, User, UserRole
 from schemas import MaterialCreate, MaterialOut
-from security import get_current_user, require_roles
+from security import get_current_tenant_id, get_current_user, require_roles
 
 router = APIRouter(prefix="/materials", tags=["materials"])
 
@@ -50,6 +50,7 @@ def create_material(
             status_code=status.HTTP_404_NOT_FOUND, detail="Subject not found"
         )
     material = Material(
+        tenant_id=staff.tenant_id,
         section_id=payload.section_id,
         subject_id=payload.subject_id,
         title=payload.title,
@@ -74,9 +75,13 @@ def list_materials(
     section_id: int | None = None,
     subject_id: int | None = None,
     db: Session = Depends(get_db),
+    tenant_id: int = Depends(get_current_tenant_id),
 ) -> list[Material]:
-    """List materials (staff), optionally filtered by section and/or subject."""
-    stmt = select(Material)
+    """List materials (staff), optionally filtered by section and/or subject.
+
+    Tenant-scoped: staff only see their own institute's materials.
+    """
+    stmt = select(Material).where(Material.tenant_id == tenant_id)
     if section_id is not None:
         stmt = stmt.where(Material.section_id == section_id)
     if subject_id is not None:
@@ -94,7 +99,8 @@ def my_materials(
     if current_user.section_id is None:
         return []
     stmt = select(Material).where(
-        Material.section_id == current_user.section_id
+        Material.section_id == current_user.section_id,
+        Material.tenant_id == current_user.tenant_id,
     )
     if subject_id is not None:
         stmt = stmt.where(Material.subject_id == subject_id)
@@ -109,7 +115,8 @@ def get_material(
 ) -> Material:
     """Open a single material. Students may only read their own section's."""
     material = db.get(Material, material_id)
-    if material is None:
+    # Tenant guard: nobody can read another institute's material.
+    if material is None or material.tenant_id != current_user.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Material not found"
         )
@@ -134,7 +141,8 @@ def delete_material(
 ) -> None:
     """Delete a material. Admins can delete any; teachers only their own."""
     material = db.get(Material, material_id)
-    if material is None:
+    # Tenant guard: staff can only touch their own institute's material.
+    if material is None or material.tenant_id != staff.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Material not found"
         )

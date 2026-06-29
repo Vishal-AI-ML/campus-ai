@@ -32,7 +32,7 @@ from schemas import (
     SubmissionGrade,
     SubmissionOut,
 )
-from security import get_current_user, require_roles
+from security import get_current_tenant_id, get_current_user, require_roles
 
 router = APIRouter(prefix="/assignments", tags=["assignments"])
 
@@ -62,6 +62,7 @@ def create_assignment(
             status_code=status.HTTP_404_NOT_FOUND, detail="Subject not found"
         )
     assignment = Assignment(
+        tenant_id=staff.tenant_id,
         section_id=payload.section_id,
         subject_id=payload.subject_id,
         title=payload.title,
@@ -84,9 +85,13 @@ def create_assignment(
 def list_assignments(
     section_id: int | None = None,
     db: Session = Depends(get_db),
+    tenant_id: int = Depends(get_current_tenant_id),
 ) -> list[Assignment]:
-    """List assignments (staff), optionally filtered to one section."""
-    stmt = select(Assignment)
+    """List assignments (staff), optionally filtered to one section.
+
+    Tenant-scoped: staff only see their own institute's assignments.
+    """
+    stmt = select(Assignment).where(Assignment.tenant_id == tenant_id)
     if section_id is not None:
         stmt = stmt.where(Assignment.section_id == section_id)
     return list(db.scalars(stmt.order_by(Assignment.due_date.desc())))
@@ -103,7 +108,10 @@ def my_assignments(
     assignments = list(
         db.scalars(
             select(Assignment)
-            .where(Assignment.section_id == current_user.section_id)
+            .where(
+                Assignment.section_id == current_user.section_id,
+                Assignment.tenant_id == current_user.tenant_id,
+            )
             .order_by(Assignment.due_date.desc())
         )
     )
@@ -140,7 +148,8 @@ def submit_assignment(
     """Submit (or re-submit) work. Students only, and only for an assignment in
     their own section. Re-submitting resets the row to 'submitted'."""
     assignment = db.get(Assignment, assignment_id)
-    if assignment is None:
+    # Tenant guard: a cross-institute assignment is treated as not found.
+    if assignment is None or assignment.tenant_id != current_user.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Assignment not found"
         )
@@ -216,9 +225,14 @@ def my_submission(
 def list_submissions(
     assignment_id: int,
     db: Session = Depends(get_db),
+    tenant_id: int = Depends(get_current_tenant_id),
 ) -> list[Submission]:
-    """All submissions for an assignment (teacher grading view)."""
-    if db.get(Assignment, assignment_id) is None:
+    """All submissions for an assignment (teacher grading view).
+
+    Tenant-scoped: staff can only open assignments from their own institute.
+    """
+    assignment = db.get(Assignment, assignment_id)
+    if assignment is None or assignment.tenant_id != tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Assignment not found"
         )
@@ -247,7 +261,12 @@ def grade_submission(
             status_code=status.HTTP_404_NOT_FOUND, detail="Submission not found"
         )
     assignment = db.get(Assignment, sub.assignment_id)
-    if assignment is not None and payload.marks > assignment.max_marks:
+    # Tenant guard: staff can only grade submissions in their own institute.
+    if assignment is None or assignment.tenant_id != staff.tenant_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Submission not found"
+        )
+    if payload.marks > assignment.max_marks:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Marks cannot exceed the assignment max of {assignment.max_marks}",

@@ -144,3 +144,87 @@ def test_project_queue_is_tenant_scoped_and_blocks_outside_teammates(
         headers=token_header("iitp.stu@test.dev"),
     )
     assert blocked.status_code == 400, blocked.text
+
+
+def test_announcements_are_tenant_scoped(
+    client, make_user, make_tenant, token_header
+):
+    iit = make_tenant(slug="iit-a", name="IIT Announce")
+    nit = make_tenant(slug="nit-a", name="NIT Announce")
+
+    make_user("iita.admin@test.dev", role=models.UserRole.admin, tenant=iit)
+    make_user("iita.stu@test.dev", role=models.UserRole.student, tenant=iit)
+    make_user("nita.admin@test.dev", role=models.UserRole.admin, tenant=nit)
+
+    # Each admin broadcasts to everyone inside their own institute.
+    assert (
+        client.post(
+            "/announcements",
+            json={"title": "IIT Fest", "body": "This Friday", "audience": "all"},
+            headers=token_header("iita.admin@test.dev"),
+        ).status_code
+        == 201
+    )
+    assert (
+        client.post(
+            "/announcements",
+            json={"title": "NIT Fest", "body": "Next week", "audience": "all"},
+            headers=token_header("nita.admin@test.dev"),
+        ).status_code
+        == 201
+    )
+
+    # The IIT admin's governance view shows ONLY IIT's post (not NIT's).
+    admin_list = client.get(
+        "/announcements", headers=token_header("iita.admin@test.dev")
+    )
+    assert admin_list.status_code == 200
+    assert [a["title"] for a in admin_list.json()] == ["IIT Fest"]
+
+    # An IIT student only ever sees their own institute's "all" broadcast.
+    stu_list = client.get(
+        "/announcements", headers=token_header("iita.stu@test.dev")
+    )
+    assert stu_list.status_code == 200
+    assert [a["title"] for a in stu_list.json()] == ["IIT Fest"]
+
+
+def test_open_drives_are_tenant_scoped(
+    client, make_user, make_tenant, token_header
+):
+    iit = make_tenant(slug="iit-d", name="IIT Drives")
+    nit = make_tenant(slug="nit-d", name="NIT Drives")
+
+    make_user("iitd.tpo@test.dev", role=models.UserRole.tpo, tenant=iit)
+    make_user("iitd.stu@test.dev", role=models.UserRole.student, tenant=iit)
+    make_user("nitd.tpo@test.dev", role=models.UserRole.tpo, tenant=nit)
+
+    # Each TPO posts a placement drive inside their own institute.
+    assert (
+        client.post(
+            "/drives",
+            json={"company_name": "Acme", "role_title": "Backend Engineer"},
+            headers=token_header("iitd.tpo@test.dev"),
+        ).status_code
+        == 201
+    )
+    nit_drive = client.post(
+        "/drives",
+        json={"company_name": "Globex", "role_title": "Data Engineer"},
+        headers=token_header("nitd.tpo@test.dev"),
+    )
+    assert nit_drive.status_code == 201
+    nit_drive_id = nit_drive.json()["id"]
+
+    # An IIT student browsing open drives sees ONLY IIT's drive.
+    open_list = client.get(
+        "/drives/open", headers=token_header("iitd.stu@test.dev")
+    )
+    assert open_list.status_code == 200
+    assert [d["company_name"] for d in open_list.json()] == ["Acme"]
+
+    # The IIT TPO cannot open NIT's drive by id -> hidden as 404.
+    cross = client.get(
+        f"/drives/{nit_drive_id}", headers=token_header("iitd.tpo@test.dev")
+    )
+    assert cross.status_code == 404, cross.text

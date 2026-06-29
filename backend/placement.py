@@ -55,7 +55,7 @@ from schemas import (
     MyEligibilityOut,
     StudentEligibilityOut,
 )
-from security import get_current_user, require_roles
+from security import get_current_tenant_id, get_current_user, require_roles
 
 router = APIRouter(prefix="/drives", tags=["placement"])
 
@@ -173,9 +173,12 @@ def _evaluate(profile: dict, drive: Drive) -> tuple[bool, list[dict]]:
     return eligible, reasons
 
 
-def _require_drive(db: Session, drive_id: int) -> Drive:
+def _require_drive(
+    db: Session, drive_id: int, tenant_id: int | None = None
+) -> Drive:
     drive = db.get(Drive, drive_id)
-    if drive is None:
+    # When a tenant is given, a drive from another institute is hidden (404).
+    if drive is None or (tenant_id is not None and drive.tenant_id != tenant_id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Drive not found"
         )
@@ -191,6 +194,7 @@ def create_drive(
 ) -> Drive:
     """Post a new placement drive with its eligibility criteria."""
     drive = Drive(
+        tenant_id=tpo.tenant_id,
         company_name=payload.company_name,
         role_title=payload.role_title,
         description=payload.description,
@@ -213,9 +217,13 @@ def create_drive(
 def list_drives(
     open_only: bool = False,
     db: Session = Depends(get_db),
+    tenant_id: int = Depends(get_current_tenant_id),
 ) -> list[Drive]:
-    """List all drives (TPO/admin). Optionally only the open ones."""
-    stmt = select(Drive)
+    """List all drives (TPO/admin). Optionally only the open ones.
+
+    Tenant-scoped: staff only see their own institute's drives.
+    """
+    stmt = select(Drive).where(Drive.tenant_id == tenant_id)
     if open_only:
         stmt = stmt.where(Drive.is_open.is_(True))
     return list(db.scalars(stmt.order_by(Drive.created_at.desc())))
@@ -224,14 +232,20 @@ def list_drives(
 @router.get("/open", response_model=list[DriveOut])
 def open_drives(
     db: Session = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user),
 ) -> list[Drive]:
-    """Browse currently open drives (any logged-in user)."""
+    """Browse currently open drives (any logged-in user).
+
+    Tenant-scoped: a student only sees drives from their own institute.
+    """
     return list(
         db.scalars(
-            select(Drive).where(Drive.is_open.is_(True)).order_by(
-                Drive.created_at.desc()
+            select(Drive)
+            .where(
+                Drive.is_open.is_(True),
+                Drive.tenant_id == user.tenant_id,
             )
+            .order_by(Drive.created_at.desc())
         )
     )
 
@@ -240,10 +254,10 @@ def open_drives(
 def get_drive(
     drive_id: int,
     db: Session = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user),
 ) -> Drive:
-    """Fetch a single drive by id."""
-    return _require_drive(db, drive_id)
+    """Fetch a single drive by id (only within your own institute)."""
+    return _require_drive(db, drive_id, user.tenant_id)
 
 
 @router.patch("/{drive_id}/status", response_model=DriveOut)
@@ -251,10 +265,10 @@ def set_drive_status(
     drive_id: int,
     payload: DriveStatusUpdate,
     db: Session = Depends(get_db),
-    _tpo: User = Depends(tpo_only),
+    tpo: User = Depends(tpo_only),
 ) -> Drive:
     """Open or close a drive."""
-    drive = _require_drive(db, drive_id)
+    drive = _require_drive(db, drive_id, tpo.tenant_id)
     drive.is_open = payload.is_open
     db.commit()
     db.refresh(drive)
@@ -271,17 +285,21 @@ def drive_eligibility(
     drive_id: int,
     eligible_only: bool = False,
     db: Session = Depends(get_db),
+    tenant_id: int = Depends(get_current_tenant_id),
 ) -> list[StudentEligibilityOut]:
     """Run the eligibility engine across all active students for this drive.
 
     Returns each student's verdict with explainable per-criterion reasons,
-    eligible students first (then by CGPA).
+    eligible students first (then by CGPA). Tenant-scoped: only this
+    institute's students are evaluated.
     """
-    drive = _require_drive(db, drive_id)
+    drive = _require_drive(db, drive_id, tenant_id)
     students = list(
         db.scalars(
             select(User).where(
-                User.role == UserRole.student, User.is_active.is_(True)
+                User.role == UserRole.student,
+                User.is_active.is_(True),
+                User.tenant_id == tenant_id,
             )
         )
     )
@@ -314,7 +332,7 @@ def my_eligibility(
     current_user: User = Depends(get_current_user),
 ) -> MyEligibilityOut:
     """Check YOUR own eligibility for a drive, with per-criterion reasons."""
-    drive = _require_drive(db, drive_id)
+    drive = _require_drive(db, drive_id, current_user.tenant_id)
     profile = _student_profile(db, current_user.id)
     eligible, reasons = _evaluate(profile, drive)
     return MyEligibilityOut(
@@ -344,7 +362,7 @@ def apply_to_drive(
     Eligibility is re-checked here against the student's VERIFIED data, so an
     application can only exist if the moat criteria are genuinely met.
     """
-    drive = _require_drive(db, drive_id)
+    drive = _require_drive(db, drive_id, current_user.tenant_id)
     if not drive.is_open:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -403,12 +421,13 @@ def drive_applications(
     drive_id: int,
     status_filter: ApplicationStatus | None = None,
     db: Session = Depends(get_db),
+    tenant_id: int = Depends(get_current_tenant_id),
 ) -> list[ApplicantOut]:
     """List applicants on a drive (TPO), each with a verified-data snapshot.
 
     Selected/shortlisted candidates are surfaced first, then by CGPA.
     """
-    drive = _require_drive(db, drive_id)
+    drive = _require_drive(db, drive_id, tenant_id)
     stmt = select(Application).where(Application.drive_id == drive_id)
     if status_filter is not None:
         stmt = stmt.where(Application.status == status_filter)
@@ -459,6 +478,12 @@ def set_application_status(
     """TPO decision on an application: shortlist, select, or reject."""
     application = db.get(Application, application_id)
     if application is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Application not found"
+        )
+    # Tenant guard: a TPO can only decide applications on their own drives.
+    drive = db.get(Drive, application.drive_id)
+    if drive is None or drive.tenant_id != tpo.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Application not found"
         )
