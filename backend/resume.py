@@ -18,7 +18,7 @@ Location:
     E:\\campus-ai\\backend\\resume.py
 """
 
-from datetime import datetime
+from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
@@ -30,6 +30,7 @@ from db import get_db
 from models import (
     AttendanceRecord,
     AttendanceStatus,
+    Internship,
     Project,
     ProjectMember,
     Result,
@@ -165,6 +166,35 @@ def _build_resume_profile(
         else None
     )
 
+    # Verified work experience (internships / OJT / training).
+    intern_rows = list(
+        db.scalars(
+            select(Internship)
+            .where(
+                Internship.student_id == student.id,
+                Internship.status == SkillStatus.verified,
+            )
+            .order_by(Internship.start_date.desc().nullslast())
+        )
+    )
+    internships = [
+        {
+            "organization": it.organization,
+            "role_title": it.role_title,
+            "internship_type": it.internship_type.value
+            if it.internship_type
+            else None,
+            "mode": it.mode,
+            "location": it.location,
+            "description": it.description,
+            "skills_used": it.skills_used,
+            "duration": _format_duration(
+                it.start_date, it.end_date, it.is_ongoing
+            ),
+        }
+        for it in intern_rows
+    ]
+
     return {
         "full_name": student.full_name,
         "email": student.email,
@@ -173,7 +203,24 @@ def _build_resume_profile(
         "attendance_percentage": attendance_percentage,
         "verified_skills": skills,
         "projects": projects,
+        "internships": internships,
     }
+
+
+def _format_duration(
+    start: date | None, end: date | None, is_ongoing: bool
+) -> str | None:
+    """Render an internship's time span like 'Jun 2025 - Present'."""
+    fmt = "%b %Y"
+    if is_ongoing:
+        return f"{start.strftime(fmt)} - Present" if start else "Ongoing"
+    if start and end:
+        return f"{start.strftime(fmt)} - {end.strftime(fmt)}"
+    if start:
+        return start.strftime(fmt)
+    if end:
+        return end.strftime(fmt)
+    return None
 
 
 def _default_title(target_role: str | None) -> str:

@@ -37,6 +37,19 @@ class ResumeProject(BaseModel):
     description: str | None = None
 
 
+class ResumeInternship(BaseModel):
+    """A verified internship / OJT / training entry (real work experience)."""
+
+    organization: str
+    role_title: str
+    internship_type: str | None = None
+    mode: str | None = None
+    location: str | None = None
+    description: str | None = None
+    skills_used: str | None = None
+    duration: str | None = None
+
+
 class ResumeProfile(BaseModel):
     """The student's VERIFIED data - the only ground truth for the resume."""
 
@@ -50,6 +63,7 @@ class ResumeProfile(BaseModel):
     attendance_percentage: float | None = None
     verified_skills: list[str] = Field(default_factory=list)
     projects: list[ResumeProject] = Field(default_factory=list)
+    internships: list[ResumeInternship] = Field(default_factory=list)
 
 
 class ResumeDraftRequest(BaseModel):
@@ -111,6 +125,28 @@ def _format_profile_for_draft(p: ResumeProfile) -> str:
         else "(none verified yet)"
     )
     lines.append(f"Verified skills: {skills}")
+    if p.internships:
+        lines.append("Verified work experience (internships/OJT/training):")
+        for it in p.internships:
+            header_bits = [it.role_title, it.organization]
+            header = " at ".join(x for x in header_bits if x)
+            meta_bits = [
+                it.internship_type,
+                it.mode,
+                it.location,
+                it.duration,
+            ]
+            meta = ", ".join(x for x in meta_bits if x)
+            line = f"  - {header}"
+            if meta:
+                line += f" ({meta})"
+            lines.append(line)
+            if it.description:
+                lines.append(f"      {it.description}")
+            if it.skills_used:
+                lines.append(f"      Skills used: {it.skills_used}")
+    else:
+        lines.append("Verified work experience: (none verified yet)")
     if p.projects:
         lines.append("Verified projects:")
         for pr in p.projects:
@@ -129,9 +165,13 @@ _DRAFT_SYSTEM = (
     "given. If a section has no data, omit it. Use strong action verbs and "
     "concise, impact-oriented bullet points. Structure: a header (name + any "
     "contact details), a 2-3 line Professional Summary tailored to the target "
-    "role, Skills (grouped logically), Projects (bullets derived from each "
-    "contribution/description), and Education. Return ONLY the Markdown resume "
-    "with no extra commentary."
+    "role, Skills (grouped logically), Experience (each verified "
+    "internship/OJT/training as a role at an organization, with its "
+    "type/mode/location and duration, plus 1-2 impact bullets derived from the "
+    "description/skills), Projects (bullets derived from each "
+    "contribution/description), and Education. Place the Experience section "
+    "before Projects when work experience exists. Return ONLY the Markdown "
+    "resume with no extra commentary."
 )
 
 _ATS_SYSTEM = (
