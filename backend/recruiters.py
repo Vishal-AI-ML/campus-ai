@@ -363,6 +363,7 @@ def _candidate_out(
         attendance=profile["attendance"],
         verified_skills=profile["verified_skills"],
         verified_projects=profile["verified_projects"],
+        verified_internships=profile["verified_internships"],
         contact_revealed=application.contact_revealed,
         email=(
             student.email

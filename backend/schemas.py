@@ -14,6 +14,7 @@ from models import (
     AttendanceStatus,
     DoubtStatus,
     ECACategory,
+    InternshipType,
     InviteStatus,
     LeaveRequestType,
     LeaveStatus,
@@ -351,6 +352,64 @@ class ECAOut(BaseModel):
 
 class ECADecision(BaseModel):
     """A teacher/TPO's verify/flag decision on a pending ECA claim."""
+
+    status: SkillStatus = Field(examples=["verified"])  # must be verified|flagged
+    review_note: str | None = Field(default=None, max_length=500)
+
+
+# --- Internships / OJT (verifiable work experience) ------------------------
+class InternshipCreate(BaseModel):
+    """A student logs an internship / OJT + optional proof. Starts pending."""
+
+    organization: str = Field(
+        min_length=1, max_length=200, examples=["Infosys"]
+    )
+    role_title: str = Field(
+        min_length=1, max_length=150, examples=["Software Engineering Intern"]
+    )
+    internship_type: InternshipType = Field(
+        default=InternshipType.internship, examples=["internship"]
+    )
+    mode: str | None = Field(default=None, max_length=20, examples=["remote"])
+    location: str | None = Field(
+        default=None, max_length=150, examples=["Bengaluru"]
+    )
+    description: str | None = Field(default=None, max_length=2000)
+    skills_used: str | None = Field(
+        default=None, max_length=300, examples=["Python, FastAPI, PostgreSQL"]
+    )
+    start_date: date | None = Field(default=None, examples=["2025-05-01"])
+    end_date: date | None = Field(default=None, examples=["2025-07-31"])
+    is_ongoing: bool = Field(default=False)
+    certificate_url: str | None = Field(
+        default=None,
+        max_length=500,
+        examples=["https://example.com/certificate.pdf"],
+    )
+
+
+class InternshipOut(BaseModel):
+    id: int
+    student_id: int
+    organization: str
+    role_title: str
+    internship_type: InternshipType
+    mode: str | None
+    location: str | None
+    description: str | None
+    skills_used: str | None
+    start_date: date | None
+    end_date: date | None
+    is_ongoing: bool
+    certificate_url: str | None
+    status: SkillStatus
+    review_note: str | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class InternshipDecision(BaseModel):
+    """A teacher/TPO's verify/flag decision on a pending internship claim."""
 
     status: SkillStatus = Field(examples=["verified"])  # must be verified|flagged
     review_note: str | None = Field(default=None, max_length=500)
@@ -1171,6 +1230,7 @@ class RecruiterCandidateOut(BaseModel):
     attendance: float
     verified_skills: list[str]
     verified_projects: int
+    verified_internships: list[str] = []
     contact_revealed: bool
     email: str | None = None
     # Recruiter's own (non-binding) call on this candidate (Step 27.3).

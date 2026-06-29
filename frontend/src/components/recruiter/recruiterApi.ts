@@ -54,6 +54,7 @@ export type RecruiterCandidate = {
   verified_skills: string[];
   verified_projects: number;
   verified_eca: string[];
+  verified_internships: string[];
   contact_revealed: boolean;
   email: string | null;
   recruiter_decision: RecruiterDecision;

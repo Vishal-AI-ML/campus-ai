@@ -35,6 +35,7 @@ from models import (
     AttendanceRecord,
     AttendanceStatus,
     Drive,
+    Internship,
     ProjectMember,
     Result,
     Skill,
@@ -118,11 +119,21 @@ def _student_profile(db: Session, student_id: int) -> dict:
         or 0
     )
 
+    # Verified internships / OJT (real work experience) as "Role @ Org".
+    intern_rows = db.execute(
+        select(Internship.role_title, Internship.organization).where(
+            Internship.student_id == student_id,
+            Internship.status == SkillStatus.verified,
+        )
+    ).all()
+    verified_internships = [f"{role} @ {org}" for role, org in intern_rows]
+
     return {
         "cgpa": cgpa,
         "attendance": attendance,
         "verified_skills": verified_skills,
         "verified_projects": verified_projects,
+        "verified_internships": verified_internships,
     }
 
 

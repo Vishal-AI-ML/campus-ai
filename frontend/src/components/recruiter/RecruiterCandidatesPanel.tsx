@@ -291,6 +291,27 @@ function CandidateCard({
         </div>
       </div>
 
+      {/* Verified internships / OJT (real work experience) */}
+      <div className="mt-4">
+        <div className="text-xs uppercase tracking-wide text-slate-500">
+          Verified internships
+        </div>
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          {(candidate.verified_internships ?? []).length === 0 ? (
+            <span className="text-sm text-slate-500">None verified yet</span>
+          ) : (
+            (candidate.verified_internships ?? []).map((i) => (
+              <span
+                key={i}
+                className="rounded-md bg-amber-500/15 px-2 py-0.5 text-sm text-amber-200"
+              >
+                {i}
+              </span>
+            ))
+          )}
+        </div>
+      </div>
+
       {/* Contact (only when TPO revealed it) */}
       <div className="mt-4 text-sm">
         {candidate.contact_revealed && candidate.email ? (

@@ -482,6 +482,16 @@ class ECACategory(str, enum.Enum):
     other = "other"
 
 
+class InternshipType(str, enum.Enum):
+    """Kind of verifiable work-experience entry a student can log."""
+
+    internship = "internship"
+    ojt = "ojt"
+    apprenticeship = "apprenticeship"
+    training = "training"
+    other = "other"
+
+
 class ExtraCurricular(Base):
     """A student-claimed extra-curricular activity + proof + verification state.
 
@@ -532,6 +542,74 @@ class ExtraCurricular(Base):
         return (
             f"<ExtraCurricular student={self.student_id} title={self.title!r} "
             f"status={self.status.value}>"
+        )
+
+
+class Internship(Base):
+    """A student-claimed internship / OJT / training + proof + verification.
+
+    Reuses the same verified-data moat as skills/ECA (`SkillStatus`): an entry
+    counts toward the resume/recruiter profile only once a teacher/TPO marks it
+    `verified`. Captures real work experience (org, role, dates, mode) so the
+    profile shows verifiable industry exposure beyond academics. A student
+    cannot log the same (organization, role) pair twice (unique constraint).
+    """
+
+    __tablename__ = "internships"
+    __table_args__ = (
+        UniqueConstraint(
+            "student_id",
+            "organization",
+            "role_title",
+            name="uq_internship_student_org_role",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    student_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    organization: Mapped[str] = mapped_column(String(200), nullable=False)
+    role_title: Mapped[str] = mapped_column(String(150), nullable=False)
+    internship_type: Mapped[InternshipType] = mapped_column(
+        Enum(InternshipType, name="internship_type"),
+        default=InternshipType.internship,
+        nullable=False,
+        index=True,
+    )
+    mode: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    location: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    skills_used: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    is_ongoing: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+    certificate_url: Mapped[str | None] = mapped_column(
+        String(500), nullable=True
+    )
+    status: Mapped[SkillStatus] = mapped_column(
+        Enum(SkillStatus, name="skill_status"),
+        default=SkillStatus.pending,
+        nullable=False,
+        index=True,
+    )
+    reviewed_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    review_note: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    reviewed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<Internship student={self.student_id} org={self.organization!r} "
+            f"role={self.role_title!r} status={self.status.value}>"
         )
 
 
