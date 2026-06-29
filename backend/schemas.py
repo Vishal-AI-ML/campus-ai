@@ -1307,3 +1307,94 @@ class ContactRevealUpdate(BaseModel):
     """TPO toggle to reveal/hide a candidate's contact to the recruiter."""
 
     revealed: bool
+
+
+# --- Admin: institute-wide dashboard ---------------------------------------
+class InstituteUsersKpi(BaseModel):
+    """Account counts by role + activation + section coverage."""
+
+    total: int = 0
+    active: int = 0
+    inactive: int = 0
+    students: int = 0
+    teachers: int = 0
+    tpos: int = 0
+    admins: int = 0
+    recruiters: int = 0
+    students_with_section: int = 0
+
+
+class InstituteStructureKpi(BaseModel):
+    """Org structure footprint."""
+
+    departments: int = 0
+    sections: int = 0
+    subjects: int = 0
+
+
+class InstituteMoatKpi(BaseModel):
+    """Verified vs pending proof - the anti-fraud data moat at a glance."""
+
+    skills_verified: int = 0
+    skills_pending: int = 0
+    projects_verified: int = 0
+    projects_pending: int = 0
+    eca_verified: int = 0
+    eca_pending: int = 0
+    internships_verified: int = 0
+    internships_pending: int = 0
+
+
+class InstituteAcademicsKpi(BaseModel):
+    """Institute averages over sections (condonation-aware attendance)."""
+
+    avg_attendance_pct: float | None = None
+    students_with_results: int = 0
+    avg_cgpa: float | None = None
+
+
+class InstitutePlacementKpi(BaseModel):
+    """Placement outcomes rolled up across all drives."""
+
+    total_drives: int = 0
+    open_drives: int = 0
+    total_applications: int = 0
+    placed_students: int = 0
+    placement_rate: float | None = None
+    avg_package: float | None = None
+    highest_package: float | None = None
+    recruiter_companies: int = 0
+
+
+class InstituteEngagementKpi(BaseModel):
+    """Day-to-day platform activity volumes."""
+
+    assignments: int = 0
+    submissions: int = 0
+    materials: int = 0
+    doubts_open: int = 0
+    doubts_resolved: int = 0
+    announcements: int = 0
+    leave_pending: int = 0
+
+
+class InstituteRiskKpi(BaseModel):
+    """At-risk band distribution from the explainable risk model."""
+
+    assessed_students: int = 0
+    high: int = 0
+    medium: int = 0
+    low: int = 0
+
+
+class InstituteDashboardOut(BaseModel):
+    """Whole-institute KPI snapshot for the admin dashboard."""
+
+    generated_at: datetime
+    users: InstituteUsersKpi
+    structure: InstituteStructureKpi
+    moat: InstituteMoatKpi
+    academics: InstituteAcademicsKpi
+    placement: InstitutePlacementKpi
+    engagement: InstituteEngagementKpi
+    risk: InstituteRiskKpi

@@ -152,6 +152,11 @@ export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
   ],
   admin: [
     { label: "Overview", href: "/dashboard", icon: "\u{1F3E0}" },
+    {
+      label: "Institute KPIs",
+      href: "/dashboard/institute",
+      icon: "\u{1F3DB}\uFE0F",
+    },
     { label: "Users", href: "/dashboard/users", icon: "\u{1F465}" },
     { label: "Departments", href: "/dashboard/departments", icon: "\u{1F3EB}" },
     {

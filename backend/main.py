@@ -77,6 +77,7 @@ from db import engine
 from doubts import router as doubts_router
 from eca import router as eca_router
 from face import router as face_router
+from institute import router as institute_router
 from internship import router as internship_router
 from leads import router as leads_router
 from leaveod import router as leaveod_router
@@ -91,7 +92,7 @@ from resume import router as resume_router
 from skills import router as skills_router
 from timetable import router as timetable_router
 
-app = FastAPI(title=settings.PROJECT_NAME, version="0.32.0")
+app = FastAPI(title=settings.PROJECT_NAME, version="0.33.0")
 
 # CORS: allow the local Next.js dev frontend to call the API from the browser.
 # Add your deployed frontend origin(s) to this list when you go to production.
@@ -126,6 +127,7 @@ app.include_router(doubts_router)
 app.include_router(skills_router)
 app.include_router(eca_router)
 app.include_router(internship_router)
+app.include_router(institute_router)
 app.include_router(projects_router)
 app.include_router(mentor_router)
 app.include_router(resume_router)
