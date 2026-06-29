@@ -22,7 +22,8 @@ Mounted under the `/recruiters` prefix by `main.py`.
 import secrets
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from rate_limit import limiter
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -159,7 +160,9 @@ def invite_recruiter(
 
 
 @router.post("/accept-invite", response_model=Token)
+@limiter.limit("20/minute")
 def accept_invite(
+    request: Request,
     payload: RecruiterAcceptInvite,
     db: Session = Depends(get_db),
 ) -> Token:

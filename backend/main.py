@@ -61,6 +61,8 @@ Key URLs:
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from sqlalchemy import text
 
 from academics import router as academics_router
@@ -74,6 +76,7 @@ from auth import router as auth_router
 from calendar_events import router as calendar_router
 from config import settings
 from db import engine
+from rate_limit import limiter
 from observability import (
     init_sentry,
     request_logging_middleware,
@@ -109,6 +112,12 @@ init_sentry(
 )
 
 app = FastAPI(title=settings.PROJECT_NAME, version=API_VERSION)
+
+# Rate limiting: per-client-IP quotas on abuse-prone public routes.
+# Register the limiter + its HTTP 429 handler here; the actual quotas live as
+# @limiter.limit(...) decorators on individual routes (auth/leads/recruiters).
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Log every request (method, path, status, duration_ms, request_id).
 app.middleware("http")(request_logging_middleware)
