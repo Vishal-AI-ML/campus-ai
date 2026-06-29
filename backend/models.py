@@ -121,6 +121,31 @@ class OfferStatus(str, enum.Enum):
     withdrawn = "withdrawn"
 
 
+class Tenant(Base):
+    """A single tenant = one institute/college on the platform.
+
+    Multi-tenancy backbone. Every tenant-scoped row will carry a `tenant_id`
+    pointing here, so one institute can never see or touch another's data.
+    """
+
+    __tablename__ = "tenants"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    # Human-readable institute name, e.g. "IIT Delhi".
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    # Short unique code used at signup / in a subdomain, e.g. "iitd".
+    slug: Mapped[str] = mapped_column(
+        String(63), unique=True, index=True, nullable=False
+    )
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return f"<Tenant id={self.id} slug={self.slug!r}>"
+
+
 class User(Base):
     """A single account. One row per person, regardless of role."""
 
@@ -142,6 +167,12 @@ class User(Base):
     # Nullable: staff accounts (teacher/tpo/admin) and not-yet-assigned students.
     section_id: Mapped[int | None] = mapped_column(
         ForeignKey("sections.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    # Multi-tenancy: which institute this account belongs to.
+    # Nullable for now (Phase 1 backfill); becomes NOT NULL once every row is
+    # assigned to a tenant.
+    tenant_id: Mapped[int | None] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=True, index=True
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
