@@ -265,7 +265,11 @@ def _own_version_or_404(
 ) -> Resume:
     """Fetch a version that belongs to this student, else 404."""
     version = db.get(Resume, version_id)
-    if version is None or version.student_id != student.id:
+    if (
+        version is None
+        or version.student_id != student.id
+        or version.tenant_id != student.tenant_id
+    ):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Resume version not found.",
@@ -304,6 +308,7 @@ def generate(
     if payload.save:
         version = Resume(
             student_id=current_user.id,
+            tenant_id=current_user.tenant_id,
             title=(payload.title or "").strip() or _default_title(payload.target_role),
             target_role=(payload.target_role or None),
             markdown=markdown,
@@ -350,7 +355,10 @@ def list_versions(
     rows = list(
         db.scalars(
             select(Resume)
-            .where(Resume.student_id == current_user.id)
+            .where(
+                Resume.student_id == current_user.id,
+                Resume.tenant_id == current_user.tenant_id,
+            )
             .order_by(Resume.created_at.desc())
         )
     )

@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 from db import get_db
 from models import Internship, SkillStatus, User, UserRole
 from schemas import InternshipCreate, InternshipDecision, InternshipOut
-from security import get_current_user, require_roles
+from security import get_current_tenant_id, get_current_user, require_roles
 
 router = APIRouter(prefix="/internships", tags=["internships"])
 
@@ -53,6 +53,7 @@ def claim_internship(
         )
     internship = Internship(
         student_id=current_user.id,
+        tenant_id=current_user.tenant_id,
         organization=payload.organization,
         role_title=payload.role_title,
         internship_type=payload.internship_type,
@@ -88,7 +89,10 @@ def my_internships(
     return list(
         db.scalars(
             select(Internship)
-            .where(Internship.student_id == current_user.id)
+            .where(
+                Internship.student_id == current_user.id,
+                Internship.tenant_id == current_user.tenant_id,
+            )
             .order_by(Internship.created_at.desc())
         )
     )
@@ -124,12 +128,19 @@ def delete_my_internship(
 def verification_queue(
     status_filter: SkillStatus = SkillStatus.pending,
     db: Session = Depends(get_db),
+    tenant_id: int = Depends(get_current_tenant_id),
 ) -> list[Internship]:
-    """The reviewer's queue. Defaults to pending claims (oldest first)."""
+    """The reviewer's queue. Defaults to pending claims (oldest first).
+
+    Tenant-scoped: a reviewer only ever sees claims from their own institute.
+    """
     return list(
         db.scalars(
             select(Internship)
-            .where(Internship.status == status_filter)
+            .where(
+                Internship.tenant_id == tenant_id,
+                Internship.status == status_filter,
+            )
             .order_by(Internship.created_at.asc())
         )
     )
@@ -149,7 +160,9 @@ def decide_internship(
             detail="Decision must be 'verified' or 'flagged'",
         )
     internship = db.get(Internship, internship_id)
-    if internship is None:
+    # Tenant guard: a reviewer can only act on claims from their own institute.
+    # Treating a cross-tenant row as 404 also avoids leaking that the id exists.
+    if internship is None or internship.tenant_id != reviewer.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Internship not found"
         )
@@ -172,9 +185,16 @@ def student_internships(
     student_id: int,
     status_filter: SkillStatus | None = None,
     db: Session = Depends(get_db),
+    tenant_id: int = Depends(get_current_tenant_id),
 ) -> list[Internship]:
-    """List a student's internships (teacher/TPO). Filter by status, e.g. verified."""
-    stmt = select(Internship).where(Internship.student_id == student_id)
+    """List a student's internships (teacher/TPO). Filter by status, e.g. verified.
+
+    Tenant-scoped: staff can only read students within their own institute.
+    """
+    stmt = select(Internship).where(
+        Internship.student_id == student_id,
+        Internship.tenant_id == tenant_id,
+    )
     if status_filter is not None:
         stmt = stmt.where(Internship.status == status_filter)
     return list(db.scalars(stmt.order_by(Internship.created_at.desc())))

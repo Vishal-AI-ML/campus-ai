@@ -51,3 +51,47 @@ def test_skill_queue_and_reads_are_tenant_scoped(
     )
     assert cross.status_code == 200
     assert cross.json() == []
+
+
+def test_internship_queue_and_reads_are_tenant_scoped(
+    client, make_user, make_tenant, token_header
+):
+    iit = make_tenant(slug="iit-i", name="IIT Internships")
+    nit = make_tenant(slug="nit-i", name="NIT Internships")
+
+    make_user("iiti.stu@test.dev", role=models.UserRole.student, tenant=iit)
+    make_user("iiti.tpo@test.dev", role=models.UserRole.tpo, tenant=iit)
+    nit_stu = make_user("niti.stu@test.dev", role=models.UserRole.student, tenant=nit)
+
+    # Each student logs an internship inside their own institute.
+    assert (
+        client.post(
+            "/internships",
+            json={"organization": "Acme", "role_title": "SWE Intern"},
+            headers=token_header("iiti.stu@test.dev"),
+        ).status_code
+        == 201
+    )
+    assert (
+        client.post(
+            "/internships",
+            json={"organization": "Globex", "role_title": "Data Intern"},
+            headers=token_header("niti.stu@test.dev"),
+        ).status_code
+        == 201
+    )
+
+    # The IIT TPO's queue shows ONLY the IIT claim.
+    queue = client.get(
+        "/internships/queue", headers=token_header("iiti.tpo@test.dev")
+    )
+    assert queue.status_code == 200
+    assert [i["organization"] for i in queue.json()] == ["Acme"]
+
+    # The IIT TPO cannot read an NIT student's internships -> empty.
+    cross = client.get(
+        f"/internships/student/{nit_stu.id}",
+        headers=token_header("iiti.tpo@test.dev"),
+    )
+    assert cross.status_code == 200
+    assert cross.json() == []

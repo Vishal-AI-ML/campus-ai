@@ -607,6 +607,11 @@ class Internship(Base):
     student_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    # Tenant (institute) this internship belongs to. Mirrors the student's
+    # tenant; stored on the row so every query can filter by it directly.
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     organization: Mapped[str] = mapped_column(String(200), nullable=False)
     role_title: Mapped[str] = mapped_column(String(150), nullable=False)
     internship_type: Mapped[InternshipType] = mapped_column(
@@ -669,6 +674,11 @@ class Resume(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     student_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    # Tenant (institute) this resume version belongs to. Mirrors the student's
+    # tenant; stored on the row so every query can filter by it directly.
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
     )
     # A friendly label (auto-generated on save, editable later).
     title: Mapped[str] = mapped_column(String(150), nullable=False)
