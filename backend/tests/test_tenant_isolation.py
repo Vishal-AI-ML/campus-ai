@@ -95,3 +95,52 @@ def test_internship_queue_and_reads_are_tenant_scoped(
     )
     assert cross.status_code == 200
     assert cross.json() == []
+
+
+def test_project_queue_is_tenant_scoped_and_blocks_outside_teammates(
+    client, make_user, make_tenant, token_header
+):
+    iit = make_tenant(slug="iit-p", name="IIT Projects")
+    nit = make_tenant(slug="nit-p", name="NIT Projects")
+
+    make_user("iitp.stu@test.dev", role=models.UserRole.student, tenant=iit)
+    make_user("iitp.teach@test.dev", role=models.UserRole.teacher, tenant=iit)
+    nit_stu = make_user("nitp.stu@test.dev", role=models.UserRole.student, tenant=nit)
+
+    # Each student creates a solo project in their own institute (owner is added
+    # as a pending member automatically).
+    assert (
+        client.post(
+            "/projects",
+            json={"title": "Campus AI", "is_group": False},
+            headers=token_header("iitp.stu@test.dev"),
+        ).status_code
+        == 201
+    )
+    assert (
+        client.post(
+            "/projects",
+            json={"title": "Other Project", "is_group": False},
+            headers=token_header("nitp.stu@test.dev"),
+        ).status_code
+        == 201
+    )
+
+    # The IIT mentor's review queue shows ONLY IIT contributions.
+    queue = client.get(
+        "/projects/queue", headers=token_header("iitp.teach@test.dev")
+    )
+    assert queue.status_code == 200
+    assert {row["project_title"] for row in queue.json()} == {"Campus AI"}
+
+    # A group project cannot pull in a teammate from another institute -> 400.
+    blocked = client.post(
+        "/projects",
+        json={
+            "title": "Cross Project",
+            "is_group": True,
+            "members": [{"student_id": nit_stu.id, "contribution": "ML"}],
+        },
+        headers=token_header("iitp.stu@test.dev"),
+    )
+    assert blocked.status_code == 400, blocked.text

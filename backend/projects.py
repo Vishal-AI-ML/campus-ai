@@ -30,7 +30,7 @@ from schemas import (
     ProjectMemberQueueOut,
     ProjectOut,
 )
-from security import get_current_user, require_roles
+from security import get_current_tenant_id, get_current_user, require_roles
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -61,18 +61,33 @@ def create_project(
                 continue
             member_contribs[m.student_id] = m.contribution
 
-    # Validate every referenced student actually exists.
+    # Validate every referenced student exists AND belongs to the creator's
+    # institute. A project is scoped to a single tenant, so a teammate from
+    # another institute is rejected (cross-tenant data isolation).
     ids = list(member_contribs.keys())
-    found = set(db.scalars(select(User.id).where(User.id.in_(ids))))
+    rows = db.execute(
+        select(User.id, User.tenant_id).where(User.id.in_(ids))
+    ).all()
+    found = {uid for uid, _ in rows}
     missing = [i for i in ids if i not in found]
     if missing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Unknown student id(s): {missing}",
         )
+    outsiders = [uid for uid, tid in rows if tid != current_user.tenant_id]
+    if outsiders:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "All teammates must belong to your institute; "
+                f"outside student id(s): {outsiders}"
+            ),
+        )
 
     project = Project(
         owner_id=current_user.id,
+        tenant_id=current_user.tenant_id,
         title=payload.title,
         description=payload.description,
         tech_stack=payload.tech_stack,
@@ -88,6 +103,7 @@ def create_project(
         db.add(
             ProjectMember(
                 project_id=project_id,
+                tenant_id=current_user.tenant_id,
                 student_id=sid,
                 contribution=contribution,
                 status=SkillStatus.pending,
@@ -116,7 +132,10 @@ def my_projects(
         db.scalars(
             select(Project)
             .join(ProjectMember, ProjectMember.project_id == Project.id)
-            .where(ProjectMember.student_id == current_user.id)
+            .where(
+                ProjectMember.student_id == current_user.id,
+                Project.tenant_id == current_user.tenant_id,
+            )
             .options(selectinload(Project.members))
             .order_by(Project.created_at.desc())
         )
@@ -154,12 +173,20 @@ def delete_project(
 def review_queue(
     status_filter: SkillStatus = SkillStatus.pending,
     db: Session = Depends(get_db),
+    tenant_id: int = Depends(get_current_tenant_id),
 ) -> list[ProjectMemberQueueOut]:
-    """Pending member-contributions to review, each with its project context."""
+    """Pending member-contributions to review, each with its project context.
+
+    Tenant-scoped: a mentor only ever sees contributions from their own
+    institute.
+    """
     rows = db.execute(
         select(ProjectMember, Project.title, Project.repo_url)
         .join(Project, ProjectMember.project_id == Project.id)
-        .where(ProjectMember.status == status_filter)
+        .where(
+            ProjectMember.tenant_id == tenant_id,
+            ProjectMember.status == status_filter,
+        )
         .order_by(ProjectMember.created_at.asc())
     ).all()
     return [
@@ -190,7 +217,9 @@ def decide_member(
             detail="Decision must be 'verified' or 'flagged'",
         )
     member = db.get(ProjectMember, member_id)
-    if member is None:
+    # Tenant guard: a mentor can only act on contributions from their own
+    # institute. Treating a cross-tenant row as 404 also hides its existence.
+    if member is None or member.tenant_id != mentor.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Project member not found"
         )
@@ -213,10 +242,17 @@ def student_contributions(
     student_id: int,
     status_filter: SkillStatus | None = None,
     db: Session = Depends(get_db),
+    tenant_id: int = Depends(get_current_tenant_id),
 ) -> list[ProjectMember]:
     """List a student's project contributions (teacher/TPO). Filter by status,
-    e.g. verified, for resume/eligibility use."""
-    stmt = select(ProjectMember).where(ProjectMember.student_id == student_id)
+    e.g. verified, for resume/eligibility use.
+
+    Tenant-scoped: staff can only read students within their own institute.
+    """
+    stmt = select(ProjectMember).where(
+        ProjectMember.student_id == student_id,
+        ProjectMember.tenant_id == tenant_id,
+    )
     if status_filter is not None:
         stmt = stmt.where(ProjectMember.status == status_filter)
     return list(db.scalars(stmt.order_by(ProjectMember.created_at.desc())))

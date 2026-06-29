@@ -439,6 +439,12 @@ class Project(Base):
     owner_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    # Tenant (institute) this project belongs to - the owner's institute. Every
+    # member must belong to the same institute, so the whole project (and all
+    # its member rows) is scoped to a single tenant.
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Comma-separated tech list, e.g. 'FastAPI, PostgreSQL, Docker'.
@@ -475,6 +481,11 @@ class ProjectMember(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     project_id: Mapped[int] = mapped_column(
         ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    # Tenant (institute) of the parent project. Mirrored onto each member row so
+    # the review queue and staff reads can filter by tenant directly.
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
     )
     student_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
