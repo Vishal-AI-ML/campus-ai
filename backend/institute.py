@@ -48,6 +48,7 @@ from models import (
     Skill,
     SkillStatus,
     Subject,
+    Submission,
     User,
     UserRole,
 )

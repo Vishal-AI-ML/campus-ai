@@ -3,7 +3,7 @@
 Mounted under the `/auth` prefix by `main.py`.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -20,7 +20,12 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 @limiter.limit("15/minute")
-def register(request: Request, payload: UserCreate, db: Session = Depends(get_db)) -> User:
+def register(
+    request: Request,
+    response: Response,
+    payload: UserCreate,
+    db: Session = Depends(get_db),
+) -> User:
     """Create a new account. Fails if the email is already taken.
 
     SECURITY: public self-registration always creates a STUDENT account. Staff
@@ -50,6 +55,7 @@ def register(request: Request, payload: UserCreate, db: Session = Depends(get_db
 @limiter.limit("30/minute")
 def login(
     request: Request,
+    response: Response,
     form: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
 ) -> Token:

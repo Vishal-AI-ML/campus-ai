@@ -11,7 +11,7 @@ This router uses explicit full paths (no prefix) so /leads and /feedback are
 both top-level. Wired into the app by `main.py`.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -31,7 +31,12 @@ admin_only = require_roles(UserRole.admin)
 # --- Public: capture a lead (marketing contact form) -----------------------
 @router.post("/leads", response_model=LeadOut, status_code=status.HTTP_201_CREATED)
 @limiter.limit("10/minute")
-def create_lead(request: Request, payload: LeadCreate, db: Session = Depends(get_db)) -> Lead:
+def create_lead(
+    request: Request,
+    response: Response,
+    payload: LeadCreate,
+    db: Session = Depends(get_db),
+) -> Lead:
     """Public demo-request/contact submission. No authentication required."""
     lead = Lead(
         name=payload.name,
@@ -52,7 +57,10 @@ def create_lead(request: Request, payload: LeadCreate, db: Session = Depends(get
 )
 @limiter.limit("20/minute")
 def create_feedback(
-    request: Request, payload: FeedbackCreate, db: Session = Depends(get_db)
+    request: Request,
+    response: Response,
+    payload: FeedbackCreate,
+    db: Session = Depends(get_db),
 ) -> Feedback:
     """Submit anonymous feedback. Stored without a user link."""
     entry = Feedback(
