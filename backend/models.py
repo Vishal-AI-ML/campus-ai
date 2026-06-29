@@ -390,6 +390,12 @@ class Skill(Base):
     student_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    # Tenant (institute) this skill belongs to. Mirrors the student's tenant,
+    # but is stored on the row so every query can filter by it directly (and so
+    # a future Postgres RLS policy can enforce isolation at the DB layer too).
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     evidence_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     evidence_note: Mapped[str | None] = mapped_column(Text, nullable=True)

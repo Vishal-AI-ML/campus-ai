@@ -3,6 +3,7 @@
   * hash_password / verify_password - bcrypt
   * create_access_token             - issue a signed JWT
   * get_current_user                - resolve the logged-in user from a token
+  * get_current_tenant_id           - the tenant the logged-in user belongs to
   * require_roles(*roles)           - dependency factory for role-gated routes
 """
 
@@ -68,6 +69,25 @@ def get_current_user(
     if user is None or not user.is_active:
         raise credentials_exception
     return user
+
+
+def get_current_tenant_id(current_user: User = Depends(get_current_user)) -> int:
+    """Return the tenant id of the logged-in user.
+
+    This is the single source of truth for "which institute is this request
+    for?". Routes that read or write tenant-scoped data should depend on this
+    and filter every query with ``WHERE tenant_id == <this value>`` so one
+    institute can never see or touch another institute's data.
+
+    Usage:
+        @router.get("/skills")
+        def list_skills(
+            tenant_id: int = Depends(get_current_tenant_id),
+            db: Session = Depends(get_db),
+        ):
+            return db.query(Skill).filter(Skill.tenant_id == tenant_id).all()
+    """
+    return current_user.tenant_id
 
 
 def require_roles(*allowed_roles: UserRole):

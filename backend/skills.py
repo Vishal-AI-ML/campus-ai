@@ -25,7 +25,7 @@ from ai_client import score_skill
 from db import get_db
 from models import Skill, SkillStatus, User, UserRole
 from schemas import SkillCreate, SkillDecision, SkillOut
-from security import get_current_user, require_roles
+from security import get_current_tenant_id, get_current_user, require_roles
 
 router = APIRouter(prefix="/skills", tags=["skills"])
 
@@ -46,6 +46,7 @@ def claim_skill(
     per student. The AI worker scores the proof in the background."""
     skill = Skill(
         student_id=current_user.id,
+        tenant_id=current_user.tenant_id,
         name=payload.name,
         evidence_url=payload.evidence_url,
         evidence_note=payload.evidence_note,
@@ -75,7 +76,10 @@ def my_skills(
     return list(
         db.scalars(
             select(Skill)
-            .where(Skill.student_id == current_user.id)
+            .where(
+                Skill.student_id == current_user.id,
+                Skill.tenant_id == current_user.tenant_id,
+            )
             .order_by(Skill.created_at.desc())
         )
     )
@@ -109,12 +113,16 @@ def delete_my_skill(
 def verification_queue(
     status_filter: SkillStatus = SkillStatus.pending,
     db: Session = Depends(get_db),
+    tenant_id: int = Depends(get_current_tenant_id),
 ) -> list[Skill]:
-    """The mentor's review queue. Defaults to pending claims (oldest first)."""
+    """The mentor's review queue. Defaults to pending claims (oldest first).
+
+    Tenant-scoped: a mentor only ever sees claims from their own institute.
+    """
     return list(
         db.scalars(
             select(Skill)
-            .where(Skill.status == status_filter)
+            .where(Skill.tenant_id == tenant_id, Skill.status == status_filter)
             .order_by(Skill.created_at.asc())
         )
     )
@@ -134,7 +142,9 @@ def decide_skill(
             detail="Decision must be 'verified' or 'flagged'",
         )
     skill = db.get(Skill, skill_id)
-    if skill is None:
+    # Tenant guard: a mentor can only act on claims from their own institute.
+    # Treating a cross-tenant row as 404 also avoids leaking that the id exists.
+    if skill is None or skill.tenant_id != mentor.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Skill not found"
         )
@@ -157,9 +167,15 @@ def student_skills(
     student_id: int,
     status_filter: SkillStatus | None = None,
     db: Session = Depends(get_db),
+    tenant_id: int = Depends(get_current_tenant_id),
 ) -> list[Skill]:
-    """List a student's skills (teacher/TPO). Filter by status, e.g. verified."""
-    stmt = select(Skill).where(Skill.student_id == student_id)
+    """List a student's skills (teacher/TPO). Filter by status, e.g. verified.
+
+    Tenant-scoped: staff can only read students within their own institute.
+    """
+    stmt = select(Skill).where(
+        Skill.student_id == student_id, Skill.tenant_id == tenant_id
+    )
     if status_filter is not None:
         stmt = stmt.where(Skill.status == status_filter)
     return list(db.scalars(stmt.order_by(Skill.created_at.desc())))
