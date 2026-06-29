@@ -98,6 +98,7 @@ from projects import router as projects_router
 from recruiters import router as recruiters_router
 from resume import router as resume_router
 from skills import router as skills_router
+from tenants import router as tenants_router
 from timetable import router as timetable_router
 
 # --- Observability: structured logging + (optional) Sentry --------------
@@ -167,6 +168,7 @@ app.include_router(people_router)
 app.include_router(face_router)
 app.include_router(timetable_router)
 app.include_router(leaveod_router)
+app.include_router(tenants_router)
 
 
 @app.get("/")

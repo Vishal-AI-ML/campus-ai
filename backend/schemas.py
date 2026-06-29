@@ -36,11 +36,16 @@ class UserCreate(BaseModel):
     (teacher/tpo/admin) and recruiters are provisioned only by an admin (or via
     the recruiter invite flow) - never by this public endpoint. The `role` field
     is intentionally NOT accepted here so it cannot be elevated by the caller.
+
+    Multi-tenancy: `tenant_slug` selects WHICH institute the student joins; the
+    new account is scoped to that tenant. The slug is the institute's public
+    signup handle (e.g. "iit-delhi").
     """
 
     email: EmailStr
     full_name: str = Field(min_length=1, max_length=255)
     password: str = Field(min_length=6, max_length=128)
+    tenant_slug: str = Field(min_length=2, max_length=63, pattern=r"^[a-z0-9-]+$")
 
 
 class UserOut(BaseModel):
@@ -1398,3 +1403,63 @@ class InstituteDashboardOut(BaseModel):
     placement: InstitutePlacementKpi
     engagement: InstituteEngagementKpi
     risk: InstituteRiskKpi
+
+
+# --- Multi-tenancy: tenants & member invites (Step 36) ---------------------
+class TenantCreate(BaseModel):
+    """Platform-admin payload to onboard a new institute (tenant)."""
+
+    name: str = Field(min_length=1, max_length=255)
+    slug: str = Field(min_length=2, max_length=63, pattern=r"^[a-z0-9-]+$")
+
+
+class TenantOut(BaseModel):
+    """Public view of a tenant (institute)."""
+
+    id: int
+    name: str
+    slug: str
+    is_active: bool
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TenantInviteCreate(BaseModel):
+    """Institute-admin payload: invite a user into THIS tenant with a role."""
+
+    email: EmailStr
+    role: UserRole = UserRole.student
+    expires_in_days: int = Field(default=14, ge=1, le=90)
+
+
+class TenantInviteOut(BaseModel):
+    """Public view of a tenant invite (never exposes the raw token)."""
+
+    id: int
+    tenant_id: int
+    email: EmailStr
+    role: UserRole
+    status: InviteStatus
+    expires_at: datetime
+    accepted_at: datetime | None = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TenantInviteCreated(BaseModel):
+    """Returned right after creating an invite (includes the one-time token)."""
+
+    invite: TenantInviteOut
+    tenant: TenantOut
+    token: str
+    accept_path: str
+
+
+class TenantAcceptInvite(BaseModel):
+    """Payload a user submits to accept a tenant invite & create their account."""
+
+    token: str = Field(min_length=10, max_length=64)
+    full_name: str = Field(min_length=1, max_length=255)
+    password: str = Field(min_length=6, max_length=128)

@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from db import get_db
-from models import User, UserRole
+from models import Tenant, User, UserRole
 from schemas import Token, UserCreate, UserOut
 from security import create_access_token, get_current_user, hash_password, verify_password
 
@@ -31,7 +31,18 @@ def register(
     SECURITY: public self-registration always creates a STUDENT account. Staff
     and recruiter roles are provisioned by an admin or via the recruiter invite
     flow - the caller cannot choose their own role here.
+
+    Multi-tenancy: the student joins the institute identified by
+    `payload.tenant_slug`; the account is scoped to that tenant. An unknown or
+    inactive slug is rejected so we never create orphan (tenant-less) users.
     """
+    tenant = db.scalar(select(Tenant).where(Tenant.slug == payload.tenant_slug))
+    if tenant is None or not tenant.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Unknown or inactive institute",
+        )
+
     exists = db.scalar(select(User).where(User.email == payload.email))
     if exists is not None:
         raise HTTPException(
@@ -44,6 +55,7 @@ def register(
         full_name=payload.full_name,
         hashed_password=hash_password(payload.password),
         role=UserRole.student,
+        tenant_id=tenant.id,
     )
     db.add(user)
     db.commit()

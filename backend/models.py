@@ -169,10 +169,11 @@ class User(Base):
         ForeignKey("sections.id", ondelete="SET NULL"), nullable=True, index=True
     )
     # Multi-tenancy: which institute this account belongs to.
-    # Nullable for now (Phase 1 backfill); becomes NOT NULL once every row is
-    # assigned to a tenant.
-    tenant_id: Mapped[int | None] = mapped_column(
-        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=True, index=True
+    # NOT NULL (Phase 2d): every user belongs to exactly one tenant. All three
+    # creation paths set it - invite-accept, tenant-scoped /auth/register, and
+    # the Phase 1 backfill - so orphan (tenant-less) users are impossible.
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -1483,6 +1484,55 @@ class InviteStatus(str, enum.Enum):
     accepted = "accepted"
     revoked = "revoked"
     expired = "expired"
+
+
+class TenantInvite(Base):
+    """A single-use invite an institute admin sends so a user can self-onboard
+    into that tenant with a pre-assigned role.
+
+    Mirrors RecruiterInvite: created `pending`, becomes `accepted` once the
+    user sets up their account, `expired` past `expires_at`, or `revoked` if
+    the admin cancels it. The token is unique and unguessable.
+    """
+
+    __tablename__ = "tenant_invites"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    email: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    # Role the invited user will get on accept (student/teacher/tpo/admin).
+    role: Mapped[UserRole] = mapped_column(
+        Enum(UserRole, name="user_role"), nullable=False
+    )
+    token: Mapped[str] = mapped_column(
+        String(64), unique=True, nullable=False, index=True
+    )
+    status: Mapped[InviteStatus] = mapped_column(
+        Enum(InviteStatus, name="invite_status"),
+        default=InviteStatus.pending,
+        nullable=False,
+        index=True,
+    )
+    invited_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    accepted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<TenantInvite tenant={self.tenant_id} email={self.email!r} "
+            f"status={self.status.value}>"
+        )
 
 
 class Recruiter(Base):

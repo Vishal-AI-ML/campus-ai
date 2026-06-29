@@ -80,7 +80,13 @@ def session():
 
 @pytest.fixture
 def make_user(session):
-    """Factory that inserts a user with any role (staff can't be self-registered)."""
+    """Factory that inserts a user with any role (staff can't be self-registered).
+
+    Multi-tenancy: every user MUST belong to a tenant (users.tenant_id is NOT
+    NULL). Callers may pass an explicit ``tenant``; otherwise we get-or-create a
+    shared "default" institute so existing single-tenant tests keep working
+    unchanged - mirroring how real code paths always set a tenant.
+    """
 
     def _make(
         email,
@@ -89,18 +95,43 @@ def make_user(session):
         role=models.UserRole.student,
         full_name="Test User",
         is_active=True,
+        tenant=None,
     ):
+        if tenant is None:
+            tenant = session.query(models.Tenant).filter_by(slug="default").first()
+            if tenant is None:
+                tenant = models.Tenant(
+                    name="Default Institute", slug="default", is_active=True
+                )
+                session.add(tenant)
+                session.commit()
+                session.refresh(tenant)
         user = models.User(
             email=email,
             full_name=full_name,
             hashed_password=hash_password(password),
             role=role,
             is_active=is_active,
+            tenant_id=tenant.id,
         )
         session.add(user)
         session.commit()
         session.refresh(user)
         return user
+
+    return _make
+
+
+@pytest.fixture
+def make_tenant(session):
+    """Factory that inserts a tenant (institute) for tenant-scoped signup tests."""
+
+    def _make(slug="acme", *, name="Acme Institute", is_active=True):
+        tenant = models.Tenant(name=name, slug=slug, is_active=is_active)
+        session.add(tenant)
+        session.commit()
+        session.refresh(tenant)
+        return tenant
 
     return _make
 
