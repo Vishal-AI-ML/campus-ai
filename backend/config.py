@@ -43,6 +43,11 @@ class Settings(BaseSettings):
     # (see main.py). Set this on the host (Koyeb) to your deployed Vercel URL.
     CORS_ORIGINS: str = ""
 
+    # --- Observability ----------------------------------------------------
+    # Sentry error tracking DSN. Empty = disabled (app runs fine without it).
+    # Set this in the Render env to turn on production error capture.
+    SENTRY_DSN: str = ""
+
 
 @lru_cache
 def get_settings() -> Settings:

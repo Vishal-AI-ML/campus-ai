@@ -23,12 +23,31 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from config import settings
+from observability import (
+    init_sentry,
+    request_logging_middleware,
+    setup_logging,
+)
 from face import router as face_router
 from mentor import router as mentor_router
 from resume import router as resume_router
 from scoring import router as scoring_router
 
-app = FastAPI(title="Campus AI - AI Worker", version="0.6.0")
+# --- Observability: structured logging + (optional) Sentry --------------
+# setup_logging() => one JSON log line per request; init_sentry() only turns
+# on when SENTRY_DSN is set, so local/CI runs need no DSN or extra package.
+WORKER_VERSION = "0.7.0"
+setup_logging()
+init_sentry(
+    settings.SENTRY_DSN,
+    settings.ENVIRONMENT,
+    release=f"campus-ai-worker@{WORKER_VERSION}",
+)
+
+app = FastAPI(title="Campus AI - AI Worker", version=WORKER_VERSION)
+
+# Log every request (method, path, status, duration_ms, request_id).
+app.middleware("http")(request_logging_middleware)
 
 # Endpoints that stay open (no token): liveness, sanity, API docs. CORS
 # preflight (OPTIONS) is also allowed through. Everything else requires the

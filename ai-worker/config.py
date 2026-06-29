@@ -34,5 +34,11 @@ class Settings(BaseSettings):
     # must send a matching X-Worker-Token header. Empty = check disabled.
     AI_WORKER_TOKEN: str = ""
 
+    # --- Observability ----------------------------------------------------
+    # Deploy environment label + optional Sentry error tracking.
+    # SENTRY_DSN empty = disabled (worker runs fine without it).
+    ENVIRONMENT: str = "development"
+    SENTRY_DSN: str = ""
+
 
 settings = Settings()

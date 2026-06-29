@@ -74,6 +74,11 @@ from auth import router as auth_router
 from calendar_events import router as calendar_router
 from config import settings
 from db import engine
+from observability import (
+    init_sentry,
+    request_logging_middleware,
+    setup_logging,
+)
 from doubts import router as doubts_router
 from eca import router as eca_router
 from face import router as face_router
@@ -92,7 +97,21 @@ from resume import router as resume_router
 from skills import router as skills_router
 from timetable import router as timetable_router
 
-app = FastAPI(title=settings.PROJECT_NAME, version="0.33.0")
+# --- Observability: structured logging + (optional) Sentry --------------
+# setup_logging() => one JSON log line per request; init_sentry() only turns
+# on when SENTRY_DSN is set, so local/CI runs need no DSN or extra package.
+API_VERSION = "0.34.0"
+setup_logging()
+init_sentry(
+    settings.SENTRY_DSN,
+    settings.ENVIRONMENT,
+    release=f"campus-ai-backend@{API_VERSION}",
+)
+
+app = FastAPI(title=settings.PROJECT_NAME, version=API_VERSION)
+
+# Log every request (method, path, status, duration_ms, request_id).
+app.middleware("http")(request_logging_middleware)
 
 # CORS: allow the local Next.js dev frontend to call the API from the browser.
 # Add your deployed frontend origin(s) to this list when you go to production.
