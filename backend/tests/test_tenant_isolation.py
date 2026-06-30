@@ -392,3 +392,65 @@ def test_departments_are_tenant_scoped(
     )
     assert nit_list.status_code == 200
     assert len(nit_list.json()) == 1
+
+
+def test_applications_are_tenant_scoped(
+    client, make_user, make_tenant, token_header
+):
+    """An application is bound to its drive's institute: each student sees only
+    their own institute's applications, and a cross-tenant TPO can't view the
+    applicants on another institute's drive (hidden as 404)."""
+    iit = make_tenant(slug="iit-app", name="IIT Apply")
+    nit = make_tenant(slug="nit-app", name="NIT Apply")
+
+    make_user("iitap.tpo@test.dev", role=models.UserRole.tpo, tenant=iit)
+    make_user("iitap.stu@test.dev", role=models.UserRole.student, tenant=iit)
+    make_user("nitap.tpo@test.dev", role=models.UserRole.tpo, tenant=nit)
+    make_user("nitap.stu@test.dev", role=models.UserRole.student, tenant=nit)
+
+    # Each TPO posts an open drive (no thresholds -> any student is eligible).
+    iit_drive = client.post(
+        "/drives",
+        json={"company_name": "Acme", "role_title": "Backend Engineer"},
+        headers=token_header("iitap.tpo@test.dev"),
+    )
+    assert iit_drive.status_code == 201, iit_drive.text
+    iit_drive_id = iit_drive.json()["id"]
+
+    nit_drive = client.post(
+        "/drives",
+        json={"company_name": "Globex", "role_title": "Data Engineer"},
+        headers=token_header("nitap.tpo@test.dev"),
+    )
+    assert nit_drive.status_code == 201, nit_drive.text
+    nit_drive_id = nit_drive.json()["id"]
+
+    # Each student applies to their own institute's drive.
+    assert (
+        client.post(
+            f"/drives/{iit_drive_id}/apply",
+            headers=token_header("iitap.stu@test.dev"),
+        ).status_code
+        == 201
+    )
+    assert (
+        client.post(
+            f"/drives/{nit_drive_id}/apply",
+            headers=token_header("nitap.stu@test.dev"),
+        ).status_code
+        == 201
+    )
+
+    # Each student's /me/applications shows ONLY their own application.
+    iit_apps = client.get(
+        "/drives/me/applications", headers=token_header("iitap.stu@test.dev")
+    )
+    assert iit_apps.status_code == 200
+    assert len(iit_apps.json()) == 1
+
+    # The NIT TPO cannot view applicants on IIT's drive -> 404 (drive hidden).
+    cross = client.get(
+        f"/drives/{iit_drive_id}/applications",
+        headers=token_header("nitap.tpo@test.dev"),
+    )
+    assert cross.status_code == 404, cross.text

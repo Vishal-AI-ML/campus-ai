@@ -808,6 +808,9 @@ class Application(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     drive_id: Mapped[int] = mapped_column(
         ForeignKey("drives.id", ondelete="CASCADE"), nullable=False, index=True
     )
@@ -879,6 +882,9 @@ class Offer(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     application_id: Mapped[int] = mapped_column(
         ForeignKey("applications.id", ondelete="CASCADE"),
         nullable=False,

@@ -390,7 +390,11 @@ def apply_to_drive(
             detail="Not eligible for this drive: " + "; ".join(unmet),
         )
 
-    application = Application(drive_id=drive_id, student_id=current_user.id)
+    application = Application(
+        drive_id=drive_id,
+        student_id=current_user.id,
+        tenant_id=drive.tenant_id,
+    )
     db.add(application)
     db.commit()
     db.refresh(application)
@@ -406,7 +410,10 @@ def my_applications(
     return list(
         db.scalars(
             select(Application)
-            .where(Application.student_id == current_user.id)
+            .where(
+                Application.tenant_id == current_user.tenant_id,
+                Application.student_id == current_user.id,
+            )
             .order_by(Application.created_at.desc())
         )
     )
@@ -428,7 +435,10 @@ def drive_applications(
     Selected/shortlisted candidates are surfaced first, then by CGPA.
     """
     drive = _require_drive(db, drive_id, tenant_id)
-    stmt = select(Application).where(Application.drive_id == drive_id)
+    stmt = select(Application).where(
+        Application.tenant_id == tenant_id,
+        Application.drive_id == drive_id,
+    )
     if status_filter is not None:
         stmt = stmt.where(Application.status == status_filter)
     applications = list(db.scalars(stmt))

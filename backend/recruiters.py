@@ -693,6 +693,7 @@ def extend_offer(
         # Reuse the withdrawn/declined row (unique per application).
         offer = existing
         offer.recruiter_id = recruiter.id
+        offer.tenant_id = drive.tenant_id
         offer.drive_id = drive.id
         offer.student_id = application.student_id
         offer.role_title = role_title
@@ -709,6 +710,7 @@ def extend_offer(
         offer = Offer(
             application_id=application.id,
             recruiter_id=recruiter.id,
+            tenant_id=drive.tenant_id,
             drive_id=drive.id,
             student_id=application.student_id,
             role_title=role_title,
@@ -794,7 +796,10 @@ def my_student_offers(
     """List the offers extended to the logged-in student (newest first)."""
     offers = db.scalars(
         select(Offer)
-        .where(Offer.student_id == current_user.id)
+        .where(
+            Offer.tenant_id == current_user.tenant_id,
+            Offer.student_id == current_user.id,
+        )
         .order_by(Offer.created_at.desc())
     )
     return [_offer_out(db, offer) for offer in offers]
