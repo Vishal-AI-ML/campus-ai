@@ -583,6 +583,10 @@ class ExtraCurricular(Base):
     student_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    # Institute this activity belongs to (inherited from the student).
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     title: Mapped[str] = mapped_column(String(150), nullable=False)
     category: Mapped[ECACategory] = mapped_column(
         Enum(ECACategory, name="eca_category"),
@@ -1084,6 +1088,11 @@ class AuditLog(Base):
     __tablename__ = "audit_logs"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    # Tenant the action belongs to. Denormalised from the actor at write time
+    # so the trail stays tenant-scoped even after the actor is deleted/SET NULL.
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     actor_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )

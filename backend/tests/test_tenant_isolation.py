@@ -566,3 +566,92 @@ def test_leave_requests_are_tenant_scoped(
     )
     assert resp.status_code == 200, resp.text
     assert [r["title"] for r in resp.json()] == ["IIT fever"]
+
+
+def test_eca_queue_is_tenant_scoped(
+    client, make_user, make_tenant, token_header
+):
+    """A reviewer's ECA verification queue is bounded to their own institute.
+
+    Two institutes each have a student who logs an activity. The IIT teacher's
+    queue (GET /eca/queue) must surface ONLY the IIT claim, never NIT's.
+    """
+    iit = make_tenant(slug="iiteca", name="IIT ECA")
+    nit = make_tenant(slug="niteca", name="NIT ECA")
+
+    make_user("iiteca.stu@test.dev", role=models.UserRole.student, tenant=iit)
+    make_user(
+        "iiteca.teacher@test.dev", role=models.UserRole.teacher, tenant=iit
+    )
+    make_user("niteca.stu@test.dev", role=models.UserRole.student, tenant=nit)
+
+    # Each student logs an activity inside their own institute.
+    assert (
+        client.post(
+            "/eca",
+            json={"title": "IIT Football Captain", "category": "sports"},
+            headers=token_header("iiteca.stu@test.dev"),
+        ).status_code
+        == 201
+    )
+    assert (
+        client.post(
+            "/eca",
+            json={"title": "NIT Football Captain", "category": "sports"},
+            headers=token_header("niteca.stu@test.dev"),
+        ).status_code
+        == 201
+    )
+
+    # The IIT teacher's verification queue shows ONLY the IIT claim.
+    resp = client.get(
+        "/eca/queue", headers=token_header("iiteca.teacher@test.dev")
+    )
+    assert resp.status_code == 200, resp.text
+    assert [e["title"] for e in resp.json()] == ["IIT Football Captain"]
+
+
+def test_audit_trail_is_tenant_scoped(
+    client, session, make_user, make_tenant, token_header
+):
+    """An admin's governance trail (GET /audit) never leaks another institute's.
+
+    Audit rows carry the actor's tenant_id (denormalised at write time). We seed
+    one row per institute directly and assert each admin sees only their own.
+    """
+    iit = make_tenant(slug="iitaudit", name="IIT Audit")
+    nit = make_tenant(slug="nitaudit", name="NIT Audit")
+
+    iit_admin = make_user(
+        "iitaudit.admin@test.dev", role=models.UserRole.admin, tenant=iit
+    )
+    nit_admin = make_user(
+        "nitaudit.admin@test.dev", role=models.UserRole.admin, tenant=nit
+    )
+
+    session.add_all(
+        [
+            models.AuditLog(
+                tenant_id=iit.id,
+                actor_id=iit_admin.id,
+                actor_email=iit_admin.email,
+                action="user.create",
+                summary="IIT created a teacher",
+            ),
+            models.AuditLog(
+                tenant_id=nit.id,
+                actor_id=nit_admin.id,
+                actor_email=nit_admin.email,
+                action="user.create",
+                summary="NIT created a teacher",
+            ),
+        ]
+    )
+    session.commit()
+
+    # The IIT admin's governance view is bounded to the IIT tenant.
+    resp = client.get(
+        "/audit", headers=token_header("iitaudit.admin@test.dev")
+    )
+    assert resp.status_code == 200, resp.text
+    assert [a["summary"] for a in resp.json()] == ["IIT created a teacher"]

@@ -44,6 +44,9 @@ def record_audit(
     db.add(
         AuditLog(
             actor_id=actor.id if actor is not None else None,
+            # Tenant scope, denormalised from the actor so the trail survives
+            # the actor being deleted (actor_id -> NULL) later.
+            tenant_id=actor.tenant_id if actor is not None else None,
             actor_email=actor.email if actor is not None else None,
             action=action,
             target_type=target_type,
@@ -53,20 +56,21 @@ def record_audit(
     )
 
 
-@router.get(
-    "", response_model=list[AuditLogOut], dependencies=[Depends(admin_only)]
-)
+@router.get("", response_model=list[AuditLogOut])
 def list_audit(
     action: str | None = None,
     limit: int = 100,
     db: Session = Depends(get_db),
+    admin: User = Depends(admin_only),
 ) -> list[AuditLog]:
     """List recent audit entries, newest first (admin only).
 
     Optional ?action= filters by exact action key (e.g. "user.role_change").
     """
-    stmt = select(AuditLog).order_by(
-        AuditLog.created_at.desc(), AuditLog.id.desc()
+    stmt = (
+        select(AuditLog)
+        .where(AuditLog.tenant_id == admin.tenant_id)
+        .order_by(AuditLog.created_at.desc(), AuditLog.id.desc())
     )
     if action:
         stmt = stmt.where(AuditLog.action == action)

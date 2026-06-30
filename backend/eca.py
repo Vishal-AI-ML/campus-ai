@@ -40,6 +40,7 @@ def claim_eca(
     Activity title must be unique per student."""
     eca = ExtraCurricular(
         student_id=current_user.id,
+        tenant_id=current_user.tenant_id,
         title=payload.title,
         category=payload.category,
         organization=payload.organization,
@@ -70,6 +71,7 @@ def my_eca(
         db.scalars(
             select(ExtraCurricular)
             .where(ExtraCurricular.student_id == current_user.id)
+            .where(ExtraCurricular.tenant_id == current_user.tenant_id)
             .order_by(ExtraCurricular.created_at.desc())
         )
     )
@@ -83,7 +85,7 @@ def delete_my_eca(
 ) -> None:
     """Delete one of your own ECA claims."""
     eca = db.get(ExtraCurricular, eca_id)
-    if eca is None:
+    if eca is None or eca.tenant_id != current_user.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Activity not found"
         )
@@ -97,17 +99,17 @@ def delete_my_eca(
 
 
 # --- Reviewer (teacher/TPO): verification queue & decisions ----------------
-@router.get(
-    "/queue", response_model=list[ECAOut], dependencies=[Depends(reviewer_only)]
-)
+@router.get("/queue", response_model=list[ECAOut])
 def verification_queue(
     status_filter: SkillStatus = SkillStatus.pending,
     db: Session = Depends(get_db),
+    reviewer: User = Depends(reviewer_only),
 ) -> list[ExtraCurricular]:
     """The reviewer's queue. Defaults to pending claims (oldest first)."""
     return list(
         db.scalars(
             select(ExtraCurricular)
+            .where(ExtraCurricular.tenant_id == reviewer.tenant_id)
             .where(ExtraCurricular.status == status_filter)
             .order_by(ExtraCurricular.created_at.asc())
         )
@@ -128,7 +130,7 @@ def decide_eca(
             detail="Decision must be 'verified' or 'flagged'",
         )
     eca = db.get(ExtraCurricular, eca_id)
-    if eca is None:
+    if eca is None or eca.tenant_id != reviewer.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Activity not found"
         )
@@ -145,15 +147,19 @@ def decide_eca(
 @router.get(
     "/student/{student_id}",
     response_model=list[ECAOut],
-    dependencies=[Depends(staff_only)],
 )
 def student_eca(
     student_id: int,
     status_filter: SkillStatus | None = None,
     db: Session = Depends(get_db),
+    staff: User = Depends(staff_only),
 ) -> list[ExtraCurricular]:
     """List a student's activities (teacher/TPO). Filter by status, e.g. verified."""
-    stmt = select(ExtraCurricular).where(ExtraCurricular.student_id == student_id)
+    stmt = (
+        select(ExtraCurricular)
+        .where(ExtraCurricular.tenant_id == staff.tenant_id)
+        .where(ExtraCurricular.student_id == student_id)
+    )
     if status_filter is not None:
         stmt = stmt.where(ExtraCurricular.status == status_filter)
     return list(db.scalars(stmt.order_by(ExtraCurricular.created_at.desc())))
