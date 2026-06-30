@@ -68,6 +68,16 @@ def get_current_user(
     user = db.get(User, int(subject))
     if user is None or not user.is_active:
         raise credentials_exception
+
+    # Phase 4 (Postgres RLS): stamp the caller's institute onto THIS request's
+    # DB session as early as possible. Almost every authenticated route depends
+    # on get_current_user (directly or via require_roles), and FastAPI caches
+    # Depends(get_db) per request, so this is the SAME session the route's
+    # queries run on. Setting the GUC here - rather than per-router - means
+    # every authenticated read/write (including aggregations like the institute
+    # dashboard) satisfies FORCE ROW LEVEL SECURITY policies. No-op on
+    # non-Postgres backends, and public/unauthenticated routes never reach here.
+    set_current_tenant(db, user.tenant_id)
     return user
 
 
