@@ -15,9 +15,16 @@ from sqlalchemy.orm import Session
 from db import get_db
 from models import Announcement, User, UserRole
 from schemas import AnnouncementCreate, AnnouncementOut
-from security import get_current_user, require_roles
+from security import apply_tenant_guc, get_current_user, require_roles
 
-router = APIRouter(prefix="/announcements", tags=["announcements"])
+router = APIRouter(
+    prefix="/announcements",
+    tags=["announcements"],
+    # Phase 4 RLS pilot: stamp the caller's tenant onto the DB session so a
+    # future Postgres RLS policy on `announcements` is enforced. No-op until
+    # the policy is enabled (Batch 3); harmless on SQLite.
+    dependencies=[Depends(apply_tenant_guc)],
+)
 
 # Posting / removing announcements is an admin (governance) action.
 admin_only = require_roles(UserRole.admin)

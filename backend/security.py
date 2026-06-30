@@ -16,7 +16,7 @@ from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from config import settings
-from db import get_db
+from db import get_db, set_current_tenant
 from models import User, UserRole
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
@@ -107,3 +107,20 @@ def require_roles(*allowed_roles: UserRole):
         return current_user
 
     return role_checker
+
+
+def apply_tenant_guc(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> None:
+    """Publish the caller's tenant into the DB session for Postgres RLS (Phase 4).
+
+    Add this as a router-level dependency on tenant-scoped routers
+    (``APIRouter(..., dependencies=[Depends(apply_tenant_guc)])``) so every
+    authenticated request stamps its institute onto the session via
+    ``set_current_tenant`` *before* the route's queries run. FastAPI caches
+    ``Depends(get_db)`` per request, so this runs on the SAME session the route
+    uses - no contextvars, no threadpool-propagation pitfalls. No-op on
+    non-Postgres backends, so it is safe everywhere.
+    """
+    set_current_tenant(db, current_user.tenant_id)
