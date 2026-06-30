@@ -511,3 +511,58 @@ def test_calendar_events_are_tenant_scoped(
     )
     assert admin_resp.status_code == 200, admin_resp.text
     assert [e["title"] for e in admin_resp.json()] == ["IIT Fest"]
+
+
+def test_leave_requests_are_tenant_scoped(
+    client, make_user, make_tenant, token_header
+):
+    """A staff approval inbox is bounded to the staff member's own institute.
+
+    Two institutes each have a student who applies for leave. The IIT teacher's
+    inbox (GET /leave) must surface ONLY the IIT request, never NIT's.
+    """
+    iit = make_tenant(slug="iitleave", name="IIT Leave")
+    nit = make_tenant(slug="nitleave", name="NIT Leave")
+
+    make_user("iitleave.stu@test.dev", role=models.UserRole.student, tenant=iit)
+    make_user(
+        "iitleave.teacher@test.dev", role=models.UserRole.teacher, tenant=iit
+    )
+    make_user("nitleave.stu@test.dev", role=models.UserRole.student, tenant=nit)
+
+    # Each student applies for their OWN leave inside their institute.
+    assert (
+        client.post(
+            "/leave",
+            json={
+                "request_type": "leave",
+                "category": "medical",
+                "title": "IIT fever",
+                "start_date": "2026-07-01",
+                "end_date": "2026-07-02",
+            },
+            headers=token_header("iitleave.stu@test.dev"),
+        ).status_code
+        == 201
+    )
+    assert (
+        client.post(
+            "/leave",
+            json={
+                "request_type": "leave",
+                "category": "medical",
+                "title": "NIT fever",
+                "start_date": "2026-07-01",
+                "end_date": "2026-07-02",
+            },
+            headers=token_header("nitleave.stu@test.dev"),
+        ).status_code
+        == 201
+    )
+
+    # The IIT teacher's approval inbox shows ONLY the IIT request.
+    resp = client.get(
+        "/leave", headers=token_header("iitleave.teacher@test.dev")
+    )
+    assert resp.status_code == 200, resp.text
+    assert [r["title"] for r in resp.json()] == ["IIT fever"]

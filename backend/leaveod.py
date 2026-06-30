@@ -149,6 +149,7 @@ def apply_leave(
         request_type=payload.request_type,
         category=category,
         student_id=current_user.id,
+        tenant_id=current_user.tenant_id,
         section_id=current_user.section_id,
         title=payload.title,
         reason=payload.reason,
@@ -196,10 +197,16 @@ def create_bulk_od(
         if student is None or student.role != UserRole.student:
             skipped.append(sid)
             continue
+        # Cross-tenant guard: a staff coordinator can only raise OD for
+        # students of their OWN institute. Foreign students are skipped.
+        if student.tenant_id != staff.tenant_id:
+            skipped.append(sid)
+            continue
         req = LeaveRequest(
             request_type=LeaveRequestType.od,
             category=category,
             student_id=student.id,
+            tenant_id=student.tenant_id,
             section_id=student.section_id,
             title=payload.title,
             reason=payload.reason,
@@ -236,6 +243,7 @@ def my_requests(
     reqs = db.scalars(
         select(LeaveRequest)
         .where(LeaveRequest.student_id == current_user.id)
+        .where(LeaveRequest.tenant_id == current_user.tenant_id)
         .order_by(LeaveRequest.created_at.desc())
     )
     return [_out(db, r) for r in reqs]
@@ -244,7 +252,6 @@ def my_requests(
 @router.get(
     "",
     response_model=list[LeaveRequestOut],
-    dependencies=[Depends(staff_only)],
 )
 def list_requests(
     section_id: int | None = None,
@@ -252,9 +259,11 @@ def list_requests(
     request_type: LeaveRequestType | None = None,
     status_filter: LeaveStatus | None = None,
     db: Session = Depends(get_db),
+    staff: User = Depends(staff_only),
 ) -> list[LeaveRequestOut]:
     """Staff approval inbox: list/filter requests (pending first, then newest)."""
-    stmt = select(LeaveRequest)
+    # Tenant scope: a staff member only ever sees their own institute's queue.
+    stmt = select(LeaveRequest).where(LeaveRequest.tenant_id == staff.tenant_id)
     if section_id is not None:
         stmt = stmt.where(LeaveRequest.section_id == section_id)
     if student_id is not None:
@@ -277,7 +286,7 @@ def get_request(
 ) -> LeaveRequestOut:
     """Open one request. A student may only read their own."""
     req = db.get(LeaveRequest, request_id)
-    if req is None:
+    if req is None or req.tenant_id != current_user.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Request not found"
         )
@@ -298,7 +307,7 @@ def decide_request(
 ) -> LeaveRequestOut:
     """Approve or reject a PENDING request (teacher/admin)."""
     req = db.get(LeaveRequest, request_id)
-    if req is None:
+    if req is None or req.tenant_id != staff.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Request not found"
         )
@@ -329,7 +338,7 @@ def cancel_request(
     """Withdraw a request. Only the applicant (or an admin) may cancel, and only
     while it is still pending or approved (not already rejected/cancelled)."""
     req = db.get(LeaveRequest, request_id)
-    if req is None:
+    if req is None or req.tenant_id != current_user.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Request not found"
         )
@@ -361,7 +370,7 @@ def delete_request(
 ) -> None:
     """Delete a request. The applicant may delete their own; admin any."""
     req = db.get(LeaveRequest, request_id)
-    if req is None:
+    if req is None or req.tenant_id != current_user.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Request not found"
         )

@@ -1513,6 +1513,10 @@ class LeaveRequest(Base):
     student_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    # Tenant (institute) this request belongs to - inherited from the student.
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     # The student's section at apply time (denormalised for staff filtering).
     section_id: Mapped[int | None] = mapped_column(
         ForeignKey("sections.id", ondelete="SET NULL"), nullable=True, index=True
