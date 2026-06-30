@@ -119,7 +119,8 @@ def create_entry(
     staff: User = Depends(staff_only),
 ) -> TimetableEntryOut:
     """Add a recurring weekly class slot to a section's timetable."""
-    if db.get(Section, payload.section_id) is None:
+    section = db.get(Section, payload.section_id)
+    if section is None or section.tenant_id != staff.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Section not found"
         )
@@ -137,6 +138,7 @@ def create_entry(
     )
     entry = TimetableEntry(
         section_id=payload.section_id,
+        tenant_id=section.tenant_id,
         subject_id=payload.subject_id,
         teacher_id=payload.teacher_id,
         day_of_week=payload.day_of_week,
@@ -154,14 +156,16 @@ def create_entry(
 @router.get(
     "",
     response_model=list[TimetableEntryOut],
-    dependencies=[Depends(staff_only)],
 )
 def list_entries(
     section_id: int | None = None,
     db: Session = Depends(get_db),
+    staff: User = Depends(staff_only),
 ) -> list[TimetableEntryOut]:
     """List timetable slots (staff), optionally filtered by section."""
-    stmt = select(TimetableEntry)
+    stmt = select(TimetableEntry).where(
+        TimetableEntry.tenant_id == staff.tenant_id
+    )
     if section_id is not None:
         stmt = stmt.where(TimetableEntry.section_id == section_id)
     entries = db.scalars(
@@ -180,7 +184,10 @@ def my_timetable(
         return []
     entries = db.scalars(
         select(TimetableEntry)
-        .where(TimetableEntry.section_id == current_user.section_id)
+        .where(
+            TimetableEntry.tenant_id == current_user.tenant_id,
+            TimetableEntry.section_id == current_user.section_id,
+        )
         .order_by(TimetableEntry.day_of_week, TimetableEntry.start_time)
     )
     return [_entry_out(db, e) for e in entries]
@@ -194,7 +201,10 @@ def my_teaching_schedule(
     """The personal teaching schedule for the logged-in teacher (across sections)."""
     entries = db.scalars(
         select(TimetableEntry)
-        .where(TimetableEntry.teacher_id == current_user.id)
+        .where(
+            TimetableEntry.tenant_id == current_user.tenant_id,
+            TimetableEntry.teacher_id == current_user.id,
+        )
         .order_by(TimetableEntry.day_of_week, TimetableEntry.start_time)
     )
     return [_entry_out(db, e) for e in entries]
@@ -208,7 +218,7 @@ def get_entry(
 ) -> TimetableEntryOut:
     """Open a single slot. Students may only read their own section's."""
     entry = db.get(TimetableEntry, entry_id)
-    if entry is None:
+    if entry is None or entry.tenant_id != current_user.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Timetable entry not found"
         )
@@ -229,7 +239,7 @@ def update_entry(
 ) -> TimetableEntryOut:
     """Edit a slot. Admins may edit any; teachers only slots they created."""
     entry = db.get(TimetableEntry, entry_id)
-    if entry is None:
+    if entry is None or entry.tenant_id != staff.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Timetable entry not found"
         )
@@ -269,7 +279,7 @@ def delete_entry(
 ) -> None:
     """Delete a slot. Admins can delete any; teachers only their own."""
     entry = db.get(TimetableEntry, entry_id)
-    if entry is None:
+    if entry is None or entry.tenant_id != staff.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Timetable entry not found"
         )

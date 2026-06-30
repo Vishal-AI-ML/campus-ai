@@ -112,19 +112,19 @@ def list_subjects(
 def upsert_result(
     payload: ResultCreate,
     db: Session = Depends(get_db),
-    _teacher: User = Depends(teacher_only),
+    teacher: User = Depends(teacher_only),
 ) -> Result:
     """Create or update a student's result for a subject (idempotent).
 
     The grade point is computed from marks_obtained / max_marks.
     """
     subject = db.get(Subject, payload.subject_id)
-    if subject is None:
+    if subject is None or subject.tenant_id != teacher.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Subject not found"
         )
     student = db.get(User, payload.student_id)
-    if student is None:
+    if student is None or student.tenant_id != teacher.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Student not found"
         )
@@ -134,6 +134,7 @@ def upsert_result(
 
     existing = db.scalar(
         select(Result).where(
+            Result.tenant_id == teacher.tenant_id,
             Result.student_id == payload.student_id,
             Result.subject_id == payload.subject_id,
         )
@@ -147,6 +148,7 @@ def upsert_result(
         record = Result(
             student_id=payload.student_id,
             subject_id=payload.subject_id,
+            tenant_id=student.tenant_id,
             marks_obtained=payload.marks_obtained,
             max_marks=payload.max_marks,
             grade_point=grade_point,
@@ -166,7 +168,10 @@ def my_results(
     """List the logged-in user's own results."""
     return list(
         db.scalars(
-            select(Result).where(Result.student_id == current_user.id)
+            select(Result).where(
+                Result.tenant_id == current_user.tenant_id,
+                Result.student_id == current_user.id,
+            )
         )
     )
 
@@ -183,7 +188,10 @@ def my_academic_summary(
     rows = db.execute(
         select(Result, Subject)
         .join(Subject, Result.subject_id == Subject.id)
-        .where(Result.student_id == current_user.id)
+        .where(
+            Result.tenant_id == current_user.tenant_id,
+            Result.student_id == current_user.id,
+        )
     ).all()
 
     sem_points: dict[int, float] = defaultdict(float)
@@ -216,18 +224,23 @@ def my_academic_summary(
 @router.get(
     "/subjects/{subject_id}/results",
     response_model=list[ResultOut],
-    dependencies=[Depends(teacher_only)],
 )
 def subject_results(
     subject_id: int,
     db: Session = Depends(get_db),
+    teacher: User = Depends(teacher_only),
 ) -> list[Result]:
     """List all results for a subject (teacher gradebook view)."""
     subject = db.get(Subject, subject_id)
-    if subject is None:
+    if subject is None or subject.tenant_id != teacher.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Subject not found"
         )
     return list(
-        db.scalars(select(Result).where(Result.subject_id == subject_id))
+        db.scalars(
+            select(Result).where(
+                Result.tenant_id == teacher.tenant_id,
+                Result.subject_id == subject_id,
+            )
+        )
     )

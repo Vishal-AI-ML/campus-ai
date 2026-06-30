@@ -53,6 +53,7 @@ def create_event(
         category=payload.category,
         audience=payload.audience,
         created_by_id=admin.id,
+        tenant_id=admin.tenant_id,
     )
     db.add(event)
     db.commit()
@@ -72,7 +73,9 @@ def list_events(
     (audience "all" or their own role). Pass ?upcoming=true to hide entries
     whose date is already in the past.
     """
-    stmt = select(CalendarEvent)
+    stmt = select(CalendarEvent).where(
+        CalendarEvent.tenant_id == current_user.tenant_id
+    )
     if current_user.role != UserRole.admin:
         stmt = stmt.where(
             or_(
@@ -90,11 +93,11 @@ def list_events(
 def delete_event(
     event_id: int,
     db: Session = Depends(get_db),
-    _admin: User = Depends(admin_only),
+    admin: User = Depends(admin_only),
 ) -> None:
     """Delete a calendar entry (admin)."""
     event = db.get(CalendarEvent, event_id)
-    if event is None:
+    if event is None or event.tenant_id != admin.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Calendar event not found",

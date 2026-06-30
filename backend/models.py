@@ -373,6 +373,11 @@ class Result(Base):
     student_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    # Tenant (institute) this result belongs to. Mirrors the student's tenant,
+    # stored on the row so every query can filter by it directly (future RLS).
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     subject_id: Mapped[int] = mapped_column(
         ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False, index=True
     )
@@ -1037,6 +1042,10 @@ class CalendarEvent(Base):
     __tablename__ = "calendar_events"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    # Tenant (institute) this calendar entry belongs to (mirrors the creator's).
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     event_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
@@ -1408,6 +1417,10 @@ class TimetableEntry(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    # Tenant (institute) this slot belongs to (mirrors the section's tenant).
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     section_id: Mapped[int] = mapped_column(
         ForeignKey("sections.id", ondelete="CASCADE"), nullable=False, index=True
     )

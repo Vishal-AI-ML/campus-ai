@@ -454,3 +454,60 @@ def test_applications_are_tenant_scoped(
         headers=token_header("nitap.tpo@test.dev"),
     )
     assert cross.status_code == 404, cross.text
+
+
+def test_calendar_events_are_tenant_scoped(
+    client, make_user, make_tenant, token_header
+):
+    """One institute's calendar entries never leak to another institute.
+
+    Both admins post an audience="all" entry; an IIT reader (student) and the
+    IIT admin governance view must each see ONLY the IIT entry.
+    """
+    iit = make_tenant(slug="iit-cal", name="IIT Cal")
+    nit = make_tenant(slug="nit-cal", name="NIT Cal")
+
+    make_user("iitcal.admin@test.dev", role=models.UserRole.admin, tenant=iit)
+    make_user("iitcal.stu@test.dev", role=models.UserRole.student, tenant=iit)
+    make_user("nitcal.admin@test.dev", role=models.UserRole.admin, tenant=nit)
+
+    assert (
+        client.post(
+            "/calendar",
+            json={
+                "title": "IIT Fest",
+                "event_date": "2026-07-01",
+                "category": "event",
+                "audience": "all",
+            },
+            headers=token_header("iitcal.admin@test.dev"),
+        ).status_code
+        == 201
+    )
+    assert (
+        client.post(
+            "/calendar",
+            json={
+                "title": "NIT Fest",
+                "event_date": "2026-07-02",
+                "category": "event",
+                "audience": "all",
+            },
+            headers=token_header("nitcal.admin@test.dev"),
+        ).status_code
+        == 201
+    )
+
+    # IIT student sees only IIT's entry (despite both being audience "all").
+    resp = client.get(
+        "/calendar", headers=token_header("iitcal.stu@test.dev")
+    )
+    assert resp.status_code == 200, resp.text
+    assert [e["title"] for e in resp.json()] == ["IIT Fest"]
+
+    # IIT admin's full governance view is likewise tenant-bounded.
+    admin_resp = client.get(
+        "/calendar", headers=token_header("iitcal.admin@test.dev")
+    )
+    assert admin_resp.status_code == 200, admin_resp.text
+    assert [e["title"] for e in admin_resp.json()] == ["IIT Fest"]
