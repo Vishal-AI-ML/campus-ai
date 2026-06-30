@@ -230,13 +230,15 @@ def test_open_drives_are_tenant_scoped(
     assert cross.status_code == 404, cross.text
 
 
-def _make_section(session, *, code, dept_name, sec_name="A"):
+def _make_section(session, *, tenant, code, dept_name, sec_name="A"):
     """Seed a department + section directly (the public API can't create them)."""
-    dept = models.Department(name=dept_name, code=code)
+    dept = models.Department(tenant_id=tenant.id, name=dept_name, code=code)
     session.add(dept)
     session.commit()
     session.refresh(dept)
-    section = models.Section(name=sec_name, year=3, department_id=dept.id)
+    section = models.Section(
+        tenant_id=tenant.id, name=sec_name, year=3, department_id=dept.id
+    )
     session.add(section)
     session.commit()
     session.refresh(section)
@@ -262,7 +264,7 @@ def test_section_attendance_is_tenant_scoped(
     make_user("nitat.teach@test.dev", role=models.UserRole.teacher, tenant=nit)
 
     iit_section = _make_section(
-        session, code="IIT-CSE", dept_name="IIT CSE"
+        session, tenant=iit, code="IIT-CSE", dept_name="IIT CSE"
     )
 
     # The IIT teacher marks one of their students present.
@@ -309,7 +311,7 @@ def test_doubts_are_tenant_scoped(
     make_user("nitdbt.admin@test.dev", role=models.UserRole.admin, tenant=nit)
 
     iit_section = _make_section(
-        session, code="IIT-ECE", dept_name="IIT ECE"
+        session, tenant=iit, code="IIT-ECE", dept_name="IIT ECE"
     )
 
     # The IIT teacher (staff can post to any section) raises a doubt.
@@ -338,3 +340,55 @@ def test_doubts_are_tenant_scoped(
         headers=token_header("nitdbt.admin@test.dev"),
     )
     assert cross.status_code == 404, cross.text
+
+
+def test_departments_are_tenant_scoped(
+    client, make_user, make_tenant, token_header
+):
+    """Departments are unique *per institute* and never leak across tenants.
+
+    Two institutes can each create a 'Computer Science' / 'CSE' department
+    (previously this was globally unique), and each admin's listing shows only
+    their own institute's departments.
+    """
+    iit = make_tenant(slug="iit-dept", name="IIT Dept")
+    nit = make_tenant(slug="nit-dept", name="NIT Dept")
+
+    make_user("iitdept.admin@test.dev", role=models.UserRole.admin, tenant=iit)
+    make_user("nitdept.admin@test.dev", role=models.UserRole.admin, tenant=nit)
+
+    # Both institutes create the SAME name/code -> allowed (per-tenant unique).
+    iit_create = client.post(
+        "/admin/departments",
+        json={"name": "Computer Science", "code": "CSE"},
+        headers=token_header("iitdept.admin@test.dev"),
+    )
+    assert iit_create.status_code == 201, iit_create.text
+    nit_create = client.post(
+        "/admin/departments",
+        json={"name": "Computer Science", "code": "CSE"},
+        headers=token_header("nitdept.admin@test.dev"),
+    )
+    assert nit_create.status_code == 201, nit_create.text
+
+    # Re-creating the same code within the SAME institute still conflicts.
+    dup = client.post(
+        "/admin/departments",
+        json={"name": "Comp Sci 2", "code": "CSE"},
+        headers=token_header("iitdept.admin@test.dev"),
+    )
+    assert dup.status_code == 409, dup.text
+
+    # Each admin sees ONLY their own institute's department.
+    iit_list = client.get(
+        "/admin/departments", headers=token_header("iitdept.admin@test.dev")
+    )
+    assert iit_list.status_code == 200
+    assert [d["code"] for d in iit_list.json()] == ["CSE"]
+    assert len(iit_list.json()) == 1
+
+    nit_list = client.get(
+        "/admin/departments", headers=token_header("nitdept.admin@test.dev")
+    )
+    assert nit_list.status_code == 200
+    assert len(nit_list.json()) == 1

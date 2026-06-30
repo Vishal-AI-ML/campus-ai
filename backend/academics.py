@@ -65,11 +65,13 @@ def create_subject(
 ) -> Subject:
     """Create a subject in a department. Code unique within the department."""
     department = db.get(Department, payload.department_id)
-    if department is None:
+    # Tenant guard: a department from another institute is hidden as 404.
+    if department is None or department.tenant_id != _teacher.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Department not found"
         )
     subject = Subject(
+        tenant_id=department.tenant_id,
         name=payload.name,
         code=payload.code,
         credits=payload.credits,
@@ -96,8 +98,8 @@ def list_subjects(
     db: Session = Depends(get_db),
     _user: User = Depends(get_current_user),
 ) -> list[Subject]:
-    """List subjects (read-only for everyone), filterable by department/semester."""
-    stmt = select(Subject)
+    """List subjects (read-only, own institute), filterable by department/semester."""
+    stmt = select(Subject).where(Subject.tenant_id == _user.tenant_id)
     if department_id is not None:
         stmt = stmt.where(Subject.department_id == department_id)
     if semester is not None:

@@ -221,8 +221,10 @@ def create_department(
     db: Session = Depends(get_db),
     admin: User = Depends(admin_only),
 ) -> Department:
-    """Create a department. Name and code must both be unique."""
-    dept = Department(name=payload.name, code=payload.code)
+    """Create a department. Name and code must be unique within the institute."""
+    dept = Department(
+        tenant_id=admin.tenant_id, name=payload.name, code=payload.code
+    )
     db.add(dept)
     try:
         db.flush()
@@ -248,10 +250,16 @@ def create_department(
 @router.get("/departments", response_model=list[DepartmentOut])
 def list_departments(
     db: Session = Depends(get_db),
-    _user=Depends(get_current_user),
+    user: User = Depends(get_current_user),
 ) -> list[Department]:
-    """List all departments (any logged-in user)."""
-    return list(db.scalars(select(Department).order_by(Department.code)))
+    """List departments in the caller's institute (any logged-in user)."""
+    return list(
+        db.scalars(
+            select(Department)
+            .where(Department.tenant_id == user.tenant_id)
+            .order_by(Department.code)
+        )
+    )
 
 
 # --- Sections --------------------------------------------------------------
@@ -268,12 +276,16 @@ def create_section(
 ) -> Section:
     """Create a section inside a department. Name unique within the department."""
     department = db.get(Department, department_id)
-    if department is None:
+    # Tenant guard: a department from another institute is hidden as 404.
+    if department is None or department.tenant_id != admin.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Department not found"
         )
     section = Section(
-        name=payload.name, year=payload.year, department_id=department_id
+        tenant_id=department.tenant_id,
+        name=payload.name,
+        year=payload.year,
+        department_id=department_id,
     )
     db.add(section)
     try:
@@ -303,11 +315,12 @@ def create_section(
 def list_sections(
     department_id: int,
     db: Session = Depends(get_db),
-    _user=Depends(get_current_user),
+    user: User = Depends(get_current_user),
 ) -> list[Section]:
-    """List sections for a department (any logged-in user)."""
+    """List sections for a department (any logged-in user, own institute)."""
     department = db.get(Department, department_id)
-    if department is None:
+    # Tenant guard: a department from another institute is hidden as 404.
+    if department is None or department.tenant_id != user.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Department not found"
         )

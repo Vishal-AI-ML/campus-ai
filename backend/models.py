@@ -184,15 +184,24 @@ class User(Base):
 
 
 class Department(Base):
-    """A top-level academic unit, e.g. 'Computer Science' (code 'CSE')."""
+    """A top-level academic unit, e.g. 'Computer Science' (code 'CSE').
+
+    Name + code are unique *within an institute* (tenant), so two institutes
+    can each have their own 'Computer Science' / 'CSE'.
+    """
 
     __tablename__ = "departments"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "name", name="uq_department_tenant_name"),
+        UniqueConstraint("tenant_id", "code", name="uq_department_tenant_code"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(150), unique=True, nullable=False)
-    code: Mapped[str] = mapped_column(
-        String(20), unique=True, index=True, nullable=False
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    name: Mapped[str] = mapped_column(String(150), nullable=False)
+    code: Mapped[str] = mapped_column(String(20), index=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -214,6 +223,9 @@ class Section(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     year: Mapped[int | None] = mapped_column(Integer, nullable=True)
     department_id: Mapped[int] = mapped_column(
@@ -324,6 +336,9 @@ class Subject(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     name: Mapped[str] = mapped_column(String(150), nullable=False)
     code: Mapped[str] = mapped_column(String(30), nullable=False, index=True)
     credits: Mapped[int] = mapped_column(Integer, nullable=False)
