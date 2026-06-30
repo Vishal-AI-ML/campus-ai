@@ -189,6 +189,9 @@ def match_class_photo(
             status_code=status.HTTP_404_NOT_FOUND, detail="Section not found"
         )
 
+    # Gate the upload before it reaches the worker: size + image magic bytes.
+    validate_base64_image(payload.image_base64)
+
     try:
         result = ai_client.match_faces(
             payload.image_base64, payload.score_threshold

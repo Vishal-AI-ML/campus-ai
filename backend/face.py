@@ -27,6 +27,7 @@ from db import get_db
 from models import FaceEnrollment, Section, User, UserRole
 from schemas import FaceEnrollRequest, FaceEnrollmentOut, FaceEnrollmentStatusOut
 from security import require_roles
+from uploads import validate_base64_image
 
 router = APIRouter(prefix="/face", tags=["face"])
 
@@ -74,6 +75,9 @@ def enroll_face(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Student not found"
         )
+
+    # Gate the upload before it reaches the worker: size + image magic bytes.
+    validate_base64_image(payload.image_base64)
 
     try:
         result = ai_client.enroll_face(payload.student_id, payload.image_base64)

@@ -31,6 +31,7 @@ from sqlalchemy.orm import Session
 from audit import record_audit
 from db import get_db
 from models import Department, Section, User, UserRole
+from uploads import read_csv_upload
 from schemas import (
     AdminUserCreate,
     BulkImportResult,
@@ -372,7 +373,7 @@ async def bulk_import_users(
     own - invalid rows are skipped with a reason and never abort the rest -
     and all valid rows are committed together in one transaction.
     """
-    raw = await file.read()
+    raw = await read_csv_upload(file)
     try:
         text_data = raw.decode("utf-8-sig")
     except UnicodeDecodeError:
