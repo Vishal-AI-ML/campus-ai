@@ -25,6 +25,7 @@ from pydantic import BaseModel, Field
 from config import settings
 from llm import get_chat_model
 from rag import retrieve
+from tracing import trace_config
 
 router = APIRouter(prefix="/mentor", tags=["mentor"])
 
@@ -119,7 +120,10 @@ def mentor_chat(payload: MentorChatRequest) -> MentorChatResponse:
     messages.append(HumanMessage(content=payload.question))
 
     try:
-        result = get_chat_model().invoke(messages)
+        result = get_chat_model().invoke(
+            messages,
+            config=trace_config("mentor_chat", provider=settings.LLM_PROVIDER),
+        )
     except Exception as exc:  # noqa: BLE001 - surface any provider/SDK error
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,

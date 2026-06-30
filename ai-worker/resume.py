@@ -26,6 +26,7 @@ from pydantic import BaseModel, Field
 
 from config import settings
 from llm import get_chat_model
+from tracing import trace_config
 
 router = APIRouter(prefix="/resume", tags=["resume"])
 
@@ -196,7 +197,10 @@ def draft_resume(payload: ResumeDraftRequest) -> ResumeDraftResponse:
         HumanMessage(content=_format_profile_for_draft(payload.profile)),
     ]
     try:
-        result = get_chat_model().invoke(messages)
+        result = get_chat_model().invoke(
+            messages,
+            config=trace_config("resume_draft", provider=settings.LLM_PROVIDER),
+        )
     except Exception as exc:  # noqa: BLE001 - surface any provider/SDK error
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
@@ -219,7 +223,10 @@ def ats_score(payload: AtsScoreRequest) -> AtsScoreResponse:
         HumanMessage(content=user),
     ]
     try:
-        result = get_chat_model().invoke(messages)
+        result = get_chat_model().invoke(
+            messages,
+            config=trace_config("resume_ats_score", provider=settings.LLM_PROVIDER),
+        )
     except Exception as exc:  # noqa: BLE001 - surface any provider/SDK error
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,

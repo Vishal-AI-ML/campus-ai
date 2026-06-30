@@ -20,6 +20,7 @@ from pydantic import BaseModel, Field
 from config import settings
 from llm import get_chat_model
 from schemas import ProofScoreRequest, ProofScoreResponse
+from tracing import trace_config
 
 router = APIRouter(prefix="/score", tags=["scoring"])
 
@@ -60,7 +61,12 @@ def score_proof(payload: ProofScoreRequest) -> ProofScoreResponse:
     model = get_chat_model().with_structured_output(_LLMProofScore)
     try:
         result = model.invoke(
-            [SystemMessage(content=_SYSTEM_PROMPT), HumanMessage(content=human)]
+            [SystemMessage(content=_SYSTEM_PROMPT), HumanMessage(content=human)],
+            config=trace_config(
+                "proof_score",
+                claim_type=payload.claim_type,
+                provider=settings.LLM_PROVIDER,
+            ),
         )
     except Exception as exc:  # noqa: BLE001 - surface any provider/SDK error
         raise HTTPException(

@@ -28,6 +28,7 @@ from observability import (
     request_logging_middleware,
     setup_logging,
 )
+from tracing import init_tracing
 from face import router as face_router
 from mentor import router as mentor_router
 from resume import router as resume_router
@@ -36,12 +37,18 @@ from scoring import router as scoring_router
 # --- Observability: structured logging + (optional) Sentry --------------
 # setup_logging() => one JSON log line per request; init_sentry() only turns
 # on when SENTRY_DSN is set, so local/CI runs need no DSN or extra package.
-WORKER_VERSION = "0.7.0"
+WORKER_VERSION = "0.8.0"
 setup_logging()
 init_sentry(
     settings.SENTRY_DSN,
     settings.ENVIRONMENT,
     release=f"campus-ai-worker@{WORKER_VERSION}",
+)
+# Langfuse LLM tracing: only turns on when LANGFUSE_* keys are set (no-op otherwise).
+init_tracing(
+    settings.LANGFUSE_PUBLIC_KEY,
+    settings.LANGFUSE_SECRET_KEY,
+    settings.LANGFUSE_HOST,
 )
 
 app = FastAPI(title="Campus AI - AI Worker", version=WORKER_VERSION)

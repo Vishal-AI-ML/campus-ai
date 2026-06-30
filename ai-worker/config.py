@@ -40,5 +40,12 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     SENTRY_DSN: str = ""
 
+    # --- Langfuse LLM tracing (optional) ----------------------------------
+    # When both keys are set, every LLM call (mentor/resume/ATS/scoring) is
+    # traced to Langfuse. Empty = disabled (worker runs fine without it).
+    LANGFUSE_PUBLIC_KEY: str = ""
+    LANGFUSE_SECRET_KEY: str = ""
+    LANGFUSE_HOST: str = "https://cloud.langfuse.com"
+
 
 settings = Settings()
