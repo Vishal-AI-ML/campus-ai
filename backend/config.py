@@ -19,8 +19,16 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
 
     # --- Database ---------------------------------------------------------
-    # Supabase Postgres connection string (psycopg3 driver).
+    # Runtime connection string. MUST point at a NOBYPASSRLS role in prod
+    # (e.g. app_user) so Row-Level Security actually filters rows. The
+    # default Supabase `postgres` role has BYPASSRLS and silently ignores
+    # all policies.
     DATABASE_URL: str
+
+    # Owner-role URL used ONLY by Alembic migrations (DDL: create tables,
+    # policies, FORCE RLS). Needs the table owner (Supabase `postgres`).
+    # Falls back to DATABASE_URL when unset (e.g. local SQLite tests).
+    MIGRATION_DATABASE_URL: str | None = None
 
     # --- Auth / JWT -------------------------------------------------------
     # Generate a strong value for production, e.g. `python -c "import secrets; print(secrets.token_hex(32))"`

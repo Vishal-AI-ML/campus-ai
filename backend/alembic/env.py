@@ -25,8 +25,12 @@ config = context.config
 
 # Inject the real DB URL from settings. Escape '%' so ConfigParser does not
 # treat it as interpolation (passwords can contain '%').
+# Migrations run DDL, so they need the OWNER role. Use MIGRATION_DATABASE_URL
+# (Supabase `postgres`) when set; otherwise fall back to DATABASE_URL (the
+# app runtime role, e.g. for local SQLite tests).
+_migration_url = settings.MIGRATION_DATABASE_URL or settings.DATABASE_URL
 config.set_main_option(
-    "sqlalchemy.url", settings.DATABASE_URL.replace("%", "%%")
+    "sqlalchemy.url", _migration_url.replace("%", "%%")
 )
 
 # Configure Python logging from the ini file, if present.
@@ -40,7 +44,7 @@ target_metadata = Base.metadata
 def run_migrations_offline() -> None:
     """Run migrations without a live DB connection (emits SQL)."""
     context.configure(
-        url=settings.DATABASE_URL,
+        url=_migration_url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
