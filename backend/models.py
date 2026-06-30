@@ -956,6 +956,11 @@ class Lead(Base):
     __tablename__ = "leads"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    # Pre-signup, public lead: NO tenant yet. Nullable on purpose; an admin
+    # claims it into their institute later (see leads.claim_lead).
+    tenant_id: Mapped[int | None] = mapped_column(
+        ForeignKey("tenants.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     email: Mapped[str] = mapped_column(
         String(255), nullable=False, index=True
@@ -984,6 +989,10 @@ class Feedback(Base):
     __tablename__ = "feedback"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    # Anonymous, possibly logged-out feedback: nullable tenant (see Lead).
+    tenant_id: Mapped[int | None] = mapped_column(
+        ForeignKey("tenants.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     category: Mapped[str | None] = mapped_column(String(50), nullable=True)
     rating: Mapped[int | None] = mapped_column(Integer, nullable=True)
     message: Mapped[str] = mapped_column(Text, nullable=False)

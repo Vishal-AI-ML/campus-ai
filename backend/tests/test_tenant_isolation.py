@@ -655,3 +655,58 @@ def test_audit_trail_is_tenant_scoped(
     )
     assert resp.status_code == 200, resp.text
     assert [a["summary"] for a in resp.json()] == ["IIT created a teacher"]
+
+
+def test_leads_are_tenant_scoped_with_null_visible(
+    client, make_user, make_tenant, token_header
+):
+    """Public leads start tenant-less; an admin claims one into their own
+    institute and it disappears from every other institute's view, while
+    still-unclaimed (NULL) leads stay visible to all admins.
+    """
+    iit = make_tenant(slug="leadiit", name="Lead IIT")
+    nit = make_tenant(slug="leadnit", name="Lead NIT")
+    make_user("leadiit.admin@test.dev", role=models.UserRole.admin, tenant=iit)
+    make_user("leadnit.admin@test.dev", role=models.UserRole.admin, tenant=nit)
+
+    # Public, unauthenticated capture -> tenant_id is NULL.
+    r1 = client.post(
+        "/leads",
+        json={"name": "Prospect One", "email": "p1@prospect.dev",
+              "message": "please send a demo"},
+    )
+    assert r1.status_code == 201, r1.text
+    assert r1.json()["tenant_id"] is None
+    lead_id = r1.json()["id"]
+
+    r2 = client.post(
+        "/leads",
+        json={"name": "Prospect Two", "email": "p2@prospect.dev",
+              "message": "interested in pricing"},
+    )
+    assert r2.status_code == 201, r2.text
+
+    iit_admin = token_header("leadiit.admin@test.dev")
+    nit_admin = token_header("leadnit.admin@test.dev")
+
+    # IIT admin claims the first lead ("link later").
+    claim = client.patch(f"/leads/{lead_id}/claim", headers=iit_admin)
+    assert claim.status_code == 200, claim.text
+    assert claim.json()["tenant_id"] == iit.id
+
+    # IIT admin sees both: its claimed lead + the still-unclaimed NULL one.
+    iit_emails = {row["email"] for row in client.get("/leads", headers=iit_admin).json()}
+    assert {"p1@prospect.dev", "p2@prospect.dev"} <= iit_emails
+
+    # NIT admin sees only the unclaimed NULL lead, never IIT's claimed lead.
+    nit_emails = {row["email"] for row in client.get("/leads", headers=nit_admin).json()}
+    assert "p2@prospect.dev" in nit_emails
+    assert "p1@prospect.dev" not in nit_emails
+
+    # NIT admin cannot claim or handle IIT's lead -> 404.
+    assert client.patch(
+        f"/leads/{lead_id}/claim", headers=nit_admin
+    ).status_code == 404
+    assert client.patch(
+        f"/leads/{lead_id}/handled", headers=nit_admin
+    ).status_code == 404

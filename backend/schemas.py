@@ -650,6 +650,7 @@ class LeadCreate(BaseModel):
 
 class LeadOut(BaseModel):
     id: int
+    tenant_id: int | None
     name: str
     email: EmailStr
     institute: str | None
