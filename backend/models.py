@@ -249,6 +249,9 @@ class AttendanceRecord(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     student_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
@@ -1138,6 +1141,9 @@ class Submission(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     assignment_id: Mapped[int] = mapped_column(
         ForeignKey("assignments.id", ondelete="CASCADE"),
         nullable=False,
@@ -1255,6 +1261,9 @@ class Doubt(Base):
     __tablename__ = "doubts"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     section_id: Mapped[int] = mapped_column(
         ForeignKey("sections.id", ondelete="CASCADE"),
         nullable=False,
@@ -1298,6 +1307,9 @@ class DoubtAnswer(Base):
     __tablename__ = "doubt_answers"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     doubt_id: Mapped[int] = mapped_column(
         ForeignKey("doubts.id", ondelete="CASCADE"), nullable=False, index=True
     )
@@ -1333,6 +1345,9 @@ class AnswerVote(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    tenant_id: Mapped[int] = mapped_column(
+        ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     answer_id: Mapped[int] = mapped_column(
         ForeignKey("doubt_answers.id", ondelete="CASCADE"),
         nullable=False,

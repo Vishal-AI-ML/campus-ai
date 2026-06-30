@@ -37,7 +37,11 @@ from schemas import (
     FacePhotoMatchRequest,
     FacePhotoMatchResponse,
 )
-from security import get_current_user, require_roles
+from security import (
+    get_current_tenant_id,
+    get_current_user,
+    require_roles,
+)
 
 router = APIRouter(prefix="/attendance", tags=["attendance"])
 
@@ -141,6 +145,7 @@ def mark_attendance(
             results.append(existing)
         else:
             record = AttendanceRecord(
+                tenant_id=staff.tenant_id,
                 student_id=item.student_id,
                 section_id=payload.section_id,
                 date=payload.date,
@@ -342,6 +347,7 @@ def section_attendance(
     section_id: int,
     date: date_type | None = None,
     db: Session = Depends(get_db),
+    tenant_id: int = Depends(get_current_tenant_id),
 ) -> list[AttendanceRecordOut]:
     """List a section's attendance, optionally filtered by date (?date=YYYY-MM-DD).
 
@@ -354,7 +360,8 @@ def section_attendance(
             status_code=status.HTTP_404_NOT_FOUND, detail="Section not found"
         )
     stmt = select(AttendanceRecord).where(
-        AttendanceRecord.section_id == section_id
+        AttendanceRecord.section_id == section_id,
+        AttendanceRecord.tenant_id == tenant_id,
     )
     if date is not None:
         stmt = stmt.where(AttendanceRecord.date == date)

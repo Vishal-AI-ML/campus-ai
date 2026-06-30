@@ -228,3 +228,113 @@ def test_open_drives_are_tenant_scoped(
         f"/drives/{nit_drive_id}", headers=token_header("iitd.tpo@test.dev")
     )
     assert cross.status_code == 404, cross.text
+
+
+def _make_section(session, *, code, dept_name, sec_name="A"):
+    """Seed a department + section directly (the public API can't create them)."""
+    dept = models.Department(name=dept_name, code=code)
+    session.add(dept)
+    session.commit()
+    session.refresh(dept)
+    section = models.Section(name=sec_name, year=3, department_id=dept.id)
+    session.add(section)
+    session.commit()
+    session.refresh(section)
+    return section
+
+
+def test_section_attendance_is_tenant_scoped(
+    client, make_user, make_tenant, token_header, session
+):
+    """A teacher can only ever read attendance from their own institute.
+
+    Even when two institutes happen to share a section id space, the
+    `/attendance/section/{id}` read is filtered by tenant, so an NIT teacher
+    peeking at an IIT section gets nothing back.
+    """
+    iit = make_tenant(slug="iit-att", name="IIT Attendance")
+    nit = make_tenant(slug="nit-att", name="NIT Attendance")
+
+    make_user("iitat.teach@test.dev", role=models.UserRole.teacher, tenant=iit)
+    iit_stu = make_user(
+        "iitat.stu@test.dev", role=models.UserRole.student, tenant=iit
+    )
+    make_user("nitat.teach@test.dev", role=models.UserRole.teacher, tenant=nit)
+
+    iit_section = _make_section(
+        session, code="IIT-CSE", dept_name="IIT CSE"
+    )
+
+    # The IIT teacher marks one of their students present.
+    marked = client.post(
+        "/attendance/mark",
+        json={
+            "section_id": iit_section.id,
+            "date": "2026-06-29",
+            "records": [{"student_id": iit_stu.id, "status": "present"}],
+        },
+        headers=token_header("iitat.teach@test.dev"),
+    )
+    assert marked.status_code in (200, 201), marked.text
+
+    # The IIT teacher reading their own section sees the record.
+    own = client.get(
+        f"/attendance/section/{iit_section.id}",
+        headers=token_header("iitat.teach@test.dev"),
+    )
+    assert own.status_code == 200
+    assert [r["student_id"] for r in own.json()] == [iit_stu.id]
+
+    # An NIT teacher reading the very same section id sees nothing -> isolated.
+    cross = client.get(
+        f"/attendance/section/{iit_section.id}",
+        headers=token_header("nitat.teach@test.dev"),
+    )
+    assert cross.status_code == 200
+    assert cross.json() == []
+
+
+def test_doubts_are_tenant_scoped(
+    client, make_user, make_tenant, token_header, session
+):
+    """The doubt forum never leaks across institutes.
+
+    An IIT teacher posts a doubt; an NIT admin neither sees it in the
+    governance list nor can open it by id (hidden as 404).
+    """
+    iit = make_tenant(slug="iit-dbt", name="IIT Doubts")
+    nit = make_tenant(slug="nit-dbt", name="NIT Doubts")
+
+    make_user("iitdbt.teach@test.dev", role=models.UserRole.teacher, tenant=iit)
+    make_user("nitdbt.admin@test.dev", role=models.UserRole.admin, tenant=nit)
+
+    iit_section = _make_section(
+        session, code="IIT-ECE", dept_name="IIT ECE"
+    )
+
+    # The IIT teacher (staff can post to any section) raises a doubt.
+    created = client.post(
+        "/doubts",
+        json={
+            "section_id": iit_section.id,
+            "title": "IIT only doubt",
+            "body": "Explain normalization",
+        },
+        headers=token_header("iitdbt.teach@test.dev"),
+    )
+    assert created.status_code == 201, created.text
+    iit_doubt_id = created.json()["id"]
+
+    # The NIT admin's governance list shows ONLY NIT doubts (none here).
+    nit_list = client.get(
+        "/doubts", headers=token_header("nitdbt.admin@test.dev")
+    )
+    assert nit_list.status_code == 200
+    assert nit_list.json() == []
+
+    # The NIT admin cannot open the IIT doubt by id -> hidden as 404.
+    cross = client.get(
+        f"/doubts/{iit_doubt_id}",
+        headers=token_header("nitdbt.admin@test.dev"),
+    )
+    assert cross.status_code == 404, cross.text

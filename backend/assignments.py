@@ -186,6 +186,7 @@ def submit_assignment(
         record = existing
     else:
         record = Submission(
+            tenant_id=current_user.tenant_id,
             assignment_id=assignment_id,
             student_id=current_user.id,
             content=payload.content,

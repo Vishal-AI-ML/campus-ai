@@ -36,7 +36,11 @@ from schemas import (
     DoubtDetailOut,
     DoubtOut,
 )
-from security import get_current_user, require_roles
+from security import (
+    get_current_tenant_id,
+    get_current_user,
+    require_roles,
+)
 
 router = APIRouter(prefix="/doubts", tags=["doubts"])
 
@@ -141,6 +145,7 @@ def create_doubt(
             status_code=status.HTTP_404_NOT_FOUND, detail="Subject not found"
         )
     doubt = Doubt(
+        tenant_id=current_user.tenant_id,
         section_id=payload.section_id,
         subject_id=payload.subject_id,
         title=payload.title,
@@ -163,9 +168,13 @@ def list_doubts(
     subject_id: int | None = None,
     status_filter: DoubtStatus | None = None,
     db: Session = Depends(get_db),
+    tenant_id: int = Depends(get_current_tenant_id),
 ) -> list[DoubtOut]:
-    """List doubts (staff), optionally filtered by section/subject/status."""
-    stmt = select(Doubt)
+    """List doubts (staff), optionally filtered by section/subject/status.
+
+    Tenant-scoped: staff only ever see their own institute's doubts.
+    """
+    stmt = select(Doubt).where(Doubt.tenant_id == tenant_id)
     if section_id is not None:
         stmt = stmt.where(Doubt.section_id == section_id)
     if subject_id is not None:
@@ -203,7 +212,8 @@ def get_doubt(
 ) -> DoubtDetailOut:
     """Open a doubt + its answers. Students only within their own section."""
     doubt = db.get(Doubt, doubt_id)
-    if doubt is None:
+    # Tenant guard: a doubt from another institute is hidden as 404.
+    if doubt is None or doubt.tenant_id != current_user.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Doubt not found"
         )
@@ -224,12 +234,14 @@ def create_answer(
 ) -> AnswerOut:
     """Answer a doubt (any member of its section, or staff)."""
     doubt = db.get(Doubt, doubt_id)
-    if doubt is None:
+    # Tenant guard: a doubt from another institute is hidden as 404.
+    if doubt is None or doubt.tenant_id != current_user.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Doubt not found"
         )
     _ensure_section_access(current_user, doubt.section_id)
     answer = DoubtAnswer(
+        tenant_id=current_user.tenant_id,
         doubt_id=doubt.id,
         body=payload.body,
         answered_by_id=current_user.id,
@@ -252,7 +264,8 @@ def accept_answer(
 ) -> DoubtDetailOut:
     """Accept an answer as the solution (asker or staff). Resolves the doubt."""
     doubt = db.get(Doubt, doubt_id)
-    if doubt is None:
+    # Tenant guard: a doubt from another institute is hidden as 404.
+    if doubt is None or doubt.tenant_id != current_user.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Doubt not found"
         )
@@ -284,7 +297,8 @@ def toggle_upvote(
 ) -> AnswerOut:
     """Toggle a single upvote on an answer (one per user)."""
     answer = db.get(DoubtAnswer, answer_id)
-    if answer is None:
+    # Tenant guard: an answer from another institute is hidden as 404.
+    if answer is None or answer.tenant_id != current_user.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Answer not found"
         )
@@ -298,7 +312,13 @@ def toggle_upvote(
         )
     )
     if existing is None:
-        db.add(AnswerVote(answer_id=answer_id, user_id=current_user.id))
+        db.add(
+            AnswerVote(
+                tenant_id=current_user.tenant_id,
+                answer_id=answer_id,
+                user_id=current_user.id,
+            )
+        )
     else:
         db.delete(existing)
     db.commit()
@@ -313,7 +333,8 @@ def delete_doubt(
 ) -> None:
     """Delete a doubt. Admins can delete any; otherwise only your own."""
     doubt = db.get(Doubt, doubt_id)
-    if doubt is None:
+    # Tenant guard: a doubt from another institute is hidden as 404.
+    if doubt is None or doubt.tenant_id != current_user.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Doubt not found"
         )
