@@ -92,7 +92,7 @@ export default function InstitutePanel() {
 
   return (
     <div>
-      <Section icon="\u{1F465}" title="People">
+      <Section icon="👥" title="People">
         <Stat label="Total accounts" value={users.total} />
         <Stat
           label="Active"
@@ -110,13 +110,13 @@ export default function InstitutePanel() {
         <Stat label="Recruiters" value={users.recruiters} />
       </Section>
 
-      <Section icon="\u{1F3EB}" title="Structure">
+      <Section icon="🏫" title="Structure">
         <Stat label="Departments" value={structure.departments} />
         <Stat label="Sections" value={structure.sections} />
         <Stat label="Subjects" value={structure.subjects} />
       </Section>
 
-      <Section icon="\u{1F6E1}\uFE0F" title="Verified-data moat">
+      <Section icon="🛡️" title="Verified-data moat">
         <MoatStat
           label="Skills"
           verified={moat.skills_verified}
@@ -139,7 +139,7 @@ export default function InstitutePanel() {
         />
       </Section>
 
-      <Section icon="\u{1F4CA}" title="Academics (across sections)">
+      <Section icon="📊" title="Academics (across sections)">
         <Stat
           label="Avg attendance"
           value={fmt(academics.avg_attendance_pct, "%")}
@@ -151,7 +151,7 @@ export default function InstitutePanel() {
         />
       </Section>
 
-      <Section icon="\u{1F3E2}" title="Placement">
+      <Section icon="🏢" title="Placement">
         <Stat
           label="Drives"
           value={placement.total_drives}
@@ -171,14 +171,14 @@ export default function InstitutePanel() {
         <Stat label="Recruiters" value={placement.recruiter_companies} />
       </Section>
 
-      <Section icon="\u26A0\uFE0F" title="At-risk students">
+      <Section icon="⚠️" title="At-risk students">
         <Stat label="High risk" value={risk.high} />
         <Stat label="Medium risk" value={risk.medium} />
         <Stat label="Low risk" value={risk.low} />
         <Stat label="Assessed" value={risk.assessed_students} />
       </Section>
 
-      <Section icon="\u{1F4AC}" title="Engagement">
+      <Section icon="💬" title="Engagement">
         <Stat label="Assignments" value={engagement.assignments} />
         <Stat label="Submissions" value={engagement.submissions} />
         <Stat label="Materials" value={engagement.materials} />
