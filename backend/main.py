@@ -59,6 +59,8 @@ Key URLs:
     /audit         -> append-only governance audit log (admin only)
 """
 
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
@@ -74,7 +76,7 @@ from attendance import router as attendance_router
 from audit import router as audit_router
 from auth import router as auth_router
 from calendar_events import router as calendar_router
-from config import settings
+from config import insecure_secret_issues, settings
 from db import engine
 from rate_limit import limiter
 from observability import (
@@ -111,6 +113,19 @@ init_sentry(
     settings.ENVIRONMENT,
     release=f"campus-ai-backend@{API_VERSION}",
 )
+
+# Secrets gate (§7 'secrets in env'): never run with the throwaway dev JWT key
+# or a token-less AI worker. Always warn; in production, refuse to boot so a
+# misconfigured deploy fails loudly instead of shipping an insecure default.
+_secret_issues = insecure_secret_issues()
+if _secret_issues:
+    _secret_msg = "Insecure secret configuration: " + " ".join(_secret_issues)
+    if settings.ENVIRONMENT == "production":
+        raise RuntimeError(
+            f"{_secret_msg} Refusing to start in production - set these in the "
+            "host environment."
+        )
+    logging.getLogger("campus-ai").warning(_secret_msg)
 
 app = FastAPI(title=settings.PROJECT_NAME, version=API_VERSION)
 

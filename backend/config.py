@@ -64,3 +64,30 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
+
+
+# Values that must never be used as real production secrets.
+_INSECURE_SECRET_KEYS = {"", "dev-secret-change-me", "changeme", "secret"}
+
+
+def insecure_secret_issues(s: Settings = settings) -> list[str]:
+    """Return a list of weak/missing secret problems (empty list = all good).
+
+    Called at startup (see main.py): the issues are always logged, and in
+    production we refuse to boot - so a real deployment can never silently run
+    with the throwaway dev JWT key or a token-less (open) AI worker. This is
+    the §7 'secrets in env' gate: secrets must come from the host env, not the
+    insecure code defaults.
+    """
+    issues: list[str] = []
+    if s.SECRET_KEY.strip() in _INSECURE_SECRET_KEYS:
+        issues.append(
+            "SECRET_KEY is unset or the dev default - set a strong random "
+            'value (python -c "import secrets; print(secrets.token_hex(32))").'
+        )
+    if not s.AI_WORKER_TOKEN.strip():
+        issues.append(
+            "AI_WORKER_TOKEN is empty - the AI worker would answer anyone; set "
+            "the same shared secret here and on the worker."
+        )
+    return issues

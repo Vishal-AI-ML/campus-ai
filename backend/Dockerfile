@@ -18,6 +18,11 @@ RUN uv sync --frozen --no-dev --no-install-project
 COPY . .
 RUN uv sync --frozen --no-dev
 
+# Security hardening: run as a non-root user (own /app so uv can read the venv)
+RUN useradd --create-home --uid 10001 appuser \
+    && chown -R appuser:appuser /app
+USER appuser
+
 # PaaS hosts (Koyeb/Render) inject $PORT; default to 8000 locally
 ENV PORT=8000
 EXPOSE 8000
