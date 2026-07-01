@@ -56,6 +56,18 @@ class Settings(BaseSettings):
     # Set this in the Render env to turn on production error capture.
     SENTRY_DSN: str = ""
 
+    # --- File storage (Supabase Storage, signed URLs) ---------------------
+    # Direct browser<->Supabase file uploads/downloads via short-lived signed
+    # URLs; the backend only signs them. Leave all three empty to keep the
+    # feature OFF (the /files routes return 503) - the rest of the app is
+    # unaffected. Turn it on by setting these in the host env.
+    #   SUPABASE_URL           project base URL, e.g. https://<ref>.supabase.co
+    #   SUPABASE_SERVICE_KEY   service_role key (SERVER-ONLY, never exposed)
+    #   SUPABASE_STORAGE_BUCKET  name of the PRIVATE bucket uploads land in
+    SUPABASE_URL: str = ""
+    SUPABASE_SERVICE_KEY: str = ""
+    SUPABASE_STORAGE_BUCKET: str = "campus-uploads"
+
 
 @lru_cache
 def get_settings() -> Settings:

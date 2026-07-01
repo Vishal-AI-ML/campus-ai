@@ -87,6 +87,7 @@ from observability import (
 from doubts import router as doubts_router
 from eca import router as eca_router
 from face import router as face_router
+from files import router as files_router
 from institute import router as institute_router
 from internship import router as internship_router
 from leads import router as leads_router
@@ -181,6 +182,7 @@ app.include_router(recruiters_router)
 app.include_router(leads_router)
 app.include_router(people_router)
 app.include_router(face_router)
+app.include_router(files_router)
 app.include_router(timetable_router)
 app.include_router(leaveod_router)
 app.include_router(tenants_router)
