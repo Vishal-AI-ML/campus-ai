@@ -520,6 +520,7 @@ async def bulk_import_users(
             (
                 i,
                 User(
+                    tenant_id=admin.tenant_id,
                     email=email,
                     full_name=full_name,
                     hashed_password=hash_password(password),
