@@ -44,9 +44,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 	}
 
 	return (
-		<div className="flex min-h-screen bg-slate-950 text-slate-100">
-			{/* Sidebar */}
-			<aside className="flex w-60 flex-col border-r border-white/10 bg-slate-900/50">
+		<div className="flex h-screen overflow-hidden bg-slate-950 text-slate-100">
+			{/* Sidebar (fixed full-height; only its nav scrolls if long) */}
+			<aside className="flex h-screen w-60 shrink-0 flex-col border-r border-white/10 bg-slate-900/50">
 				<div className="flex items-center gap-2 px-5 py-5 font-semibold">
 					<span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 text-sm font-bold">
 						C
@@ -54,7 +54,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 					<span>Campus AI</span>
 				</div>
 
-				<nav className="flex-1 space-y-1 px-3 py-2">
+				<nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
 					{nav.map((item) => (
 						<Link
 							key={item.href}
@@ -83,15 +83,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 				</div>
 			</aside>
 
-			{/* Main column */}
-			<div className="flex flex-1 flex-col">
-				<header className="flex items-center justify-between border-b border-white/10 px-8 py-4">
+			{/* Main column (header fixed; only content scrolls) */}
+			<div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+				<header className="flex shrink-0 items-center justify-between border-b border-white/10 px-8 py-4">
 					<h1 className="text-lg font-semibold capitalize">{user.role} dashboard</h1>
 					<span className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs capitalize text-slate-300">
 						{user.role}
 					</span>
 				</header>
-				<main className="flex-1 px-8 py-8">{children}</main>
+				<main className="flex-1 overflow-y-auto px-8 py-8">{children}</main>
 			</div>
 		</div>
 	)
