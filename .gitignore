@@ -17,3 +17,16 @@ ai-worker-src/
 Thumbs.db
 .idea/
 .vscode/
+# Secrets - NEVER commit
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Local artifacts / staging
+*.zip
+*.log
+.DS_Store
