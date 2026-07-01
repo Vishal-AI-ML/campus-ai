@@ -1,0 +1,30 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+
+# ---- Virtual environments ----
+.venv/
+venv/
+env/
+
+# ---- Environment / secrets (NEVER commit) ----
+.env
+.env.*
+!.env.example
+
+# ---- Test / tooling caches ----
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# ---- Local artifacts ----
+*.zip
+*.log
+.DS_Store
