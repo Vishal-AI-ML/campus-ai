@@ -83,7 +83,16 @@ def score_skill(skill_id: int) -> None:
         )
         if score is not None:
             skill.ai_score = score
-            db.commit()
+            try:
+                db.commit()
+            except Exception as exc:  # noqa: BLE001 - background write must never crash the app
+                db.rollback()
+                logger.warning(
+                    "Skipping AI score for skill %s "
+                    "(row changed/deleted mid-scoring): %s",
+                    skill_id,
+                    exc,
+                )
     finally:
         db.close()
 
@@ -111,7 +120,16 @@ def score_project_members(project_id: int) -> None:
             )
             if score is not None:
                 member.ai_score = score
-        db.commit()
+        try:
+            db.commit()
+        except Exception as exc:  # noqa: BLE001 - background write must never crash the app
+            db.rollback()
+            logger.warning(
+                "Skipping AI scores for project %s "
+                "(rows changed/deleted mid-scoring): %s",
+                project_id,
+                exc,
+            )
     finally:
         db.close()
 
