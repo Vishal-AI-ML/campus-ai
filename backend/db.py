@@ -6,7 +6,7 @@ consistent connection setup (SQLAlchemy 2.x style).
 
 from collections.abc import Generator
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 from config import settings
@@ -33,22 +33,57 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
+# Key under which the request's tenant is stashed on the Session so it can be
+# re-applied to EVERY transaction that Session opens (see the listener below).
+_TENANT_KEY = "current_tenant_id"
+
+
+def _guc_params(tenant_id: int | None) -> dict[str, str]:
+    # app.current_tenant_id() maps the empty string back to NULL (no tenant).
+    return {"tid": "" if tenant_id is None else str(tenant_id)}
+
+
 def set_current_tenant(db: Session, tenant_id: int | None) -> None:
-    """Set the per-session Postgres GUC used by Row-Level Security (Phase 4).
+    """Publish the caller's institute for Postgres Row-Level Security (Phase 4).
 
-    RLS policies read ``app.current_tenant_id()`` which in turn reads the
-    ``app.current_tenant_id`` connection setting. We set it **session-wide**
-    (``set_config(..., is_local => false)``) so it survives the commits a single
-    request may issue. Pass ``None`` to clear it (empty string, which
-    ``app.current_tenant_id()`` maps back to NULL).
+    RLS policies read ``app.current_tenant_id`` - a per-CONNECTION setting. The
+    subtlety that bit us: a Session hands its connection back to the pool on
+    every ``commit()`` and may grab a *different* connection for the next
+    statement, so a value set just once does not reliably follow the Session.
+    That broke commit-then-refresh under RLS: the refresh SELECT ran on a fresh
+    connection with no tenant set, saw zero rows, and raised
+    "Could not refresh instance".
 
-    No-op on non-Postgres backends (the SQLite test DB has no ``set_config``),
-    so it is always safe to call.
+    Fix: remember the tenant on ``session.info`` and re-apply it at the start of
+    EVERY transaction via the ``after_begin`` listener below, using
+    ``SET LOCAL`` (transaction-scoped, so nothing leaks onto pooled
+    connections). We also apply it now for the transaction already in flight.
+    No-op on non-Postgres backends (e.g. the SQLite test DB).
     """
+    db.info[_TENANT_KEY] = tenant_id
     bind = db.get_bind()
     if bind is None or bind.dialect.name != "postgresql":
         return
     db.execute(
-        text("SELECT set_config('app.current_tenant_id', :tid, false)"),
-        {"tid": "" if tenant_id is None else str(tenant_id)},
+        text("SELECT set_config('app.current_tenant_id', :tid, true)"),
+        _guc_params(tenant_id),
+    )
+
+
+@event.listens_for(SessionLocal, "after_begin")
+def _reapply_tenant_guc(session: Session, transaction, connection) -> None:
+    """Re-stamp the tenant GUC whenever the Session opens a new transaction.
+
+    A Session may run successive transactions on different pooled connections
+    (e.g. the SELECT that ``refresh()`` issues after a ``commit()``); this makes
+    every one of them satisfy RLS. No-op until a tenant has been set and on
+    non-Postgres backends.
+    """
+    if _TENANT_KEY not in session.info:
+        return
+    if connection.dialect.name != "postgresql":
+        return
+    connection.execute(
+        text("SELECT set_config('app.current_tenant_id', :tid, true)"),
+        _guc_params(session.info[_TENANT_KEY]),
     )
