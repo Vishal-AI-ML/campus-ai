@@ -25,9 +25,9 @@ strict **verified-data, no-hallucination** design.
 
 ## 📑 Table of contents
 
-- [Why](#-why)
-- [What](#-what)
-- [How](#-how)
+- [The Why](#-the-why)
+- [The What](#-the-what)
+- [The How](#-the-how)
 - [AI / ML engineering](#-ai--ml-engineering)
 - [Tech stack](#-tech-stack)
 - [Project structure](#-project-structure)
@@ -41,7 +41,7 @@ strict **verified-data, no-hallucination** design.
 
 ---
 
-## 🤔 Why
+## 🤔 The Why
 
 Most colleges run on a tangle of spreadsheets, disconnected portals, and WhatsApp groups. The cost of that mess is real:
 
@@ -54,7 +54,7 @@ Campus AI is built around one idea: a **verified data moat**. Every academic and
 captured at source and tenant-isolated, so the AI reasons over trustworthy data instead of
 self-reported claims — _it would rather cite a verified record than invent one._
 
-## 📦 What
+## 📦 The What
 
 One role-aware platform where each user gets exactly the surface they need:
 
@@ -74,7 +74,7 @@ One role-aware platform where each user gets exactly the surface they need:
 - ⚡ **AI without blocking** — heavy inference runs in a separate worker and as background tasks.
 - 🛡️ **Secure by default** — JWT + RBAC, signed-URL uploads, secrets from env only, audit logging.
 
-## 🏗️ How
+## 🏗️ The How
 
 ```mermaid
 flowchart TB
@@ -252,10 +252,31 @@ NEXT_PUBLIC_API_BASE_URL=https://campus-ai-backend-ez7m.onrender.com
 
 ## 🗺️ Roadmap
 
+Building Campus AI toward a complete campus operating system. Grouped by priority.
+
+### 🔨 Now — hardening what exists
 - [ ] Complete the face-attendance review UI (bulk confirm + corrections)
 - [ ] Virus scanning on file uploads
-- [ ] Deeper placement analytics & recruiter insights
 - [ ] Expand the AI eval harness into regression gating in CI
+- [ ] Full light/dark-mode QA pass across every role dashboard
+
+### 🎓 Next — core campus modules
+- [ ] **Alumni network** — alumni directory, student–alumni mentorship connect, and referrals into placement drives
+- [ ] **Events & clubs** — societies, event registration, and a shared campus calendar
+- [ ] **Library management** — catalogue, issue/return, and fine tracking
+- [ ] **Hostel & mess** — room allocation, mess menu, and hostel attendance
+- [ ] **Fees & payments** — online fee payment, receipts, and dues tracking
+- [ ] **Exams & results** — hall tickets, result publishing, and digital transcripts
+- [ ] **Notifications** — email / SMS / push for announcements, deadlines, and results
+- [ ] **Parent portal** — read-only visibility into attendance and performance
+
+### 🚀 Later — scale & platform
+- [ ] **Mobile app** (PWA / React Native) for students and teachers
+- [ ] **Transport** — bus routes and live tracking
+- [ ] **Grievance & feedback portal** with SLA tracking
+- [ ] **Scholarship & financial-aid** management
+- [ ] Deeper placement analytics and recruiter insights
+- [ ] Semantic caching and cost-routing for the AI layer
 
 ## 📄 License
 
