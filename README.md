@@ -111,20 +111,26 @@ flowchart TB
 The AI work lives in a dedicated **`ai-worker`** microservice (FastAPI).
 
 ### RAG mentor
-- Retrieval-augmented mentor grounded in the student's **verified profile** — not hallucinated generic advice.
+- Grounded career-mentor chat that combines the student's **verified profile** (CGPA, attendance, skills) with **vector RAG** over a curated career knowledge base (in-process Chroma) — not hallucinated generic advice.
 - Prompt templates assembled from structured records, with guardrails around what the model may claim.
 
-### Resume & ATS scoring
-- Automated resume scoring returning an ATS-style score and improvement signals.
-- Runs as a **background task** — the API responds immediately and fills `ai_score` asynchronously.
+### Resume & career tools
+- **ATS scoring** (`ats_score`) — scores a resume against a job description with improvement signals.
+- **Resume drafting** (`draft_resume`) — generates a resume from the student's structured profile.
+- **Proof scoring** (`score_proof`) — evaluates uploaded certificates/proofs for verification.
 
 ### Face-recognition attendance
 - Face embeddings in **Qdrant** (`student_faces`, **512-dim cosine**), matched against enrolled students with outsider detection.
 - Upload validation (size cap + magic bytes) before any inference.
 
-### Evaluation & observability
-- **Langfuse** tracing across worker calls for latency/quality visibility.
-- A lightweight **AI eval harness** to sanity-check model outputs on a fixed profile before shipping worker changes.
+### Observability
+- **Structured JSON request logs** — one line per request (method, path, status, duration, `request_id`) for end-to-end tracing.
+- **Optional Sentry** error tracking — enabled by setting `SENTRY_DSN`; off by default so local and CI runs stay clean.
+- **Optional Langfuse LLM tracing** on the AI worker (`tracing.py`) — env-gated, so it turns on only when configured.
+
+### AI eval harness
+- A gated evaluation script (`ai-worker/evals/run_evals.py`) with **5 cases** — mentor grounding, no-hallucination on missing data, ATS-score validity, resume-from-verified-facts only, and proof-scoring sanity.
+- Skips automatically when no LLM key is set, so a keyless CI run stays green. Run manually today — not yet wired into the CI workflow.
 
 ## 🧱 Tech stack
 
@@ -132,7 +138,7 @@ The AI work lives in a dedicated **`ai-worker`** microservice (FastAPI).
 |-------|------------|
 | **Frontend** | Next.js 14 (App Router), TypeScript, Tailwind CSS v4, light/dark themes |
 | **Backend** | FastAPI, Python 3.13, Pydantic, SQLAlchemy, Alembic |
-| **AI worker** | FastAPI, RAG mentor, resume scoring, face recognition, Langfuse |
+| **AI worker** | FastAPI, RAG mentor (Chroma), resume/ATS + proof scoring, face recognition, optional Langfuse tracing |
 | **Data** | PostgreSQL (RLS), Qdrant (512-dim cosine), Supabase Storage |
 | **Auth** | JWT, role-based access control (5 roles) |
 | **Tooling** | uv, npm, Ruff, pytest, GitHub Actions CI, Playwright |
@@ -228,7 +234,7 @@ NEXT_PUBLIC_API_BASE_URL=https://campus-ai-backend-ez7m.onrender.com
 
 ## 🔐 Security & multi-tenancy
 
-- **Postgres Row-Level Security** enforces per-tenant isolation at the database layer — the app connects with a `NOBYPASSRLS` role so policies actually filter every query.
+- **Postgres Row-Level Security** enforces per-tenant isolation at the database layer — `FORCE ROW LEVEL SECURITY` + a `tenant_isolation` policy on **every tenant-scoped table**, with the app connecting through a dedicated `NOBYPASSRLS` role so policies actually filter every query. `tenant_id` is `NOT NULL`, so a tenant-less row is impossible.
 - **JWT + RBAC** with five distinct roles; every route is permission-gated.
 - **Signed-URL file flow** with tenant-scoped storage paths and path-traversal protection; the feature ships dark (503) until storage env is configured.
 - **Secrets from env only** — a startup gate refuses to boot in production on the dev JWT default or a token-less AI worker.
@@ -236,7 +242,7 @@ NEXT_PUBLIC_API_BASE_URL=https://campus-ai-backend-ez7m.onrender.com
 
 ## ✅ Engineering quality
 
-- **Automated test suite** (pytest) covering auth, RBAC, rate-limits, tenant isolation, and the file-signing routes — with **hermetic tests** that never touch real Supabase.
+- **Automated test suite** (~36 pytest tests) covering auth, RBAC, rate-limits, tenant isolation, and the file-signing routes — plus a **dedicated Postgres RLS suite** that proves cross-tenant isolation and default-deny against the live policies. Core tests are hermetic and never touch real Supabase.
 - **GitHub Actions CI** runs Ruff lint + the full test suite on every push.
 - **Alembic migrations** version the schema (RLS policies included) with a dedicated owner-role for DDL.
 - **Clean Git hygiene** — enforced `.gitignore`, LF normalization, and a scrubbed history (no stray binaries or PII in the repo).
@@ -250,6 +256,8 @@ NEXT_PUBLIC_API_BASE_URL=https://campus-ai-backend-ez7m.onrender.com
 | AI worker | Hugging Face Spaces | https://vishalaigenai-campus-ai-worker.hf.space |
 | Database | Supabase (Postgres) + Qdrant | Managed |
 
+> All three services run on **free tiers**: the API sleeps after ~15 min idle (a cron-job.org ping every 10 min keeps it and the worker warm), and database migrations are applied manually from a dev machine because the free host has no shell.
+
 ## 🗺️ Roadmap
 
 Building Campus AI toward a complete campus operating system. Grouped by priority.
@@ -257,7 +265,7 @@ Building Campus AI toward a complete campus operating system. Grouped by priorit
 ### 🔨 Now — hardening what exists
 - [ ] Complete the face-attendance review UI (bulk confirm + corrections)
 - [ ] Virus scanning on file uploads
-- [ ] Expand the AI eval harness into regression gating in CI
+- [ ] Wire the existing AI eval harness into CI for automatic regression gating
 - [ ] Full light/dark-mode QA pass across every role dashboard
 
 ### 🎓 Next — core campus modules
