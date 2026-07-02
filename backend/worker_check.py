@@ -54,7 +54,11 @@ HEADERS = {"X-Worker-Token": TOKEN} if TOKEN else {}
 client = httpx.Client(base_url=URL, timeout=120.0)
 results: list[dict] = []
 
-C_GREEN = "\033[92m"; C_RED = "\033[91m"; C_YEL = "\033[93m"; C_DIM = "\033[90m"; C_0 = "\033[0m"
+C_GREEN = "\033[92m"
+C_RED = "\033[91m"
+C_YEL = "\033[93m"
+C_DIM = "\033[90m"
+C_0 = "\033[0m"
 
 # A minimal-but-realistic verified profile for draft/chat endpoints.
 SAMPLE_PROFILE = {

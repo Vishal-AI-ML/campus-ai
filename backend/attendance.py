@@ -16,6 +16,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 import ai_client
+from uploads import validate_base64_image
 from db import get_db
 from models import (
     AttendanceRecord,

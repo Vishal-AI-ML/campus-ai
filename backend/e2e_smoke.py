@@ -21,7 +21,7 @@ from __future__ import annotations
 import sys
 import time
 import json
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 import httpx
 
@@ -39,7 +39,11 @@ tokens: dict[str, str] = {}
 results: list[dict] = []       # every check
 ctx: dict[str, object] = {}    # captured ids (section_id, drive_id, ...)
 
-C_GREEN = "\033[92m"; C_RED = "\033[91m"; C_YEL = "\033[93m"; C_DIM = "\033[90m"; C_0 = "\033[0m"
+C_GREEN = "\033[92m"
+C_RED = "\033[91m"
+C_YEL = "\033[93m"
+C_DIM = "\033[90m"
+C_0 = "\033[0m"
 
 
 def _classify(code: int, expect) -> str:
@@ -427,7 +431,7 @@ def report():
     else:
         print("\n  " + C_GREEN + "Koi 5xx/crash nahi mila. WARN wale sirf role/permission/data-missing hain." + C_0)
     print("=" * 78)
-    print("  Note: WARN (401/403/404/422) = crash nahi hai — role-permission ya")
+    print("  Note: WARN (401/403/404/422) = crash nahi hai Ã¢â‚¬â€ role-permission ya")
     print("        seed-data missing. Sirf FAIL/ERROR (5xx/network) asli bug hai.")
     print("=" * 78)
 
@@ -436,8 +440,9 @@ def main():
     warmup()
     login_all()
     if not tokens:
-        print(C_RED + "Login hi fail ho gaya — URL/creds check kar. Report:" + C_0)
-        report(); return
+        print(C_RED + "Login hi fail ho gaya Ã¢â‚¬â€ URL/creds check kar. Report:" + C_0)
+        report()
+        return
     reads()
     writes_and_ai()
     file_uploads()
