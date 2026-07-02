@@ -1,32 +1,29 @@
-# ---- Repo-root local junk (not part of the app) ----
-
-# Packaging / delivery artifacts
-*.zip
-_zipstage/
-_pkg/
-_hk/
-
-# Local extractions of the AI worker source (worker lives in its own HF Space).
-# If you ever want the worker source tracked here, put it in a real folder
-# (e.g. worker/) and remove the matching line below.
-aiw-src/
-ai-worker-src/
-
-# OS / editor
-.DS_Store
-Thumbs.db
-.idea/
-.vscode/
-# Secrets - NEVER commit
-.env
-.env.*
-!.env.example
-
+cd E:\campus-ai
+$gi = @'
 # Python
 __pycache__/
 *.py[cod]
+.venv/
+*.sqlite
 
-# Local artifacts / staging
-*.zip
+# Env / secrets
+.env
+.env.*
+
+# Node / Next
+node_modules/
+.next/
+next-env.d.ts
+
+# Logs
 *.log
-.DS_Store
+
+# Vector store
+qdrant_storage/
+
+# QA / local artifacts — never commit real faces or screenshots
+test/
+ui_shots/
+ui_smoke.py
+'@ -replace "`r`n","`n"
+[System.IO.File]::WriteAllText("E:\campus-ai\.gitignore", $gi)

@@ -31,7 +31,8 @@ def _enable_storage(monkeypatch):
 # --- Feature OFF (default test env has no SUPABASE_* set) --------------------
 
 
-def test_sign_upload_disabled_returns_503(client, make_user, token_header):
+def test_sign_upload_disabled_returns_503(client, make_user, token_header, monkeypatch):
+    monkeypatch.setattr(storage, "storage_enabled", lambda: False)
     make_user("s1@x.edu", role=UserRole.student)
     headers = token_header("s1@x.edu")
     resp = client.post(
