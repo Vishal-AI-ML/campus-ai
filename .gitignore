@@ -1,19 +1,34 @@
-cd E:\campus-ai
-$gi = @'
 # Python
 __pycache__/
 *.py[cod]
 .venv/
 *.sqlite
 
-# Env / secrets
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Env / secrets (real env kabhi commit nahi; example rakho)
 .env
 .env.*
+!.env.example
 
 # Node / Next
 node_modules/
 .next/
 next-env.d.ts
+
+# Packaging / delivery artifacts
+*.zip
+_zipstage/
+_pkg/
+_hk/
+
+# Local AI-worker source extractions (worker apne HF Space mein rehta hai)
+aiw-src/
+ai-worker-src/
 
 # Logs
 *.log
@@ -21,9 +36,7 @@ next-env.d.ts
 # Vector store
 qdrant_storage/
 
-# QA / local artifacts — never commit real faces or screenshots
+# QA / local artifacts - real faces/screenshots kabhi commit nahi
 test/
 ui_shots/
 ui_smoke.py
-'@ -replace "`r`n","`n"
-[System.IO.File]::WriteAllText("E:\campus-ai\.gitignore", $gi)
