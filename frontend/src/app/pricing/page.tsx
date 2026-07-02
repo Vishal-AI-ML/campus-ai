@@ -81,7 +81,7 @@ export default function PricingPage() {
 				<h1 className="text-4xl font-bold sm:text-5xl">
 					Pricing that scales with your campus
 				</h1>
-				<p className="mx-auto mt-4 max-w-2xl text-lg text-slate-300">
+				<p className="mx-auto mt-4 max-w-2xl text-lg text-slate-600 dark:text-slate-300">
 					Start with a free pilot. Upgrade as more departments come on board.
 				</p>
 			</section>
@@ -94,24 +94,24 @@ export default function PricingPage() {
 							className={`flex flex-col rounded-2xl border p-6 ${
 								tier.popular
 									? "border-indigo-400/50 bg-indigo-500/10"
-									: "border-white/10 bg-white/5"
+									: "border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900"
 							}`}
 						>
 							{tier.popular && (
-								<span className="mb-3 inline-block w-fit rounded-full bg-indigo-500/20 px-3 py-1 text-xs text-indigo-200">
+								<span className="mb-3 inline-block w-fit rounded-full bg-indigo-500/20 px-3 py-1 text-xs text-indigo-700 dark:text-indigo-200">
 									Most popular
 								</span>
 							)}
 							<h3 className="text-xl font-semibold">{tier.name}</h3>
-							<p className="mt-1 text-sm text-slate-400">{tier.tagline}</p>
+							<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{tier.tagline}</p>
 							<div className="mt-5 flex items-baseline gap-2">
 								<span className="text-3xl font-bold">{tier.price}</span>
-								<span className="text-sm text-slate-400">{tier.cadence}</span>
+								<span className="text-sm text-slate-500 dark:text-slate-400">{tier.cadence}</span>
 							</div>
-							<ul className="mt-6 flex-1 space-y-2 text-sm text-slate-300">
+							<ul className="mt-6 flex-1 space-y-2 text-sm text-slate-600 dark:text-slate-300">
 								{tier.features.map((item) => (
 									<li key={item} className="flex gap-2">
-										<span className="text-emerald-400">✓</span>
+										<span className="text-emerald-600 dark:text-emerald-300">✓</span>
 										{item}
 									</li>
 								))}
@@ -121,7 +121,7 @@ export default function PricingPage() {
 								className={`mt-6 rounded-lg px-5 py-2.5 text-center text-sm font-medium transition ${
 									tier.popular
 										? "bg-gradient-to-r from-indigo-500 to-violet-500 text-white hover:opacity-90"
-										: "border border-white/15 text-slate-200 hover:bg-white/5"
+										: "border border-slate-300 dark:border-white/15 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10"
 								}`}
 							>
 								{tier.cta.label}
@@ -130,9 +130,9 @@ export default function PricingPage() {
 					))}
 				</div>
 
-				<p className="mt-10 text-center text-sm text-slate-400">
+				<p className="mt-10 text-center text-sm text-slate-500 dark:text-slate-400">
 					Need something specific?{" "}
-					<Link href="/contact" className="text-indigo-300 hover:text-indigo-200">
+					<Link href="/contact" className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-700">
 						Talk to us
 					</Link>
 					.

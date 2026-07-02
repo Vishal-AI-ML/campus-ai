@@ -60,7 +60,7 @@ export default function SectionPicker({ onSection }: Props) {
         onChange={(e) =>
           setDeptId(e.target.value === "" ? "" : Number(e.target.value))
         }
-        className="rounded border border-gray-300 px-2 py-1 text-sm"
+        className="rounded border border-gray-300 dark:border-white/15 px-2 py-1 text-sm"
       >
         <option value="">Select department</option>
         {departments.map((d) => (
@@ -73,7 +73,7 @@ export default function SectionPicker({ onSection }: Props) {
         value={sectionId}
         onChange={(e) => onSectionChange(e.target.value)}
         disabled={deptId === ""}
-        className="rounded border border-gray-300 px-2 py-1 text-sm disabled:opacity-50"
+        className="rounded border border-gray-300 dark:border-white/15 px-2 py-1 text-sm disabled:opacity-50"
       >
         <option value="">Select section</option>
         {sections.map((s) => (

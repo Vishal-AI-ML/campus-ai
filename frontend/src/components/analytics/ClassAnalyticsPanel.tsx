@@ -62,15 +62,15 @@ export default function ClassAnalyticsPanel() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="mb-2 text-sm font-medium text-gray-700">Pick a section</p>
+        <p className="mb-2 text-sm font-medium text-gray-700 dark:text-slate-300">Pick a section</p>
         <SectionPicker onSection={onSection} />
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
-      {loading && <p className="text-sm text-gray-500">Loading...</p>}
+      {loading && <p className="text-sm text-gray-500 dark:text-slate-400">Loading...</p>}
 
       {sectionId == null && !loading && (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-slate-400">
           Select a section to see its class health and at-risk students.
         </p>
       )}
@@ -103,13 +103,13 @@ export default function ClassAnalyticsPanel() {
 
           <div>
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
                 Students {bandFilter ? `(${bandFilter} risk)` : "by risk"}
               </h2>
               <select
                 value={bandFilter}
                 onChange={(e) => onBand(e.target.value as RiskBand | "")}
-                className="rounded border border-gray-300 px-2 py-1 text-sm"
+                className="rounded border border-gray-300 dark:border-white/15 px-2 py-1 text-sm"
               >
                 <option value="">All bands</option>
                 {BANDS.map((b) => (
@@ -139,11 +139,11 @@ function Kpi({
   return (
     <div
       className={`rounded-lg border p-3 ${
-        accent ? "border-red-200 bg-red-50" : "border-gray-200 bg-white"
+        accent ? "border-red-200 bg-red-50" : "border-gray-200 dark:border-white/10 bg-white dark:bg-slate-900"
       }`}
     >
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className="text-xl font-bold text-gray-900">{value}</p>
+      <p className="text-xs text-gray-500 dark:text-slate-400">{label}</p>
+      <p className="text-xl font-bold text-gray-900 dark:text-slate-100">{value}</p>
     </div>
   );
 }
@@ -157,10 +157,10 @@ function RiskDistribution({ summary }: { summary: ClassAnalytics }) {
   ];
   return (
     <div>
-      <p className="mb-2 text-sm font-medium text-gray-700">
+      <p className="mb-2 text-sm font-medium text-gray-700 dark:text-slate-300">
         Risk distribution
       </p>
-      <div className="flex h-4 w-full overflow-hidden rounded-full bg-gray-100">
+      <div className="flex h-4 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-slate-800">
         {segs.map((s) =>
           s.count > 0 ? (
             <div
@@ -172,7 +172,7 @@ function RiskDistribution({ summary }: { summary: ClassAnalytics }) {
           ) : null,
         )}
       </div>
-      <div className="mt-2 flex gap-4 text-xs text-gray-600">
+      <div className="mt-2 flex gap-4 text-xs text-gray-600 dark:text-slate-300">
         {segs.map((s) => (
           <span key={s.band} className="flex items-center gap-1">
             <span
@@ -188,12 +188,12 @@ function RiskDistribution({ summary }: { summary: ClassAnalytics }) {
 
 function RiskTable({ rows }: { rows: StudentRisk[] }) {
   if (rows.length === 0) {
-    return <p className="text-sm text-gray-500">No students to show.</p>;
+    return <p className="text-sm text-gray-500 dark:text-slate-400">No students to show.</p>;
   }
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200">
-      <table className="min-w-full divide-y divide-gray-200 text-sm">
-        <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
+    <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-white/10">
+      <table className="min-w-full divide-y divide-gray-200 dark:divide-white/10 text-sm">
+        <thead className="bg-gray-50 dark:bg-slate-950 text-left text-xs uppercase text-gray-500 dark:text-slate-400">
           <tr>
             <th className="px-3 py-2">Student</th>
             <th className="px-3 py-2">Risk</th>
@@ -204,10 +204,10 @@ function RiskTable({ rows }: { rows: StudentRisk[] }) {
             <th className="px-3 py-2">Reasons</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-gray-100 dark:divide-white/10">
           {rows.map((r) => (
             <tr key={r.student_id}>
-              <td className="px-3 py-2 font-medium text-gray-900">
+              <td className="px-3 py-2 font-medium text-gray-900 dark:text-slate-100">
                 {r.student_name ?? `#${r.student_id}`}
               </td>
               <td className="px-3 py-2 font-semibold">{r.risk_score}</td>
@@ -221,20 +221,20 @@ function RiskTable({ rows }: { rows: StudentRisk[] }) {
               <td className="px-3 py-2">{fmt(r.attendance_pct, "%")}</td>
               <td className="px-3 py-2">{fmt(r.cgpa)}</td>
               <td className="px-3 py-2">{fmt(r.submission_rate, "%")}</td>
-              <td className="px-3 py-2 text-gray-600">
+              <td className="px-3 py-2 text-gray-600 dark:text-slate-300">
                 {r.reasons.length ? (
                   <div className="flex flex-wrap gap-1">
                     {r.reasons.map((reason, i) => (
                       <span
                         key={i}
-                        className="rounded bg-gray-100 px-1.5 py-0.5 text-xs"
+                        className="rounded bg-gray-100 dark:bg-slate-800 px-1.5 py-0.5 text-xs"
                       >
                         {reason}
                       </span>
                     ))}
                   </div>
                 ) : (
-                  <span className="text-gray-400">No flags</span>
+                  <span className="text-gray-400 dark:text-slate-500">No flags</span>
                 )}
               </td>
             </tr>

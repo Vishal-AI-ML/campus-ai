@@ -29,8 +29,8 @@ export default function AssignmentsPage() {
 	return (
 		<div className="mx-auto max-w-3xl space-y-6 p-6">
 			<header>
-				<h1 className="text-xl font-semibold text-white">📝 Assignments</h1>
-				<p className="mt-1 text-sm text-white/60">
+				<h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">📝 Assignments</h1>
+				<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
 					{isStaff
 						? "Create assignments for a section and grade student submissions."
 						: "View your assignments, submit your work, and see your grades."}
@@ -44,7 +44,7 @@ export default function AssignmentsPage() {
 			) : null}
 
 			{!me ? (
-				<p className="text-sm text-white/60">Loading…</p>
+				<p className="text-sm text-slate-500 dark:text-slate-400">Loading…</p>
 			) : isStaff ? (
 				<AssignmentTeacherPanel />
 			) : (

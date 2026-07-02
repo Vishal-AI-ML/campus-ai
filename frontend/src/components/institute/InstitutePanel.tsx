@@ -22,10 +22,10 @@ function Stat({
   hint?: string;
 }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4">
-      <div className="text-2xl font-bold text-gray-900">{value}</div>
-      <div className="mt-1 text-sm font-medium text-gray-700">{label}</div>
-      {hint && <div className="mt-0.5 text-xs text-gray-400">{hint}</div>}
+    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4">
+      <div className="text-2xl font-bold text-gray-900 dark:text-slate-100">{value}</div>
+      <div className="mt-1 text-sm font-medium text-gray-700 dark:text-slate-300">{label}</div>
+      {hint && <div className="mt-0.5 text-xs text-gray-400 dark:text-slate-500">{hint}</div>}
     </div>
   );
 }
@@ -41,7 +41,7 @@ function Section({
 }) {
   return (
     <section className="mb-8">
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
         {icon} {title}
       </h2>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -62,10 +62,10 @@ function MoatStat({
   pending: number;
 }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4">
+    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4">
       <div className="text-2xl font-bold text-green-700">{verified}</div>
-      <div className="mt-1 text-sm font-medium text-gray-700">{label}</div>
-      <div className="mt-0.5 text-xs text-amber-600">{pending} pending</div>
+      <div className="mt-1 text-sm font-medium text-gray-700 dark:text-slate-300">{label}</div>
+      <div className="mt-0.5 text-xs text-amber-600 dark:text-amber-300">{pending} pending</div>
     </div>
   );
 }
@@ -85,14 +85,14 @@ export default function InstitutePanel() {
   }, []);
 
   if (error) return <p className="text-sm text-red-600">{error}</p>;
-  if (!data) return <p className="text-sm text-gray-500">Loading...</p>;
+  if (!data) return <p className="text-sm text-gray-500 dark:text-slate-400">Loading...</p>;
 
   const { users, structure, moat, academics, placement, engagement, risk } =
     data;
 
   return (
     <div>
-      <Section icon="👥" title="People">
+      <Section icon="\u{1F465}" title="People">
         <Stat label="Total accounts" value={users.total} />
         <Stat
           label="Active"
@@ -110,13 +110,13 @@ export default function InstitutePanel() {
         <Stat label="Recruiters" value={users.recruiters} />
       </Section>
 
-      <Section icon="🏫" title="Structure">
+      <Section icon="\u{1F3EB}" title="Structure">
         <Stat label="Departments" value={structure.departments} />
         <Stat label="Sections" value={structure.sections} />
         <Stat label="Subjects" value={structure.subjects} />
       </Section>
 
-      <Section icon="🛡️" title="Verified-data moat">
+      <Section icon="\u{1F6E1}\uFE0F" title="Verified-data moat">
         <MoatStat
           label="Skills"
           verified={moat.skills_verified}
@@ -139,7 +139,7 @@ export default function InstitutePanel() {
         />
       </Section>
 
-      <Section icon="📊" title="Academics (across sections)">
+      <Section icon="\u{1F4CA}" title="Academics (across sections)">
         <Stat
           label="Avg attendance"
           value={fmt(academics.avg_attendance_pct, "%")}
@@ -151,7 +151,7 @@ export default function InstitutePanel() {
         />
       </Section>
 
-      <Section icon="🏢" title="Placement">
+      <Section icon="\u{1F3E2}" title="Placement">
         <Stat
           label="Drives"
           value={placement.total_drives}
@@ -171,14 +171,14 @@ export default function InstitutePanel() {
         <Stat label="Recruiters" value={placement.recruiter_companies} />
       </Section>
 
-      <Section icon="⚠️" title="At-risk students">
+      <Section icon="\u26A0\uFE0F" title="At-risk students">
         <Stat label="High risk" value={risk.high} />
         <Stat label="Medium risk" value={risk.medium} />
         <Stat label="Low risk" value={risk.low} />
         <Stat label="Assessed" value={risk.assessed_students} />
       </Section>
 
-      <Section icon="💬" title="Engagement">
+      <Section icon="\u{1F4AC}" title="Engagement">
         <Stat label="Assignments" value={engagement.assignments} />
         <Stat label="Submissions" value={engagement.submissions} />
         <Stat label="Materials" value={engagement.materials} />
@@ -191,7 +191,7 @@ export default function InstitutePanel() {
         <Stat label="Leave queue" value={engagement.leave_pending} />
       </Section>
 
-      <p className="mt-2 text-xs text-gray-400">
+      <p className="mt-2 text-xs text-gray-400 dark:text-slate-500">
         Snapshot generated {new Date(data.generated_at).toLocaleString()}.
       </p>
     </div>

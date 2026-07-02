@@ -243,16 +243,16 @@ export default function VerifyPage() {
 
 	const tabClass = (active: boolean) =>
 		`rounded-lg px-4 py-2 text-sm transition ${
-			active ? "bg-indigo-500/15 text-white" : "text-slate-300 hover:bg-white/5"
+			active ? "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-200" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10"
 		}`
 
 	const noteClass =
-		"mt-3 w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+		"mt-3 w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
 
 	return (
 		<div>
 			<h2 className="text-2xl font-bold">Verification Queue</h2>
-			<p className="mt-1 text-sm text-slate-400">
+			<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
 				Review pending claims. Only what you verify counts toward resumes and
 				placement eligibility.
 			</p>
@@ -294,9 +294,9 @@ export default function VerifyPage() {
 			{tab === "skills" && (
 				<div className="mt-6">
 					{loading ? (
-						<p className="text-slate-400">Loading queue...</p>
+						<p className="text-slate-500 dark:text-slate-400">Loading queue...</p>
 					) : skills.length === 0 ? (
-						<p className="text-slate-400">No pending skill claims. All clear.</p>
+						<p className="text-slate-500 dark:text-slate-400">No pending skill claims. All clear.</p>
 					) : (
 						<div className="space-y-3">
 							{skills.map((skill) => {
@@ -304,11 +304,11 @@ export default function VerifyPage() {
 								return (
 									<div
 										key={skill.id}
-										className="rounded-xl border border-white/10 bg-white/5 p-4"
+										className="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4"
 									>
 										<div className="flex flex-wrap items-center justify-between gap-2">
 											<span className="font-medium">{skill.name}</span>
-											<span className="text-xs text-slate-400">
+											<span className="text-xs text-slate-500 dark:text-slate-400">
 												Student #{skill.student_id} · AI score:{" "}
 												{skill.ai_score != null
 													? skill.ai_score.toFixed(2)
@@ -316,7 +316,7 @@ export default function VerifyPage() {
 											</span>
 										</div>
 										{skill.evidence_note && (
-											<p className="mt-2 text-sm text-slate-300">
+											<p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
 												{skill.evidence_note}
 											</p>
 										)}
@@ -325,7 +325,7 @@ export default function VerifyPage() {
 												href={skill.evidence_url}
 												target="_blank"
 												rel="noreferrer"
-												className="mt-1 inline-block text-xs text-indigo-300 underline"
+												className="mt-1 inline-block text-xs text-indigo-600 dark:text-indigo-300 underline"
 											>
 												{skill.evidence_url}
 											</a>
@@ -340,7 +340,7 @@ export default function VerifyPage() {
 											<button
 												onClick={() => decideSkill(skill, "verified")}
 												disabled={busyKey === key}
-												className="rounded-lg border border-emerald-400/30 px-3 py-1.5 text-sm text-emerald-300 transition hover:bg-emerald-400/10 disabled:opacity-40"
+												className="rounded-lg border border-emerald-400/30 px-3 py-1.5 text-sm text-emerald-600 dark:text-emerald-300 transition hover:bg-emerald-400/10 disabled:opacity-40"
 											>
 												Verify
 											</button>
@@ -364,9 +364,9 @@ export default function VerifyPage() {
 			{tab === "projects" && (
 				<div className="mt-6">
 					{loading ? (
-						<p className="text-slate-400">Loading queue...</p>
+						<p className="text-slate-500 dark:text-slate-400">Loading queue...</p>
 					) : members.length === 0 ? (
-						<p className="text-slate-400">
+						<p className="text-slate-500 dark:text-slate-400">
 							No pending contributions. All clear.
 						</p>
 					) : (
@@ -376,18 +376,18 @@ export default function VerifyPage() {
 								return (
 									<div
 										key={member.member_id}
-										className="rounded-xl border border-white/10 bg-white/5 p-4"
+										className="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4"
 									>
 										<div className="flex flex-wrap items-center justify-between gap-2">
 											<span className="font-medium">
 												{member.project_title}
 											</span>
-											<span className="text-xs text-slate-400">
+											<span className="text-xs text-slate-500 dark:text-slate-400">
 												Student #{member.student_id}
 											</span>
 										</div>
 										{member.contribution && (
-											<p className="mt-2 text-sm text-slate-300">
+											<p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
 												Contribution: {member.contribution}
 											</p>
 										)}
@@ -396,7 +396,7 @@ export default function VerifyPage() {
 												href={member.repo_url}
 												target="_blank"
 												rel="noreferrer"
-												className="mt-1 inline-block text-xs text-indigo-300 underline"
+												className="mt-1 inline-block text-xs text-indigo-600 dark:text-indigo-300 underline"
 											>
 												{member.repo_url}
 											</a>
@@ -411,7 +411,7 @@ export default function VerifyPage() {
 											<button
 												onClick={() => decideMember(member, "verified")}
 												disabled={busyKey === key}
-												className="rounded-lg border border-emerald-400/30 px-3 py-1.5 text-sm text-emerald-300 transition hover:bg-emerald-400/10 disabled:opacity-40"
+												className="rounded-lg border border-emerald-400/30 px-3 py-1.5 text-sm text-emerald-600 dark:text-emerald-300 transition hover:bg-emerald-400/10 disabled:opacity-40"
 											>
 												Verify
 											</button>
@@ -435,9 +435,9 @@ export default function VerifyPage() {
 			{tab === "eca" && (
 				<div className="mt-6">
 					{loading ? (
-						<p className="text-slate-400">Loading queue...</p>
+						<p className="text-slate-500 dark:text-slate-400">Loading queue...</p>
 					) : ecas.length === 0 ? (
-						<p className="text-slate-400">
+						<p className="text-slate-500 dark:text-slate-400">
 							No pending activities. All clear.
 						</p>
 					) : (
@@ -447,21 +447,21 @@ export default function VerifyPage() {
 								return (
 									<div
 										key={eca.id}
-										className="rounded-xl border border-white/10 bg-white/5 p-4"
+										className="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4"
 									>
 										<div className="flex flex-wrap items-center justify-between gap-2">
 											<span className="font-medium">{eca.title}</span>
-											<span className="text-xs capitalize text-slate-400">
+											<span className="text-xs capitalize text-slate-500 dark:text-slate-400">
 												{eca.category} · Student #{eca.student_id}
 											</span>
 										</div>
 										{eca.organization && (
-											<p className="mt-1 text-xs text-slate-400">
+											<p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
 												{eca.organization}
 											</p>
 										)}
 										{eca.description && (
-											<p className="mt-2 text-sm text-slate-300">
+											<p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
 												{eca.description}
 											</p>
 										)}
@@ -470,7 +470,7 @@ export default function VerifyPage() {
 												href={eca.evidence_url}
 												target="_blank"
 												rel="noreferrer"
-												className="mt-1 inline-block text-xs text-indigo-300 underline"
+												className="mt-1 inline-block text-xs text-indigo-600 dark:text-indigo-300 underline"
 											>
 												{eca.evidence_url}
 											</a>
@@ -485,7 +485,7 @@ export default function VerifyPage() {
 											<button
 												onClick={() => decideEca(eca, "verified")}
 												disabled={busyKey === key}
-												className="rounded-lg border border-emerald-400/30 px-3 py-1.5 text-sm text-emerald-300 transition hover:bg-emerald-400/10 disabled:opacity-40"
+												className="rounded-lg border border-emerald-400/30 px-3 py-1.5 text-sm text-emerald-600 dark:text-emerald-300 transition hover:bg-emerald-400/10 disabled:opacity-40"
 											>
 												Verify
 											</button>
@@ -508,9 +508,9 @@ export default function VerifyPage() {
 			{tab === "interns" && (
 				<div className="mt-6">
 					{loading ? (
-						<p className="text-slate-400">Loading queue...</p>
+						<p className="text-slate-500 dark:text-slate-400">Loading queue...</p>
 					) : interns.length === 0 ? (
-						<p className="text-slate-400">
+						<p className="text-slate-500 dark:text-slate-400">
 							No pending internships. All clear.
 						</p>
 					) : (
@@ -520,17 +520,17 @@ export default function VerifyPage() {
 								return (
 									<div
 										key={it.id}
-										className="rounded-xl border border-white/10 bg-white/5 p-4"
+										className="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4"
 									>
 										<div className="flex flex-wrap items-center justify-between gap-2">
 											<span className="font-medium">
 												{it.role_title} @ {it.organization}
 											</span>
-											<span className="text-xs capitalize text-slate-400">
+											<span className="text-xs capitalize text-slate-500 dark:text-slate-400">
 												{it.internship_type} · Student #{it.student_id}
 											</span>
 										</div>
-										<p className="mt-1 text-xs text-slate-400">
+										<p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
 											{[
 												it.mode,
 												it.location,
@@ -541,12 +541,12 @@ export default function VerifyPage() {
 												.join(" · ")}
 										</p>
 										{it.skills_used && (
-											<p className="mt-2 text-xs text-slate-400">
+											<p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
 												Skills: {it.skills_used}
 											</p>
 										)}
 										{it.description && (
-											<p className="mt-2 text-sm text-slate-300">
+											<p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
 												{it.description}
 											</p>
 										)}
@@ -555,7 +555,7 @@ export default function VerifyPage() {
 												href={it.certificate_url}
 												target="_blank"
 												rel="noreferrer"
-												className="mt-1 inline-block text-xs text-indigo-300 underline"
+												className="mt-1 inline-block text-xs text-indigo-600 dark:text-indigo-300 underline"
 											>
 												{it.certificate_url}
 											</a>
@@ -570,7 +570,7 @@ export default function VerifyPage() {
 											<button
 												onClick={() => decideIntern(it, "verified")}
 												disabled={busyKey === key}
-												className="rounded-lg border border-emerald-400/30 px-3 py-1.5 text-sm text-emerald-300 transition hover:bg-emerald-400/10 disabled:opacity-40"
+												className="rounded-lg border border-emerald-400/30 px-3 py-1.5 text-sm text-emerald-600 dark:text-emerald-300 transition hover:bg-emerald-400/10 disabled:opacity-40"
 											>
 												Verify
 											</button>

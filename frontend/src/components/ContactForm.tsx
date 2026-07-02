@@ -72,19 +72,19 @@ export default function ContactForm() {
 	}
 
 	const inputClass =
-		"mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+		"mt-1 w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
 
 	if (submitted) {
 		return (
 			<div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-8 text-center">
 				<div className="text-3xl">✓</div>
 				<h3 className="mt-3 text-xl font-semibold">Thanks for reaching out!</h3>
-				<p className="mt-2 text-sm text-slate-300">
+				<p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
 					Our team will get back to you shortly.
 				</p>
 				<button
 					onClick={() => setSubmitted(false)}
-					className="mt-5 rounded-lg border border-white/15 px-4 py-2 text-sm transition hover:bg-white/5"
+					className="mt-5 rounded-lg border border-slate-300 dark:border-white/15 px-4 py-2 text-sm transition hover:bg-slate-100 dark:hover:bg-white/10"
 				>
 					Send another
 				</button>
@@ -95,7 +95,7 @@ export default function ContactForm() {
 	return (
 		<form
 			onSubmit={handleSubmit}
-			className="rounded-2xl border border-white/10 bg-white/5 p-6"
+			className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6"
 		>
 			{error && (
 				<p className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
@@ -104,7 +104,7 @@ export default function ContactForm() {
 			)}
 			<div className="grid gap-4 sm:grid-cols-2">
 				<div>
-					<label className="text-sm text-slate-300">Name *</label>
+					<label className="text-sm text-slate-600 dark:text-slate-300">Name *</label>
 					<input
 						required
 						value={form.name}
@@ -114,7 +114,7 @@ export default function ContactForm() {
 					/>
 				</div>
 				<div>
-					<label className="text-sm text-slate-300">Email *</label>
+					<label className="text-sm text-slate-600 dark:text-slate-300">Email *</label>
 					<input
 						required
 						type="email"
@@ -125,7 +125,7 @@ export default function ContactForm() {
 					/>
 				</div>
 				<div>
-					<label className="text-sm text-slate-300">Institute</label>
+					<label className="text-sm text-slate-600 dark:text-slate-300">Institute</label>
 					<input
 						value={form.institute}
 						onChange={(e) => setField("institute", e.target.value)}
@@ -134,7 +134,7 @@ export default function ContactForm() {
 					/>
 				</div>
 				<div>
-					<label className="text-sm text-slate-300">I am a</label>
+					<label className="text-sm text-slate-600 dark:text-slate-300">I am a</label>
 					<select
 						value={form.role}
 						onChange={(e) => setField("role", e.target.value)}
@@ -148,7 +148,7 @@ export default function ContactForm() {
 					</select>
 				</div>
 				<div className="sm:col-span-2">
-					<label className="text-sm text-slate-300">Message *</label>
+					<label className="text-sm text-slate-600 dark:text-slate-300">Message *</label>
 					<textarea
 						required
 						value={form.message}

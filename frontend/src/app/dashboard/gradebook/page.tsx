@@ -51,13 +51,13 @@ type Result = {
 }
 
 function gradeColor(gp: number): string {
-	if (gp >= 8) return "text-emerald-300"
-	if (gp >= 6) return "text-amber-300"
+	if (gp >= 8) return "text-emerald-600 dark:text-emerald-300"
+	if (gp >= 6) return "text-amber-600 dark:text-amber-300"
 	return "text-red-300"
 }
 
 const inputClass =
-	"mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+	"mt-1 w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
 
 export default function GradebookPage() {
 	const [tab, setTab] = useState<"subjects" | "marks">("subjects")
@@ -91,13 +91,13 @@ export default function GradebookPage() {
 
 	const tabClass = (active: boolean) =>
 		`rounded-lg px-4 py-2 text-sm transition ${
-			active ? "bg-indigo-500/15 text-white" : "text-slate-300 hover:bg-white/5"
+			active ? "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-200" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10"
 		}`
 
 	return (
 		<div>
 			<h2 className="text-2xl font-bold">Gradebook</h2>
-			<p className="mt-1 text-sm text-slate-400">
+			<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
 				Manage subjects and record student marks. Grade points are derived
 				automatically from the percentage.
 			</p>
@@ -191,11 +191,11 @@ function SubjectsTab({
 	return (
 		<div className="mt-6">
 			{/* Create form */}
-			<div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+			<div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6">
 				<h3 className="text-lg font-semibold">Add a subject</h3>
 				<div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					<div className="lg:col-span-1">
-						<label className="text-sm text-slate-400">Department</label>
+						<label className="text-sm text-slate-500 dark:text-slate-400">Department</label>
 						<select
 							value={deptId}
 							onChange={(e) => setDeptId(e.target.value)}
@@ -210,7 +210,7 @@ function SubjectsTab({
 						</select>
 					</div>
 					<div>
-						<label className="text-sm text-slate-400">Subject name</label>
+						<label className="text-sm text-slate-500 dark:text-slate-400">Subject name</label>
 						<input
 							value={name}
 							onChange={(e) => setName(e.target.value)}
@@ -219,7 +219,7 @@ function SubjectsTab({
 						/>
 					</div>
 					<div>
-						<label className="text-sm text-slate-400">Code</label>
+						<label className="text-sm text-slate-500 dark:text-slate-400">Code</label>
 						<input
 							value={code}
 							onChange={(e) => setCode(e.target.value)}
@@ -228,7 +228,7 @@ function SubjectsTab({
 						/>
 					</div>
 					<div>
-						<label className="text-sm text-slate-400">Credits (1-10)</label>
+						<label className="text-sm text-slate-500 dark:text-slate-400">Credits (1-10)</label>
 						<input
 							type="number"
 							min={1}
@@ -239,7 +239,7 @@ function SubjectsTab({
 						/>
 					</div>
 					<div>
-						<label className="text-sm text-slate-400">Semester (1-12)</label>
+						<label className="text-sm text-slate-500 dark:text-slate-400">Semester (1-12)</label>
 						<input
 							type="number"
 							min={1}
@@ -257,7 +257,7 @@ function SubjectsTab({
 					</p>
 				)}
 				{success && (
-					<p className="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
+					<p className="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-600 dark:text-emerald-300">
 						{success}
 					</p>
 				)}
@@ -275,20 +275,20 @@ function SubjectsTab({
 			<div className="mt-8">
 				<h3 className="text-lg font-semibold">All subjects</h3>
 				{subjects.length === 0 ? (
-					<p className="mt-3 text-slate-400">No subjects yet.</p>
+					<p className="mt-3 text-slate-500 dark:text-slate-400">No subjects yet.</p>
 				) : (
 					<div className="mt-3 space-y-2">
 						{subjects.map((s) => (
 							<div
 								key={s.id}
-								className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3"
+								className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-4 py-3"
 							>
 								<div>
 									<p className="font-medium">
 										{s.name}{" "}
-										<span className="text-xs text-slate-500">({s.code})</span>
+										<span className="text-xs text-slate-500 dark:text-slate-400">({s.code})</span>
 									</p>
-									<p className="text-xs text-slate-500">
+									<p className="text-xs text-slate-500 dark:text-slate-400">
 										{deptName(s.department_id)} - Sem {s.semester} - {s.credits}{" "}
 										credits
 									</p>
@@ -408,12 +408,12 @@ function MarksTab({
 
 	return (
 		<div className="mt-6">
-			<div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+			<div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6">
 				<h3 className="text-lg font-semibold">Record marks</h3>
 
 				<div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					<div>
-						<label className="text-sm text-slate-400">Subject</label>
+						<label className="text-sm text-slate-500 dark:text-slate-400">Subject</label>
 						<select
 							value={subjectId}
 							onChange={(e) => setSubjectId(e.target.value)}
@@ -428,7 +428,7 @@ function MarksTab({
 						</select>
 					</div>
 					<div>
-						<label className="text-sm text-slate-400">Department</label>
+						<label className="text-sm text-slate-500 dark:text-slate-400">Department</label>
 						<select
 							value={deptId}
 							onChange={(e) => setDeptId(e.target.value)}
@@ -443,7 +443,7 @@ function MarksTab({
 						</select>
 					</div>
 					<div>
-						<label className="text-sm text-slate-400">Section</label>
+						<label className="text-sm text-slate-500 dark:text-slate-400">Section</label>
 						<select
 							value={sectionId}
 							onChange={(e) => setSectionId(e.target.value)}
@@ -460,7 +460,7 @@ function MarksTab({
 						</select>
 					</div>
 					<div>
-						<label className="text-sm text-slate-400">Student</label>
+						<label className="text-sm text-slate-500 dark:text-slate-400">Student</label>
 						<select
 							value={studentId}
 							onChange={(e) => setStudentId(e.target.value)}
@@ -476,7 +476,7 @@ function MarksTab({
 						</select>
 					</div>
 					<div>
-						<label className="text-sm text-slate-400">Marks obtained</label>
+						<label className="text-sm text-slate-500 dark:text-slate-400">Marks obtained</label>
 						<input
 							type="number"
 							value={marks}
@@ -486,7 +486,7 @@ function MarksTab({
 						/>
 					</div>
 					<div>
-						<label className="text-sm text-slate-400">Max marks</label>
+						<label className="text-sm text-slate-500 dark:text-slate-400">Max marks</label>
 						<input
 							type="number"
 							value={maxMarks}
@@ -502,7 +502,7 @@ function MarksTab({
 					</p>
 				)}
 				{success && (
-					<p className="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
+					<p className="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-600 dark:text-emerald-300">
 						{success}
 					</p>
 				)}
@@ -521,7 +521,7 @@ function MarksTab({
 				<div className="mt-8">
 					<h3 className="text-lg font-semibold">Recorded results</h3>
 					{results.length === 0 ? (
-						<p className="mt-3 text-slate-400">
+						<p className="mt-3 text-slate-500 dark:text-slate-400">
 							No marks recorded for this subject yet.
 						</p>
 					) : (
@@ -533,12 +533,12 @@ function MarksTab({
 								return (
 									<div
 										key={r.id}
-										className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3"
+										className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-4 py-3"
 									>
-										<span className="text-sm text-slate-200">
+										<span className="text-sm text-slate-700 dark:text-slate-200">
 											{nameFor(r.student_id)}
 										</span>
-										<span className="text-sm text-slate-400">
+										<span className="text-sm text-slate-500 dark:text-slate-400">
 											{r.marks_obtained}/{r.max_marks} ({pct}%) -{" "}
 											<span className={gradeColor(r.grade_point)}>
 												GP {r.grade_point}

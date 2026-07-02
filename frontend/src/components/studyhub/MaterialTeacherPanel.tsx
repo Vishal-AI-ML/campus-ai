@@ -94,7 +94,7 @@ export default function MaterialTeacherPanel() {
 	return (
 		<div className="space-y-6">
 			<section>
-				<h2 className="mb-2 text-sm font-semibold text-gray-700">
+				<h2 className="mb-2 text-sm font-semibold text-gray-700 dark:text-slate-300">
 					Pick a section
 				</h2>
 				<SectionPicker onSectionChange={handleSectionChange} />
@@ -104,21 +104,21 @@ export default function MaterialTeacherPanel() {
 				<>
 					<form
 						onSubmit={handleCreate}
-						className="space-y-3 rounded-lg border border-gray-200 p-4"
+						className="space-y-3 rounded-lg border border-gray-200 dark:border-white/10 p-4"
 					>
-						<h2 className="text-sm font-semibold text-gray-700">
+						<h2 className="text-sm font-semibold text-gray-700 dark:text-slate-300">
 							Upload a material
 						</h2>
 						<div className="flex flex-wrap gap-3">
 							<input
-								className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm"
+								className="flex-1 rounded-md border border-gray-300 dark:border-white/15 px-3 py-2 text-sm"
 								placeholder="Title"
 								value={title}
 								onChange={(e) => setTitle(e.target.value)}
 								required
 							/>
 							<select
-								className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+								className="rounded-md border border-gray-300 dark:border-white/15 px-3 py-2 text-sm"
 								value={category}
 								onChange={(e) =>
 									setCategory(e.target.value as MaterialCategory)
@@ -132,20 +132,20 @@ export default function MaterialTeacherPanel() {
 							</select>
 						</div>
 						<input
-							className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+							className="w-full rounded-md border border-gray-300 dark:border-white/15 px-3 py-2 text-sm"
 							placeholder="Short description (optional)"
 							value={description}
 							onChange={(e) => setDescription(e.target.value)}
 						/>
 						<textarea
-							className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+							className="w-full rounded-md border border-gray-300 dark:border-white/15 px-3 py-2 text-sm"
 							placeholder="Notes content (optional)"
 							rows={4}
 							value={content}
 							onChange={(e) => setContent(e.target.value)}
 						/>
 						<input
-							className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+							className="w-full rounded-md border border-gray-300 dark:border-white/15 px-3 py-2 text-sm"
 							placeholder="Resource link (optional, e.g. Drive/PDF/YouTube)"
 							value={link}
 							onChange={(e) => setLink(e.target.value)}
@@ -163,37 +163,37 @@ export default function MaterialTeacherPanel() {
 					</form>
 
 					<section className="space-y-3">
-						<h2 className="text-sm font-semibold text-gray-700">
+						<h2 className="text-sm font-semibold text-gray-700 dark:text-slate-300">
 							Section materials
 						</h2>
 						{loading ? (
-							<p className="text-sm text-gray-500">Loading...</p>
+							<p className="text-sm text-gray-500 dark:text-slate-400">Loading...</p>
 						) : error ? (
 							<p className="text-sm text-red-600">{error}</p>
 						) : materials.length === 0 ? (
-							<p className="text-sm text-gray-500">No materials yet.</p>
+							<p className="text-sm text-gray-500 dark:text-slate-400">No materials yet.</p>
 						) : (
 							<ul className="space-y-3">
 								{materials.map((m) => (
 									<li
 										key={m.id}
-									className="rounded-lg border border-gray-200 p-4"
+									className="rounded-lg border border-gray-200 dark:border-white/10 p-4"
 								>
 									<div className="flex items-start justify-between gap-3">
 										<div>
-											<p className="font-medium text-gray-900">
+											<p className="font-medium text-gray-900 dark:text-slate-100">
 												{m.title}{" "}
-												<span className="text-xs text-gray-500">
+												<span className="text-xs text-gray-500 dark:text-slate-400">
 													{CATEGORY_LABEL[m.category]}
 												</span>
 											</p>
 											{m.description ? (
-												<p className="text-sm text-gray-600">
+												<p className="text-sm text-gray-600 dark:text-slate-300">
 													{m.description}
 												</p>
 											) : null}
 											{m.content ? (
-												<p className="mt-1 whitespace-pre-wrap text-sm text-gray-700">
+												<p className="mt-1 whitespace-pre-wrap text-sm text-gray-700 dark:text-slate-300">
 													{m.content}
 												</p>
 											) : null}
@@ -207,7 +207,7 @@ export default function MaterialTeacherPanel() {
 													Open resource
 												</a>
 											) : null}
-											<p className="mt-1 text-xs text-gray-400">
+											<p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
 												{formatDateTime(m.created_at)}
 											</p>
 										</div>
@@ -225,7 +225,7 @@ export default function MaterialTeacherPanel() {
 					</section>
 				</>
 			) : (
-				<p className="text-sm text-gray-500">
+				<p className="text-sm text-gray-500 dark:text-slate-400">
 					Select a department and section to manage its study materials.
 				</p>
 			)}

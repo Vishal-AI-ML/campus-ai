@@ -84,21 +84,21 @@ export function BulkImportPanel({ onImported }: { onImported?: () => void }) {
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+    <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6">
       <h3 className="text-lg font-semibold">Bulk import (CSV)</h3>
-      <p className="mt-1 text-sm text-slate-400">
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         Create many accounts at once. Columns:{" "}
-        <code className="text-slate-300">
+        <code className="text-slate-600 dark:text-slate-300">
           full_name, email, role, password, section_id
         </code>
-        . Role defaults to <code className="text-slate-300">student</code>;
+        . Role defaults to <code className="text-slate-600 dark:text-slate-300">student</code>;
         blank passwords are auto-generated and shown once below.
       </p>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <button
           onClick={downloadTemplate}
-          className="rounded-lg border border-white/15 px-3 py-2 text-sm text-slate-200 transition hover:bg-white/10"
+          className="rounded-lg border border-slate-300 dark:border-white/15 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 transition hover:bg-slate-100 dark:hover:bg-white/10"
         >
           Download template
         </button>
@@ -110,7 +110,7 @@ export function BulkImportPanel({ onImported }: { onImported?: () => void }) {
             setFile(e.target.files?.[0] ?? null);
             setResult(null);
           }}
-          className="text-sm text-slate-300 file:mr-3 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-sm file:text-slate-200"
+          className="text-sm text-slate-600 dark:text-slate-300 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:text-slate-700"
         />
         <button
           onClick={runImport}
@@ -130,21 +130,21 @@ export function BulkImportPanel({ onImported }: { onImported?: () => void }) {
       {result && (
         <div className="mt-4">
           <div className="flex flex-wrap gap-3 text-sm">
-            <span className="rounded-lg border border-white/10 bg-white/5 px-3 py-1">
+            <span className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-1">
               Total rows: <b>{result.total_rows}</b>
             </span>
-            <span className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-emerald-300">
+            <span className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-emerald-600 dark:text-emerald-300">
               Created: <b>{result.created}</b>
             </span>
-            <span className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-amber-300">
+            <span className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-amber-600 dark:text-amber-300">
               Skipped: <b>{result.skipped}</b>
             </span>
           </div>
 
           {result.results.length > 0 && (
-            <div className="mt-3 overflow-x-auto rounded-xl border border-white/10">
+            <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 dark:border-white/10">
               <table className="w-full text-left text-sm">
-                <thead className="bg-white/5 text-xs uppercase text-slate-400">
+                <thead className="bg-white dark:bg-slate-900 text-xs uppercase text-slate-500 dark:text-slate-400">
                   <tr>
                     <th className="px-3 py-2">Row</th>
                     <th className="px-3 py-2">Email</th>
@@ -155,24 +155,24 @@ export function BulkImportPanel({ onImported }: { onImported?: () => void }) {
                 </thead>
                 <tbody>
                   {result.results.map((r) => (
-                    <tr key={r.row} className="border-t border-white/5">
-                      <td className="px-3 py-2 text-slate-400">{r.row}</td>
+                    <tr key={r.row} className="border-t border-slate-200 dark:border-white/10">
+                      <td className="px-3 py-2 text-slate-500 dark:text-slate-400">{r.row}</td>
                       <td className="px-3 py-2">{r.email ?? "-"}</td>
                       <td className="px-3 py-2">
                         {r.status === "created" ? (
-                          <span className="text-emerald-300">created</span>
+                          <span className="text-emerald-600 dark:text-emerald-300">created</span>
                         ) : (
-                          <span className="text-amber-300">skipped</span>
+                          <span className="text-amber-600 dark:text-amber-300">skipped</span>
                         )}
                       </td>
-                      <td className="px-3 py-2 text-slate-300">{r.detail}</td>
+                      <td className="px-3 py-2 text-slate-600 dark:text-slate-300">{r.detail}</td>
                       <td className="px-3 py-2">
                         {r.temp_password ? (
-                          <code className="rounded bg-black/30 px-2 py-0.5 text-indigo-200">
+                          <code className="rounded bg-black/30 px-2 py-0.5 text-indigo-700 dark:text-indigo-200">
                             {r.temp_password}
                           </code>
                         ) : (
-                          <span className="text-slate-600">-</span>
+                          <span className="text-slate-600 dark:text-slate-300">-</span>
                         )}
                       </td>
                     </tr>
@@ -183,7 +183,7 @@ export function BulkImportPanel({ onImported }: { onImported?: () => void }) {
           )}
 
           {result.results.some((r) => r.temp_password) && (
-            <p className="mt-2 text-xs text-amber-300/80">
+            <p className="mt-2 text-xs text-amber-600/80">
               Save these temporary passwords now - they are shown only once. Ask
               users to change them after first login.
             </p>

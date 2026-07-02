@@ -89,23 +89,23 @@ export default function MentorPage() {
 			<div className="flex items-center justify-between">
 				<div>
 					<h2 className="text-2xl font-bold">AI Career Mentor</h2>
-					<p className="mt-1 text-sm text-slate-400">
+					<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
 						Grounded only on your verified profile - skills, projects,
 						attendance, and CGPA.
 					</p>
 				</div>
 				{provider && (
-					<span className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-slate-400">
+					<span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs text-slate-500 dark:text-slate-400">
 						{provider}
 					</span>
 				)}
 			</div>
 
 			{/* Conversation */}
-			<div className="mt-4 flex-1 space-y-3 overflow-y-auto rounded-2xl border border-white/10 bg-white/5 p-4">
+			<div className="mt-4 flex-1 space-y-3 overflow-y-auto rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4">
 				{messages.length === 0 && !loading ? (
 					<div className="flex h-full flex-col items-center justify-center text-center">
-						<p className="text-slate-400">
+						<p className="text-slate-500 dark:text-slate-400">
 							Apne career, skills ya placement ke baare me kuch bhi poochho.
 						</p>
 						<div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -114,7 +114,7 @@ export default function MentorPage() {
 									key={s}
 									type="button"
 									onClick={() => send(s)}
-									className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 hover:border-indigo-400 hover:text-white"
+									className="rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs text-slate-600 dark:text-slate-300 hover:border-indigo-400 hover:text-slate-900 dark:hover:text-white"
 								>
 									{s}
 								</button>
@@ -133,7 +133,7 @@ export default function MentorPage() {
 								className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-2 text-sm ${
 									turn.role === "user"
 										? "bg-gradient-to-r from-indigo-500 to-violet-500 text-white"
-										: "bg-slate-800 text-slate-200"
+										: "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200"
 								}`}
 							>
 								{turn.content}
@@ -144,7 +144,7 @@ export default function MentorPage() {
 
 				{loading && (
 					<div className="flex justify-start">
-						<div className="rounded-2xl bg-slate-800 px-4 py-2 text-sm text-slate-400">
+						<div className="rounded-2xl bg-slate-100 dark:bg-slate-800 px-4 py-2 text-sm text-slate-500 dark:text-slate-400">
 							Mentor soch raha hai...
 						</div>
 					</div>
@@ -166,7 +166,7 @@ export default function MentorPage() {
 					onChange={(e) => setInput(e.target.value)}
 					placeholder="Apna sawaal type karo..."
 					disabled={loading}
-					className="flex-1 rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400 disabled:opacity-60"
+					className="flex-1 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400 disabled:opacity-60"
 				/>
 				<button
 					type="submit"

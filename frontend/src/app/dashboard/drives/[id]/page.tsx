@@ -66,9 +66,9 @@ type Applicant = {
 }
 
 const STATUS_STYLES: Record<AppStatus, string> = {
-	applied: "bg-slate-500/15 text-slate-300",
-	shortlisted: "bg-amber-500/15 text-amber-300",
-	selected: "bg-emerald-500/15 text-emerald-300",
+	applied: "bg-slate-500/15 text-slate-600 dark:text-slate-300",
+	shortlisted: "bg-amber-500/15 text-amber-600 dark:text-amber-300",
+	selected: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300",
 	rejected: "bg-red-500/15 text-red-300",
 }
 
@@ -151,14 +151,14 @@ export default function DriveDetailPage() {
 
 	const tabClass = (active: boolean) =>
 		`rounded-lg px-4 py-2 text-sm transition ${
-			active ? "bg-indigo-500/15 text-white" : "text-slate-300 hover:bg-white/5"
+			active ? "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-200" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10"
 		}`
 
 	return (
 		<div>
 			<Link
 				href="/dashboard/drives"
-				className="text-sm text-slate-400 transition hover:text-white"
+				className="text-sm text-slate-500 dark:text-slate-400 transition hover:text-slate-900 dark:hover:text-white"
 			>
 				← Back to drives
 			</Link>
@@ -172,8 +172,8 @@ export default function DriveDetailPage() {
 					<span
 						className={`rounded-full px-2 py-0.5 text-xs ${
 							drive.is_open
-								? "bg-emerald-500/15 text-emerald-300"
-								: "bg-slate-500/15 text-slate-400"
+								? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300"
+								: "bg-slate-500/15 text-slate-500 dark:text-slate-400"
 						}`}
 					>
 						{drive.is_open ? "Open" : "Closed"}
@@ -181,7 +181,7 @@ export default function DriveDetailPage() {
 				)}
 			</div>
 			{drive && (
-				<p className="mt-1 text-sm text-slate-400">
+				<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
 					{drive.role_title}
 					{drive.package_lpa != null ? ` · ${drive.package_lpa} LPA` : ""} · Min
 					CGPA {drive.min_cgpa} · Min attendance {drive.min_attendance}% · Min
@@ -215,7 +215,7 @@ export default function DriveDetailPage() {
 			{/* Eligibility tab */}
 			{tab === "eligibility" && (
 				<div className="mt-5">
-					<label className="flex items-center gap-2 text-sm text-slate-300">
+					<label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
 						<input
 							type="checkbox"
 							checked={eligibleOnly}
@@ -225,29 +225,29 @@ export default function DriveDetailPage() {
 					</label>
 
 					{loading ? (
-						<p className="mt-4 text-slate-400">Running eligibility engine...</p>
+						<p className="mt-4 text-slate-500 dark:text-slate-400">Running eligibility engine...</p>
 					) : eligibility.length === 0 ? (
-						<p className="mt-4 text-slate-400">No students to evaluate.</p>
+						<p className="mt-4 text-slate-500 dark:text-slate-400">No students to evaluate.</p>
 					) : (
 						<div className="mt-4 space-y-3">
 							{eligibility.map((row) => (
 								<div
 									key={row.student_id}
-								className="rounded-xl border border-white/10 bg-white/5 p-4"
+								className="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4"
 								>
 									<div className="flex flex-wrap items-center justify-between gap-2">
 										<div className="font-medium">{row.full_name}</div>
 										<span
 											className={`rounded-full px-2 py-0.5 text-xs ${
 												row.eligible
-													? "bg-emerald-500/15 text-emerald-300"
+													? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300"
 													: "bg-red-500/15 text-red-300"
 											}`}
 										>
 											{row.eligible ? "Eligible" : "Not eligible"}
 										</span>
 									</div>
-									<div className="mt-1 text-xs text-slate-400">
+									<div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
 										CGPA {row.cgpa} · Attendance {row.attendance}% · Verified
 										skills {row.verified_skills} · Verified projects{" "}
 										{row.verified_projects}
@@ -258,7 +258,7 @@ export default function DriveDetailPage() {
 												key={reason.criterion}
 												className={`rounded-md px-2 py-1 text-xs ${
 													reason.passed
-														? "bg-emerald-500/10 text-emerald-300"
+														? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300"
 														: "bg-red-500/10 text-red-300"
 												}`}
 											>
@@ -278,15 +278,15 @@ export default function DriveDetailPage() {
 			{tab === "applicants" && (
 				<div className="mt-5">
 					{loading ? (
-						<p className="text-slate-400">Loading applicants...</p>
+						<p className="text-slate-500 dark:text-slate-400">Loading applicants...</p>
 					) : applicants.length === 0 ? (
-						<p className="text-slate-400">No applications yet.</p>
+						<p className="text-slate-500 dark:text-slate-400">No applications yet.</p>
 					) : (
 						<div className="space-y-3">
 							{applicants.map((applicant) => (
 								<div
 									key={applicant.application_id}
-									className="rounded-xl border border-white/10 bg-white/5 p-4"
+									className="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4"
 								>
 									<div className="flex flex-wrap items-center justify-between gap-2">
 										<div className="font-medium">{applicant.full_name}</div>
@@ -296,7 +296,7 @@ export default function DriveDetailPage() {
 											{applicant.status}
 										</span>
 									</div>
-									<div className="mt-1 text-xs text-slate-400">
+									<div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
 										CGPA {applicant.cgpa} · Attendance {applicant.attendance}% ·
 										Verified skills {applicant.verified_skills} · Verified
 										projects {applicant.verified_projects}
@@ -306,14 +306,14 @@ export default function DriveDetailPage() {
 										<button
 											onClick={() => decide(applicant, "shortlisted")}
 											disabled={applicant.status === "shortlisted"}
-											className="rounded-lg border border-amber-400/30 px-3 py-1.5 text-sm text-amber-300 transition hover:bg-amber-400/10 disabled:opacity-40"
+											className="rounded-lg border border-amber-400/30 px-3 py-1.5 text-sm text-amber-600 dark:text-amber-300 transition hover:bg-amber-400/10 disabled:opacity-40"
 										>
 											Shortlist
 										</button>
 										<button
 											onClick={() => decide(applicant, "selected")}
 											disabled={applicant.status === "selected"}
-											className="rounded-lg border border-emerald-400/30 px-3 py-1.5 text-sm text-emerald-300 transition hover:bg-emerald-400/10 disabled:opacity-40"
+											className="rounded-lg border border-emerald-400/30 px-3 py-1.5 text-sm text-emerald-600 dark:text-emerald-300 transition hover:bg-emerald-400/10 disabled:opacity-40"
 										>
 											Select
 										</button>

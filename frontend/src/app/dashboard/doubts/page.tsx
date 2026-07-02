@@ -23,17 +23,17 @@ export default function DoubtsPage() {
 	}, [])
 
 	if (error) return <p className="text-sm text-red-600">{error}</p>
-	if (!me) return <p className="text-sm text-gray-500">Loading...</p>
+	if (!me) return <p className="text-sm text-gray-500 dark:text-slate-400">Loading...</p>
 
 	const isStaff = me.role === "teacher" || me.role === "admin"
 
 	return (
 		<div className="mx-auto max-w-3xl space-y-6 p-6">
 			<div>
-				<h1 className="text-xl font-semibold text-gray-900">
+				<h1 className="text-xl font-semibold text-gray-900 dark:text-slate-100">
 					💬 Doubt Forum
 				</h1>
-				<p className="text-sm text-gray-500">
+				<p className="text-sm text-gray-500 dark:text-slate-400">
 					{isStaff
 						? "Browse and answer your sections' doubts, and accept the best answer."
 						: "Ask doubts and get answers from your peers and teachers."}

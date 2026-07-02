@@ -45,10 +45,10 @@ type SectionOption = { id: number; label: string };
 const ROLES: Role[] = ["student", "teacher", "tpo", "admin"];
 
 const inputClass =
-  "mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400";
+  "mt-1 w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400";
 
 const smallSelect =
-  "rounded-lg border border-white/10 bg-slate-900 px-2 py-1 text-xs outline-none focus:border-indigo-400";
+  "rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-2 py-1 text-xs outline-none focus:border-indigo-400";
 
 export default function UsersPage() {
   const { user: me } = useCurrentUser();
@@ -205,17 +205,17 @@ export default function UsersPage() {
   return (
     <div>
       <h2 className="text-2xl font-bold">Users & Roles</h2>
-      <p className="mt-1 text-sm text-slate-400">
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         Manage accounts, roles and access. Assign students to a section to fill
         teacher rosters. You cannot change your own role or disable yourself.
       </p>
 
       {/* Add user */}
-      <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6">
+      <div className="mt-6 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6">
         <h3 className="text-lg font-semibold">Add a user</h3>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <label className="text-sm text-slate-400">Full name</label>
+            <label className="text-sm text-slate-500 dark:text-slate-400">Full name</label>
             <input
               value={aName}
               onChange={(e) => setAName(e.target.value)}
@@ -224,7 +224,7 @@ export default function UsersPage() {
             />
           </div>
           <div>
-            <label className="text-sm text-slate-400">Email</label>
+            <label className="text-sm text-slate-500 dark:text-slate-400">Email</label>
             <input
               value={aEmail}
               onChange={(e) => setAEmail(e.target.value)}
@@ -233,7 +233,7 @@ export default function UsersPage() {
             />
           </div>
           <div>
-            <label className="text-sm text-slate-400">Temp password</label>
+            <label className="text-sm text-slate-500 dark:text-slate-400">Temp password</label>
             <input
               type="text"
               value={aPassword}
@@ -243,7 +243,7 @@ export default function UsersPage() {
             />
           </div>
           <div>
-            <label className="text-sm text-slate-400">Role</label>
+            <label className="text-sm text-slate-500 dark:text-slate-400">Role</label>
             <select
               value={aRole}
               onChange={(e) => setARole(e.target.value as Role)}
@@ -263,7 +263,7 @@ export default function UsersPage() {
           </p>
         )}
         {addSuccess && (
-          <p className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
+          <p className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-600 dark:text-emerald-300">
             {addSuccess}
           </p>
         )}
@@ -283,7 +283,7 @@ export default function UsersPage() {
 
       {/* Filter */}
       <div className="mt-6 flex items-center gap-3">
-        <label className="text-sm text-slate-400">Filter by role</label>
+        <label className="text-sm text-slate-500 dark:text-slate-400">Filter by role</label>
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value as "" | Role)}
@@ -307,9 +307,9 @@ export default function UsersPage() {
       {/* List */}
       <div className="mt-4">
         {loading ? (
-          <p className="text-slate-400">Loading users...</p>
+          <p className="text-slate-500 dark:text-slate-400">Loading users...</p>
         ) : users.length === 0 ? (
-          <p className="text-slate-400">No users match this filter.</p>
+          <p className="text-slate-500 dark:text-slate-400">No users match this filter.</p>
         ) : (
           <div className="space-y-2">
             {users.map((u) => {
@@ -317,18 +317,18 @@ export default function UsersPage() {
               return (
                 <div
                   key={u.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-4 py-3"
                 >
                   <div className="min-w-[180px]">
                     <p className="font-medium">
                       {u.full_name}
                       {isSelf && (
-                        <span className="ml-2 text-xs text-indigo-300">
+                        <span className="ml-2 text-xs text-indigo-600 dark:text-indigo-300">
                           (you)
                         </span>
                       )}
                     </p>
-                    <p className="text-xs text-slate-500">{u.email}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{u.email}</p>
                     {!u.is_active && (
                       <span className="text-xs text-red-300">Disabled</span>
                     )}
@@ -372,7 +372,7 @@ export default function UsersPage() {
                       className={`rounded-lg border px-3 py-1 text-xs transition disabled:opacity-40 ${
                         u.is_active
                           ? "border-red-400/30 text-red-300 hover:bg-red-400/10"
-                          : "border-emerald-400/30 text-emerald-300 hover:bg-emerald-400/10"
+                          : "border-emerald-400/30 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-400/10"
                       }`}
                     >
                       {u.is_active ? "Disable" : "Enable"}
@@ -387,7 +387,7 @@ export default function UsersPage() {
 
       {/* Hint about current section labels when no structure is loaded */}
       {sectionOptions.length === 0 && (
-        <p className="mt-4 text-xs text-slate-500">
+        <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">
           Tip: create departments and sections first (Departments page) so they
           show up in the section dropdown here.
         </p>

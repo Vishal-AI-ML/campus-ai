@@ -23,15 +23,15 @@ export default function StudyHubPage() {
 	}, [])
 
 	if (error) return <p className="text-sm text-red-600">{error}</p>
-	if (!me) return <p className="text-sm text-gray-500">Loading...</p>
+	if (!me) return <p className="text-sm text-gray-500 dark:text-slate-400">Loading...</p>
 
 	const isStaff = me.role === "teacher" || me.role === "admin"
 
 	return (
 		<div className="mx-auto max-w-3xl space-y-6 p-6">
 			<div>
-				<h1 className="text-xl font-semibold text-gray-900">\uD83D\uDCDA Study Hub</h1>
-				<p className="text-sm text-gray-500">
+				<h1 className="text-xl font-semibold text-gray-900 dark:text-slate-100">\uD83D\uDCDA Study Hub</h1>
+				<p className="text-sm text-gray-500 dark:text-slate-400">
 					{isStaff
 						? "Upload and manage study materials for your sections."
 						: "Browse study materials shared with your section."}

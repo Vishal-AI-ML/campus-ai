@@ -14,7 +14,7 @@ export default function RecruiterOffersPage() {
   if (!user) return null;
   if (user.role !== "recruiter") {
     return (
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-slate-500 dark:text-slate-400">
         This page is only available to recruiter accounts.
       </p>
     );

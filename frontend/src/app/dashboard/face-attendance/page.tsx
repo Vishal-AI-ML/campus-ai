@@ -12,10 +12,10 @@ export default function PhotoAttendancePage() {
 	return (
 		<div className="space-y-4">
 			<div>
-				<h1 className="text-xl font-semibold text-gray-900">
+				<h1 className="text-xl font-semibold text-gray-900 dark:text-slate-100">
 					Photo Attendance
 				</h1>
-				<p className="text-sm text-gray-500">
+				<p className="text-sm text-gray-500 dark:text-slate-400">
 					Upload a class photo, review the AI&apos;s present/absent
 					suggestions, then confirm to mark attendance.
 				</p>

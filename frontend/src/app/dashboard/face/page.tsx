@@ -19,14 +19,14 @@ export default function FacePage() {
 		`rounded-md px-4 py-2 text-sm font-medium ${
 			active
 				? "bg-indigo-600 text-white"
-				: "bg-gray-100 text-gray-700 hover:bg-gray-200"
+				: "bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-white/10"
 		}`
 
 	return (
 		<div className="space-y-4">
 			<div>
-				<h1 className="text-xl font-semibold text-gray-900">Face Attendance</h1>
-				<p className="text-sm text-gray-500">
+				<h1 className="text-xl font-semibold text-gray-900 dark:text-slate-100">Face Attendance</h1>
+				<p className="text-sm text-gray-500 dark:text-slate-400">
 					Enroll students&apos; faces and take attendance from a class photo.
 				</p>
 			</div>

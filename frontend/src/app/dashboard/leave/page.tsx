@@ -28,17 +28,17 @@ export default function LeavePage() {
 
   return (
     <div className="mx-auto max-w-3xl p-6">
-      <h1 className="mb-1 text-2xl font-bold text-gray-900">
+      <h1 className="mb-1 text-2xl font-bold text-gray-900 dark:text-slate-100">
         {ICON} Leave &amp; OD
       </h1>
-      <p className="mb-6 text-sm text-gray-500">
+      <p className="mb-6 text-sm text-gray-500 dark:text-slate-400">
         {isStaff
           ? "Review leave / OD requests and raise bulk OD for events."
           : "Apply for leave or on-duty (OD) and track your requests."}
       </p>
       {error && <p className="text-sm text-red-600">{error}</p>}
       {!me ? (
-        <p className="text-sm text-gray-500">Loading...</p>
+        <p className="text-sm text-gray-500 dark:text-slate-400">Loading...</p>
       ) : isStaff ? (
         <LeaveStaffPanel />
       ) : (

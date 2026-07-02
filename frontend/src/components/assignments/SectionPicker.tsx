@@ -45,7 +45,7 @@ export default function SectionPicker({ onSectionChange }: Props) {
 		<div className="space-y-2">
 			{error ? <p className="text-sm text-red-400">{error}</p> : null}
 			<div className="flex flex-wrap gap-3">
-				<label className="flex flex-col text-xs text-white/60">
+				<label className="flex flex-col text-xs text-slate-500 dark:text-slate-400">
 					Department
 					<select
 						value={deptId ?? ""}
@@ -55,7 +55,7 @@ export default function SectionPicker({ onSectionChange }: Props) {
 							setSectionId(null)
 							onSectionChange(null, null)
 						}}
-						className="mt-1 rounded-md border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
+						className="mt-1 rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
 					>
 						<option value="">Select department</option>
 						{departments.map((d) => (
@@ -65,7 +65,7 @@ export default function SectionPicker({ onSectionChange }: Props) {
 						))}
 					</select>
 				</label>
-				<label className="flex flex-col text-xs text-white/60">
+				<label className="flex flex-col text-xs text-slate-500 dark:text-slate-400">
 					Section
 					<select
 						value={sectionId ?? ""}
@@ -76,7 +76,7 @@ export default function SectionPicker({ onSectionChange }: Props) {
 							const sec = sections.find((s) => s.id === id) ?? null
 							onSectionChange(id, sec)
 						}}
-						className="mt-1 rounded-md border border-white/10 bg-black/30 px-3 py-2 text-sm text-white disabled:opacity-50"
+						className="mt-1 rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 disabled:opacity-50"
 					>
 						<option value="">Select section</option>
 						{sections.map((s) => (

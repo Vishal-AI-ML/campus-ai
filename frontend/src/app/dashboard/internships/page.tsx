@@ -78,8 +78,8 @@ const EMPTY_FORM: InternForm = {
 }
 
 const STATUS_STYLES: Record<InternshipStatus, string> = {
-	pending: "bg-amber-500/15 text-amber-300",
-	verified: "bg-emerald-500/15 text-emerald-300",
+	pending: "bg-amber-500/15 text-amber-600 dark:text-amber-300",
+	verified: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300",
 	flagged: "bg-red-500/15 text-red-300",
 }
 
@@ -163,12 +163,12 @@ export default function InternshipsPage() {
 	}
 
 	const inputClass =
-		"mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+		"mt-1 w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
 
 	return (
 		<div>
 			<h2 className="text-2xl font-bold">My Internships & OJT</h2>
-			<p className="mt-1 text-sm text-slate-400">
+			<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
 				Log internships, on-the-job training and apprenticeships with proof. A
 				teacher or TPO verifies it — only verified work experience shows on your
 				resume and to recruiters.
@@ -183,11 +183,11 @@ export default function InternshipsPage() {
 			{/* Log form */}
 			<form
 				onSubmit={handleSubmit}
-				className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6"
+				className="mt-6 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6"
 			>
 				<div className="grid gap-4 sm:grid-cols-2">
 					<div>
-						<label className="text-sm text-slate-300">Organization *</label>
+						<label className="text-sm text-slate-600 dark:text-slate-300">Organization *</label>
 						<input
 							required
 							value={form.organization}
@@ -197,7 +197,7 @@ export default function InternshipsPage() {
 						/>
 					</div>
 					<div>
-						<label className="text-sm text-slate-300">Role / Title *</label>
+						<label className="text-sm text-slate-600 dark:text-slate-300">Role / Title *</label>
 						<input
 							required
 							value={form.role_title}
@@ -207,7 +207,7 @@ export default function InternshipsPage() {
 						/>
 					</div>
 					<div>
-						<label className="text-sm text-slate-300">Type *</label>
+						<label className="text-sm text-slate-600 dark:text-slate-300">Type *</label>
 						<select
 							value={form.internship_type}
 							onChange={(e) => setField("internship_type", e.target.value)}
@@ -221,7 +221,7 @@ export default function InternshipsPage() {
 						</select>
 					</div>
 					<div>
-						<label className="text-sm text-slate-300">Mode</label>
+						<label className="text-sm text-slate-600 dark:text-slate-300">Mode</label>
 						<select
 							value={form.mode}
 							onChange={(e) => setField("mode", e.target.value)}
@@ -236,7 +236,7 @@ export default function InternshipsPage() {
 						</select>
 					</div>
 					<div>
-						<label className="text-sm text-slate-300">Location</label>
+						<label className="text-sm text-slate-600 dark:text-slate-300">Location</label>
 						<input
 							value={form.location}
 							onChange={(e) => setField("location", e.target.value)}
@@ -245,7 +245,7 @@ export default function InternshipsPage() {
 						/>
 					</div>
 					<div>
-						<label className="text-sm text-slate-300">Skills used</label>
+						<label className="text-sm text-slate-600 dark:text-slate-300">Skills used</label>
 						<input
 							value={form.skills_used}
 							onChange={(e) => setField("skills_used", e.target.value)}
@@ -254,7 +254,7 @@ export default function InternshipsPage() {
 						/>
 					</div>
 					<div>
-						<label className="text-sm text-slate-300">Start date</label>
+						<label className="text-sm text-slate-600 dark:text-slate-300">Start date</label>
 						<input
 							type="date"
 							value={form.start_date}
@@ -263,7 +263,7 @@ export default function InternshipsPage() {
 						/>
 					</div>
 					<div>
-						<label className="text-sm text-slate-300">End date</label>
+						<label className="text-sm text-slate-600 dark:text-slate-300">End date</label>
 						<input
 							type="date"
 							value={form.end_date}
@@ -278,14 +278,14 @@ export default function InternshipsPage() {
 							type="checkbox"
 							checked={form.is_ongoing}
 							onChange={(e) => setField("is_ongoing", e.target.checked)}
-							className="h-4 w-4 rounded border-white/20 bg-slate-900"
+							className="h-4 w-4 rounded border-slate-300 dark:border-white/15 bg-white dark:bg-slate-900"
 						/>
-						<label htmlFor="is_ongoing" className="text-sm text-slate-300">
+						<label htmlFor="is_ongoing" className="text-sm text-slate-600 dark:text-slate-300">
 							Currently ongoing
 						</label>
 					</div>
 					<div>
-						<label className="text-sm text-slate-300">Certificate URL</label>
+						<label className="text-sm text-slate-600 dark:text-slate-300">Certificate URL</label>
 						<input
 							value={form.certificate_url}
 							onChange={(e) => setField("certificate_url", e.target.value)}
@@ -294,7 +294,7 @@ export default function InternshipsPage() {
 						/>
 					</div>
 					<div className="sm:col-span-2">
-						<label className="text-sm text-slate-300">Description</label>
+						<label className="text-sm text-slate-600 dark:text-slate-300">Description</label>
 						<textarea
 							value={form.description}
 							onChange={(e) => setField("description", e.target.value)}
@@ -316,9 +316,9 @@ export default function InternshipsPage() {
 			{/* List */}
 			<div className="mt-8">
 				{loading ? (
-					<p className="text-slate-400">Loading your internships...</p>
+					<p className="text-slate-500 dark:text-slate-400">Loading your internships...</p>
 				) : items.length === 0 ? (
-					<p className="text-slate-400">
+					<p className="text-slate-500 dark:text-slate-400">
 						No internships logged yet. Add your first one above.
 					</p>
 				) : (
@@ -326,14 +326,14 @@ export default function InternshipsPage() {
 						{items.map((item) => (
 							<div
 								key={item.id}
-								className="rounded-xl border border-white/10 bg-white/5 p-4"
+								className="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4"
 							>
 								<div className="flex flex-wrap items-center justify-between gap-2">
 									<div className="flex flex-wrap items-center gap-2">
 										<span className="font-medium">
 											{item.role_title} @ {item.organization}
 										</span>
-										<span className="rounded-full bg-slate-500/15 px-2 py-0.5 text-xs capitalize text-slate-300">
+										<span className="rounded-full bg-slate-500/15 px-2 py-0.5 text-xs capitalize text-slate-600 dark:text-slate-300">
 											{item.internship_type}
 										</span>
 										<span
@@ -344,13 +344,13 @@ export default function InternshipsPage() {
 									</div>
 									<button
 										onClick={() => remove(item)}
-										className="rounded-lg border border-white/15 px-3 py-1 text-xs transition hover:bg-white/5"
+										className="rounded-lg border border-slate-300 dark:border-white/15 px-3 py-1 text-xs transition hover:bg-slate-100 dark:hover:bg-white/10"
 									>
 										Delete
 									</button>
 								</div>
 
-								<p className="mt-2 text-xs text-slate-400">
+								<p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
 									{[
 										item.mode,
 										item.location,
@@ -361,12 +361,12 @@ export default function InternshipsPage() {
 										.join(" · ")}
 								</p>
 								{item.skills_used && (
-									<p className="mt-2 text-xs text-slate-400">
+									<p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
 										Skills: {item.skills_used}
 									</p>
 								)}
 								{item.description && (
-									<p className="mt-2 text-sm text-slate-300">
+									<p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
 										{item.description}
 									</p>
 								)}
@@ -375,13 +375,13 @@ export default function InternshipsPage() {
 										href={item.certificate_url}
 										target="_blank"
 										rel="noreferrer"
-										className="mt-1 inline-block text-xs text-indigo-300 underline"
+										className="mt-1 inline-block text-xs text-indigo-600 dark:text-indigo-300 underline"
 									>
 										{item.certificate_url}
 									</a>
 								)}
 								{item.review_note && (
-									<p className="mt-2 text-xs text-amber-300/80">
+									<p className="mt-2 text-xs text-amber-600/80">
 										Reviewer note: {item.review_note}
 									</p>
 								)}

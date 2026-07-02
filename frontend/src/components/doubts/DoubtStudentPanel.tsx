@@ -82,25 +82,25 @@ export default function DoubtStudentPanel({ me }: { me: MeUser }) {
 	return (
 		<div className="space-y-6">
 			{me.section_id == null ? (
-				<p className="text-sm text-gray-500">
+				<p className="text-sm text-gray-500 dark:text-slate-400">
 					You are not assigned to a section yet, so you cannot post or see
 					doubts. Ask your admin to assign your section.
 				</p>
 			) : (
 				<form
 					onSubmit={ask}
-					className="space-y-2 rounded-lg border border-gray-200 p-4"
+					className="space-y-2 rounded-lg border border-gray-200 dark:border-white/10 p-4"
 				>
-					<h2 className="text-sm font-semibold text-gray-700">Ask a doubt</h2>
+					<h2 className="text-sm font-semibold text-gray-700 dark:text-slate-300">Ask a doubt</h2>
 					<input
-						className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+						className="w-full rounded-md border border-gray-300 dark:border-white/15 px-3 py-2 text-sm"
 						placeholder="Title (e.g. Doubt in normalization)"
 						value={title}
 						onChange={(e) => setTitle(e.target.value)}
 						required
 					/>
 					<textarea
-						className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+						className="w-full rounded-md border border-gray-300 dark:border-white/15 px-3 py-2 text-sm"
 						placeholder="Describe your doubt..."
 						rows={3}
 						value={body}
@@ -121,32 +121,32 @@ export default function DoubtStudentPanel({ me }: { me: MeUser }) {
 			)}
 
 			<section className="space-y-3">
-				<h2 className="text-sm font-semibold text-gray-700">
+				<h2 className="text-sm font-semibold text-gray-700 dark:text-slate-300">
 					Your section's doubts
 				</h2>
 				{loading ? (
-					<p className="text-sm text-gray-500">Loading...</p>
+					<p className="text-sm text-gray-500 dark:text-slate-400">Loading...</p>
 				) : error ? (
 					<p className="text-sm text-red-600">{error}</p>
 				) : doubts.length === 0 ? (
-					<p className="text-sm text-gray-500">No doubts yet.</p>
+					<p className="text-sm text-gray-500 dark:text-slate-400">No doubts yet.</p>
 				) : (
 					<ul className="space-y-2">
 						{doubts.map((d) => (
 							<li key={d.id}>
 								<button
 									onClick={() => setSelected(d.id)}
-									className="w-full rounded-lg border border-gray-200 p-3 text-left hover:bg-gray-50"
+									className="w-full rounded-lg border border-gray-200 dark:border-white/10 p-3 text-left hover:bg-gray-50 dark:hover:bg-white/5"
 								>
 									<div className="flex items-center justify-between gap-3">
-										<span className="font-medium text-gray-900">
+										<span className="font-medium text-gray-900 dark:text-slate-100">
 											{d.title}
 										</span>
 										<span className={statusBadge(d.status === "resolved")}>
 											{d.status === "resolved" ? "Resolved" : "Open"}
 										</span>
 									</div>
-									<p className="mt-1 text-xs text-gray-500">
+									<p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
 										{d.answer_count} answer
 										{d.answer_count === 1 ? "" : "s"}
 									</p>

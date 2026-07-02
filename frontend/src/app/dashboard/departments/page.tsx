@@ -29,7 +29,7 @@ type Section = {
 }
 
 const inputClass =
-	"mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+	"mt-1 w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
 
 const primaryBtn =
 	"mt-3 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-40"
@@ -94,7 +94,7 @@ export default function DepartmentsPage() {
 	return (
 		<div>
 			<h2 className="text-2xl font-bold">Departments & Sections</h2>
-			<p className="mt-1 text-sm text-slate-400">
+			<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
 				The institute structure. Create departments, then add sections inside
 				each one. Subjects, rosters and attendance all build on this.
 			</p>
@@ -102,11 +102,11 @@ export default function DepartmentsPage() {
 			<div className="mt-6 grid gap-6 lg:grid-cols-2">
 				{/* Departments column */}
 				<div>
-					<div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+					<div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6">
 						<h3 className="text-lg font-semibold">Add a department</h3>
 						<div className="mt-3 grid gap-3 sm:grid-cols-2">
 							<div>
-								<label className="text-sm text-slate-400">Name</label>
+								<label className="text-sm text-slate-500 dark:text-slate-400">Name</label>
 								<input
 									value={newName}
 									onChange={(e) => setNewName(e.target.value)}
@@ -115,7 +115,7 @@ export default function DepartmentsPage() {
 								/>
 							</div>
 							<div>
-								<label className="text-sm text-slate-400">Code</label>
+								<label className="text-sm text-slate-500 dark:text-slate-400">Code</label>
 								<input
 									value={newCode}
 									onChange={(e) => setNewCode(e.target.value)}
@@ -146,9 +146,9 @@ export default function DepartmentsPage() {
 							</p>
 						)}
 						{loadingDepts ? (
-							<p className="mt-3 text-slate-400">Loading...</p>
+							<p className="mt-3 text-slate-500 dark:text-slate-400">Loading...</p>
 						) : departments.length === 0 ? (
-							<p className="mt-3 text-slate-400">No departments yet.</p>
+							<p className="mt-3 text-slate-500 dark:text-slate-400">No departments yet.</p>
 						) : (
 							<div className="mt-3 space-y-2">
 								{departments.map((d) => {
@@ -160,11 +160,11 @@ export default function DepartmentsPage() {
 											className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition ${
 											active
 												? "border-indigo-400/40 bg-indigo-500/10"
-												: "border-white/10 bg-white/5 hover:bg-white/10"
+												: "border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-white/10"
 										}`}
 										>
 											<span className="font-medium">{d.name}</span>
-											<span className="text-xs text-slate-400">{d.code}</span>
+											<span className="text-xs text-slate-500 dark:text-slate-400">{d.code}</span>
 										</button>
 									)
 								})}
@@ -178,7 +178,7 @@ export default function DepartmentsPage() {
 					{selected ? (
 						<SectionsPanel department={selected} />
 					) : (
-						<div className="rounded-2xl border border-dashed border-white/15 bg-white/5 p-6 text-slate-400">
+						<div className="rounded-2xl border border-dashed border-slate-300 dark:border-white/15 bg-white dark:bg-slate-900 p-6 text-slate-500 dark:text-slate-400">
 							Select a department on the left to manage its sections.
 						</div>
 					)}
@@ -246,15 +246,15 @@ function SectionsPanel({ department }: { department: Department }) {
 	}
 
 	return (
-		<div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+		<div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6">
 			<h3 className="text-lg font-semibold">
 				Sections in {department.name}{" "}
-				<span className="text-xs text-slate-500">({department.code})</span>
+				<span className="text-xs text-slate-500 dark:text-slate-400">({department.code})</span>
 			</h3>
 
 			<div className="mt-3 grid gap-3 sm:grid-cols-2">
 				<div>
-					<label className="text-sm text-slate-400">Section name</label>
+					<label className="text-sm text-slate-500 dark:text-slate-400">Section name</label>
 					<input
 						value={name}
 						onChange={(e) => setName(e.target.value)}
@@ -263,7 +263,7 @@ function SectionsPanel({ department }: { department: Department }) {
 					/>
 				</div>
 				<div>
-					<label className="text-sm text-slate-400">Year (optional, 1-10)</label>
+					<label className="text-sm text-slate-500 dark:text-slate-400">Year (optional, 1-10)</label>
 					<input
 						type="number"
 						min={1}
@@ -295,18 +295,18 @@ function SectionsPanel({ department }: { department: Department }) {
 					</p>
 				)}
 				{loading ? (
-					<p className="text-slate-400">Loading sections...</p>
+					<p className="text-slate-500 dark:text-slate-400">Loading sections...</p>
 				) : sections.length === 0 ? (
-					<p className="text-slate-400">No sections yet in this department.</p>
+					<p className="text-slate-500 dark:text-slate-400">No sections yet in this department.</p>
 				) : (
 					<div className="space-y-2">
 						{sections.map((s) => (
 							<div
 								key={s.id}
-								className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3"
+								className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-4 py-3"
 							>
 								<span className="font-medium">{s.name}</span>
-								<span className="text-xs text-slate-400">
+								<span className="text-xs text-slate-500 dark:text-slate-400">
 									{s.year ? `Year ${s.year}` : "\u2014"}
 								</span>
 							</div>

@@ -42,17 +42,17 @@ type ResumeVersionSummary = {
 type ResumeVersionOut = ResumeVersionSummary & { markdown: string }
 
 const inputClass =
-	"mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+	"mt-1 w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
 const primaryBtn =
 	"rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 px-5 py-2.5 text-sm font-medium text-white disabled:opacity-50"
 const ghostBtn =
-	"rounded-lg border border-white/10 px-4 py-2 text-sm text-slate-200 hover:bg-white/5"
+	"rounded-lg border border-slate-200 dark:border-white/10 px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10"
 const chipBtn =
-	"rounded-md border border-white/10 px-2.5 py-1 text-xs text-slate-200 hover:bg-white/5 disabled:opacity-50"
+	"rounded-md border border-slate-200 dark:border-white/10 px-2.5 py-1 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 disabled:opacity-50"
 
 function scoreColor(score: number): string {
-	if (score >= 75) return "text-emerald-300"
-	if (score >= 50) return "text-amber-300"
+	if (score >= 75) return "text-emerald-600 dark:text-emerald-300"
+	if (score >= 50) return "text-amber-600 dark:text-amber-300"
 	return "text-red-300"
 }
 
@@ -254,21 +254,21 @@ export default function ResumePage() {
 		<div className="space-y-8">
 			<div>
 				<h2 className="text-2xl font-bold">AI Resume + ATS</h2>
-				<p className="mt-1 text-sm text-slate-400">
+				<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
 					Build a resume from your{" "}
-					<span className="text-slate-200">verified</span> skills & projects,
+					<span className="text-slate-700 dark:text-slate-200">verified</span> skills & projects,
 					keep a version history, then check it against any job description.
 				</p>
 			</div>
 
 			{/* --- Resume builder --- */}
-			<section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+			<section className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6">
 				<h3 className="text-lg font-semibold">📄 Resume builder</h3>
-				<p className="mt-1 text-sm text-slate-400">
+				<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
 					Only verified data is used — no invented experience. Each generation
 					is saved to your version history below.
 				</p>
-				<label className="mt-4 block text-sm text-slate-300">
+				<label className="mt-4 block text-sm text-slate-600 dark:text-slate-300">
 					Target role (optional)
 					<input
 						className={inputClass}
@@ -309,14 +309,14 @@ export default function ResumePage() {
 					</p>
 				)}
 				{markdown && (
-					<pre className="mt-4 max-h-[28rem] overflow-auto whitespace-pre-wrap rounded-xl border border-white/10 bg-slate-950 p-4 text-sm text-slate-200">
+					<pre className="mt-4 max-h-[28rem] overflow-auto whitespace-pre-wrap rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-950 p-4 text-sm text-slate-700 dark:text-slate-200">
 						{markdown}
 					</pre>
 				)}
 			</section>
 
 			{/* --- Version history --- */}
-			<section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+			<section className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6">
 				<div className="flex items-center justify-between">
 					<h3 className="text-lg font-semibold">🕓 Version history</h3>
 					<button
@@ -327,7 +327,7 @@ export default function ResumePage() {
 						{versionsLoading ? "Refreshing..." : "Refresh"}
 					</button>
 				</div>
-				<p className="mt-1 text-sm text-slate-400">
+				<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
 					Every resume you generate is saved here. Open an old draft, rename it,
 					or mark one as your primary.
 				</p>
@@ -339,9 +339,9 @@ export default function ResumePage() {
 				)}
 
 				{versionsLoading ? (
-					<p className="mt-4 text-sm text-slate-500">Loading versions...</p>
+					<p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Loading versions...</p>
 				) : versions.length === 0 ? (
-					<p className="mt-4 text-sm text-slate-500">
+					<p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
 						No saved versions yet — generate a resume above to start your
 						history.
 					</p>
@@ -356,30 +356,30 @@ export default function ResumePage() {
 								className={`rounded-xl border p-4 ${
 									isActive
 										? "border-indigo-400/50 bg-indigo-500/5"
-									: "border-white/10 bg-slate-950"
+									: "border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-950"
 								}`}
 								>
 									<div className="flex flex-wrap items-center gap-2">
-										<span className="font-medium text-slate-100">
+										<span className="font-medium text-slate-900 dark:text-slate-100">
 											{v.title}
 										</span>
 										{v.is_primary && (
-											<span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs text-amber-300">
+											<span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs text-amber-600 dark:text-amber-300">
 												★ Primary
 											</span>
 										)}
 										{isActive && (
-											<span className="rounded-full bg-indigo-500/15 px-2 py-0.5 text-xs text-indigo-300">
+											<span className="rounded-full bg-indigo-500/15 px-2 py-0.5 text-xs text-indigo-600 dark:text-indigo-300">
 												Shown above
 											</span>
 										)}
 									</div>
-									<div className="mt-1 text-xs text-slate-500">
+									<div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
 										{formatDate(v.created_at)}
 										{v.target_role ? ` · ${v.target_role}` : ""}
 										{v.provider ? ` · ${v.provider}` : ""}
 									</div>
-									<p className="mt-2 line-clamp-2 text-sm text-slate-400">
+									<p className="mt-2 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">
 										{v.preview}
 									</p>
 									<div className="mt-3 flex flex-wrap gap-2">
@@ -420,13 +420,13 @@ export default function ResumePage() {
 			</section>
 
 			{/* --- ATS checker --- */}
-			<section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+			<section className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6">
 				<h3 className="text-lg font-semibold">🎯 ATS checker</h3>
-				<p className="mt-1 text-sm text-slate-400">
+				<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
 					Paste a resume + the job description to see how well they match.
 				</p>
 				<div className="mt-4 grid gap-4 md:grid-cols-2">
-					<label className="block text-sm text-slate-300">
+					<label className="block text-sm text-slate-600 dark:text-slate-300">
 						Resume text
 						<textarea
 							className={`${inputClass} h-48`}
@@ -435,7 +435,7 @@ export default function ResumePage() {
 							placeholder="Paste your resume here (or generate one above and click 'Use in ATS check')."
 						/>
 					</label>
-					<label className="block text-sm text-slate-300">
+					<label className="block text-sm text-slate-600 dark:text-slate-300">
 						Job description
 						<textarea
 							className={`${inputClass} h-48`}
@@ -463,27 +463,27 @@ export default function ResumePage() {
 				)}
 				{ats && (
 					<div className="mt-6 space-y-5">
-						<div className="rounded-xl border border-white/10 bg-slate-950 p-5">
+						<div className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-950 p-5">
 							<div className="flex items-end gap-3">
 								<span className={`text-4xl font-bold ${scoreColor(ats.score)}`}>
 									{ats.score}
 								</span>
-								<span className="pb-1 text-sm text-slate-400">/ 100 match</span>
+								<span className="pb-1 text-sm text-slate-500 dark:text-slate-400">/ 100 match</span>
 							</div>
-							<div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white/10">
+							<div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
 								<div
 									className={`h-2 rounded-full ${barColor(ats.score)}`}
 									style={atsBarStyle}
 								/>
 							</div>
 							{ats.verdict && (
-								<p className="mt-3 text-sm text-slate-200">{ats.verdict}</p>
+								<p className="mt-3 text-sm text-slate-700 dark:text-slate-200">{ats.verdict}</p>
 							)}
 						</div>
 
 						<div className="grid gap-4 md:grid-cols-2">
 							<div>
-								<h4 className="text-sm font-semibold text-emerald-300">
+								<h4 className="text-sm font-semibold text-emerald-600 dark:text-emerald-300">
 									Matched keywords
 								</h4>
 								<div className="mt-2 flex flex-wrap gap-2">
@@ -491,13 +491,13 @@ export default function ResumePage() {
 										ats.matched_keywords.map((k) => (
 											<span
 												key={k}
-												className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-300"
+												className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-600 dark:text-emerald-300"
 											>
 												{k}
 											</span>
 										))
 									) : (
-										<span className="text-xs text-slate-500">None detected.</span>
+										<span className="text-xs text-slate-500 dark:text-slate-400">None detected.</span>
 									)}
 								</div>
 							</div>
@@ -516,7 +516,7 @@ export default function ResumePage() {
 											</span>
 										))
 									) : (
-										<span className="text-xs text-slate-500">
+										<span className="text-xs text-slate-500 dark:text-slate-400">
 											None — great coverage!
 										</span>
 									)}
@@ -526,10 +526,10 @@ export default function ResumePage() {
 
 						{ats.suggestions.length > 0 && (
 							<div>
-								<h4 className="text-sm font-semibold text-slate-200">
+								<h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
 									Suggestions
 								</h4>
-								<ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-300">
+								<ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600 dark:text-slate-300">
 									{ats.suggestions.map((s, i) => (
 										<li key={i}>{s}</li>
 									))}

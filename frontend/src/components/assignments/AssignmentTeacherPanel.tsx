@@ -133,7 +133,7 @@ export default function AssignmentTeacherPanel() {
 	}
 
 	const gradedBadge =
-		"rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-400"
+		"rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-600 dark:text-emerald-300"
 	const pendingBadge =
 		"rounded-full bg-amber-500/15 px-2 py-0.5 text-xs text-amber-400"
 
@@ -151,9 +151,9 @@ export default function AssignmentTeacherPanel() {
 				<>
 					<form
 						onSubmit={handleCreate}
-						className="space-y-3 rounded-lg border border-white/10 bg-white/5 p-4"
+						className="space-y-3 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4"
 					>
-						<h3 className="text-sm font-semibold text-white">
+						<h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
 							➕ New assignment for {section.name}
 						</h3>
 						<input
@@ -161,27 +161,27 @@ export default function AssignmentTeacherPanel() {
 							onChange={(e) => setTitle(e.target.value)}
 							placeholder="Title (e.g. DBMS Lab 1)"
 							required
-							className="w-full rounded-md border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
+							className="w-full rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
 						/>
 						<textarea
 							value={description}
 							onChange={(e) => setDescription(e.target.value)}
 							placeholder="Description / instructions (optional)"
 							rows={3}
-							className="w-full rounded-md border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
+							className="w-full rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
 						/>
 						<div className="flex flex-wrap gap-3">
-							<label className="flex flex-col text-xs text-white/60">
+							<label className="flex flex-col text-xs text-slate-500 dark:text-slate-400">
 								Due date
 								<input
 									type="datetime-local"
 									value={dueDate}
 									onChange={(e) => setDueDate(e.target.value)}
 									required
-									className="mt-1 rounded-md border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
+									className="mt-1 rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
 								/>
 							</label>
-							<label className="flex flex-col text-xs text-white/60">
+							<label className="flex flex-col text-xs text-slate-500 dark:text-slate-400">
 								Max marks
 								<input
 									type="number"
@@ -189,7 +189,7 @@ export default function AssignmentTeacherPanel() {
 									value={maxMarks}
 									onChange={(e) => setMaxMarks(e.target.value)}
 									required
-									className="mt-1 w-28 rounded-md border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
+									className="mt-1 w-28 rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
 								/>
 							</label>
 						</div>
@@ -203,47 +203,47 @@ export default function AssignmentTeacherPanel() {
 					</form>
 
 					<div className="space-y-3">
-						<h3 className="text-sm font-semibold text-white">📋 Assignments</h3>
+						<h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">📋 Assignments</h3>
 						{loadingList ? (
-							<p className="text-sm text-white/60">Loading…</p>
+							<p className="text-sm text-slate-500 dark:text-slate-400">Loading…</p>
 						) : assignments.length === 0 ? (
-							<p className="text-sm text-white/60">
+							<p className="text-sm text-slate-500 dark:text-slate-400">
 								No assignments yet for this section.
 							</p>
 						) : (
 							assignments.map((a) => (
 								<div
 									key={a.id}
-								className="rounded-lg border border-white/10 bg-white/5 p-4"
+								className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4"
 								>
 									<div className="flex items-start justify-between gap-3">
 										<div>
-											<p className="font-medium text-white">{a.title}</p>
+											<p className="font-medium text-slate-900 dark:text-slate-100">{a.title}</p>
 											{a.description ? (
-												<p className="mt-1 text-sm text-white/60">
+												<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
 													{a.description}
 												</p>
 											) : null}
-											<p className="mt-1 text-xs text-white/40">
+											<p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
 												Due {formatDateTime(a.due_date)} · Max {a.max_marks}
 											</p>
 										</div>
 										<button
 											onClick={() => toggleSubmissions(a.id)}
-											className="shrink-0 rounded-md border border-white/15 px-3 py-1.5 text-xs text-white hover:bg-white/10"
+											className="shrink-0 rounded-md border border-slate-300 dark:border-white/15 px-3 py-1.5 text-xs text-slate-900 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/10"
 										>
 											{openId === a.id ? "Hide submissions" : "View submissions"}
 										</button>
 									</div>
 
 									{openId === a.id ? (
-										<div className="mt-4 space-y-3 border-t border-white/10 pt-4">
+										<div className="mt-4 space-y-3 border-t border-slate-200 dark:border-white/10 pt-4">
 											{loadingSubs ? (
-												<p className="text-sm text-white/60">
+												<p className="text-sm text-slate-500 dark:text-slate-400">
 													Loading submissions…
 												</p>
 											) : submissions.length === 0 ? (
-												<p className="text-sm text-white/60">No submissions yet.</p>
+												<p className="text-sm text-slate-500 dark:text-slate-400">No submissions yet.</p>
 											) : (
 												submissions.map((s) => {
 													const input =
@@ -251,7 +251,7 @@ export default function AssignmentTeacherPanel() {
 													return (
 														<div key={s.id} className="rounded-md bg-black/20 p-3">
 															<div className="flex items-center justify-between">
-																<p className="text-sm text-white">
+																<p className="text-sm text-slate-900 dark:text-slate-100">
 																	Student #{s.student_id}
 																</p>
 																<span
@@ -263,7 +263,7 @@ export default function AssignmentTeacherPanel() {
 																</span>
 															</div>
 															{s.content ? (
-																<p className="mt-2 text-sm text-white/80">
+																<p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
 																	{s.content}
 																</p>
 															) : null}
@@ -278,7 +278,7 @@ export default function AssignmentTeacherPanel() {
 																</a>
 															) : null}
 															<div className="mt-3 flex flex-wrap items-end gap-2">
-																<label className="flex flex-col text-xs text-white/60">
+																<label className="flex flex-col text-xs text-slate-500 dark:text-slate-400">
 																	Marks (max {a.max_marks})
 																	<input
 																		type="number"
@@ -291,7 +291,7 @@ export default function AssignmentTeacherPanel() {
 																				[s.id]: { ...input, marks: e.target.value },
 																			}))
 																		}
-																		className="mt-1 w-24 rounded-md border border-white/10 bg-black/30 px-2 py-1 text-sm text-white"
+																		className="mt-1 w-24 rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-2 py-1 text-sm text-slate-900 dark:text-slate-100"
 																	/>
 																</label>
 																<input
@@ -303,7 +303,7 @@ export default function AssignmentTeacherPanel() {
 																		}))
 																	}
 																	placeholder="Feedback (optional)"
-																	className="mt-1 flex-1 rounded-md border border-white/10 bg-black/30 px-2 py-1 text-sm text-white"
+																	className="mt-1 flex-1 rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-2 py-1 text-sm text-slate-900 dark:text-slate-100"
 																/>
 																<button
 																	onClick={() => handleGrade(s.id)}
@@ -325,7 +325,7 @@ export default function AssignmentTeacherPanel() {
 					</div>
 				</>
 			) : (
-				<p className="text-sm text-white/60">
+				<p className="text-sm text-slate-500 dark:text-slate-400">
 					Pick a department and section to manage assignments.
 				</p>
 			)}

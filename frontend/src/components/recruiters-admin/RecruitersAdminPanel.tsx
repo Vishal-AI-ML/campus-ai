@@ -71,7 +71,7 @@ export default function RecruitersAdminPanel() {
   }, [refresh]);
 
   if (loading) {
-    return <p className="mt-6 text-sm text-slate-400">Loading recruiters...</p>;
+    return <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">Loading recruiters...</p>;
   }
 
   return (
@@ -157,65 +157,65 @@ function OnboardSection({ onDone }: { onDone: () => void }) {
   return (
     <section>
       <h3 className="text-lg font-semibold">🏢 Onboard a company</h3>
-      <p className="mt-1 text-sm text-slate-400">
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         Create the company and email a single-use invite link to its first HR.
       </p>
 
       <form
         onSubmit={submit}
-        className="mt-4 grid gap-4 rounded-2xl border border-white/10 bg-white/5 p-5 sm:grid-cols-2"
+        className="mt-4 grid gap-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-5 sm:grid-cols-2"
       >
         <label className="text-sm">
-          <span className="text-slate-400">Company name *</span>
+          <span className="text-slate-500 dark:text-slate-400">Company name *</span>
           <input
             required
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/60 px-3 py-2 outline-none focus:border-white/30"
+            className="mt-1 w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 outline-none focus:border-indigo-400"
             placeholder="Acme Corp"
           />
         </label>
         <label className="text-sm">
-          <span className="text-slate-400">HR email *</span>
+          <span className="text-slate-500 dark:text-slate-400">HR email *</span>
           <input
             required
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/60 px-3 py-2 outline-none focus:border-white/30"
+            className="mt-1 w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 outline-none focus:border-indigo-400"
             placeholder="hr@acme.com"
           />
         </label>
         <label className="text-sm">
-          <span className="text-slate-400">Website</span>
+          <span className="text-slate-500 dark:text-slate-400">Website</span>
           <input
             value={website}
             onChange={(e) => setWebsite(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/60 px-3 py-2 outline-none focus:border-white/30"
+            className="mt-1 w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 outline-none focus:border-indigo-400"
             placeholder="https://acme.com"
           />
         </label>
         <label className="text-sm">
-          <span className="text-slate-400">HR title</span>
+          <span className="text-slate-500 dark:text-slate-400">HR title</span>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/60 px-3 py-2 outline-none focus:border-white/30"
+            className="mt-1 w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 outline-none focus:border-indigo-400"
             placeholder="Talent Acquisition Lead"
           />
         </label>
         <label className="text-sm sm:col-span-2">
-          <span className="text-slate-400">About</span>
+          <span className="text-slate-500 dark:text-slate-400">About</span>
           <textarea
             value={about}
             onChange={(e) => setAbout(e.target.value)}
             rows={2}
-            className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/60 px-3 py-2 outline-none focus:border-white/30"
+            className="mt-1 w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 outline-none focus:border-indigo-400"
             placeholder="Short description of the company."
           />
         </label>
         <label className="text-sm">
-          <span className="text-slate-400">Invite valid for (days)</span>
+          <span className="text-slate-500 dark:text-slate-400">Invite valid for (days)</span>
           <input
             type="number"
             min={1}
@@ -224,7 +224,7 @@ function OnboardSection({ onDone }: { onDone: () => void }) {
             onChange={(e) =>
               setExpiresInDays(Math.max(1, Math.min(90, Number(e.target.value))))
             }
-            className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900/60 px-3 py-2 outline-none focus:border-white/30"
+            className="mt-1 w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 outline-none focus:border-indigo-400"
           />
         </label>
         <div className="flex items-end">
@@ -250,13 +250,13 @@ function OnboardSection({ onDone }: { onDone: () => void }) {
             single-use link (valid till {fmtDate(created.invite.expires_at)}):
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <code className="flex-1 break-all rounded-lg bg-slate-900/70 px-3 py-2 text-xs text-slate-200">
+            <code className="flex-1 break-all rounded-lg bg-white/70 px-3 py-2 text-xs text-slate-700 dark:text-slate-200">
               {link}
             </code>
             <button
               type="button"
               onClick={copyLink}
-              className="rounded-lg border border-white/15 px-3 py-2 text-sm hover:bg-white/10"
+              className="rounded-lg border border-slate-300 dark:border-white/15 px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-white/10"
             >
               {copied ? "Copied!" : "Copy"}
             </button>
@@ -278,13 +278,13 @@ function CompaniesSection({
     <section>
       <h3 className="text-lg font-semibold">💼 Companies</h3>
       {companies.length === 0 ? (
-        <p className="mt-2 text-sm text-slate-400">No companies onboarded yet.</p>
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">No companies onboarded yet.</p>
       ) : (
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {companies.map((c) => (
             <div
               key={c.id}
-              className="rounded-2xl border border-white/10 bg-white/5 p-4"
+              className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4"
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="font-medium">{c.company_name}</span>
@@ -299,17 +299,17 @@ function CompaniesSection({
                   href={c.website}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-1 block truncate text-xs text-sky-300 hover:underline"
+                  className="mt-1 block truncate text-xs text-sky-600 dark:text-sky-300 hover:underline"
                 >
                   {c.website}
                 </a>
               )}
               {c.about && (
-                <p className="mt-2 text-xs text-slate-400 line-clamp-3">
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 line-clamp-3">
                   {c.about}
                 </p>
               )}
-              <p className="mt-2 text-[11px] text-slate-500">
+              <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
                 Onboarded {fmtDate(c.created_at)}
               </p>
             </div>
@@ -350,11 +350,11 @@ function InvitesSection({
       <h3 className="text-lg font-semibold">📨 Invites</h3>
       {err && <p className="mt-2 text-sm text-red-300">{err}</p>}
       {invites.length === 0 ? (
-        <p className="mt-2 text-sm text-slate-400">No invites yet.</p>
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">No invites yet.</p>
       ) : (
-        <div className="mt-3 overflow-x-auto rounded-2xl border border-white/10">
+        <div className="mt-3 overflow-x-auto rounded-2xl border border-slate-200 dark:border-white/10">
           <table className="w-full text-left text-sm">
-            <thead className="bg-white/5 text-slate-400">
+            <thead className="bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="px-4 py-2 font-medium">Email</th>
                 <th className="px-4 py-2 font-medium">Title</th>
@@ -366,9 +366,9 @@ function InvitesSection({
             </thead>
             <tbody>
               {invites.map((inv) => (
-                <tr key={inv.id} className="border-t border-white/5">
+                <tr key={inv.id} className="border-t border-slate-200 dark:border-white/10">
                   <td className="px-4 py-2">{inv.email}</td>
-                  <td className="px-4 py-2 text-slate-400">
+                  <td className="px-4 py-2 text-slate-500 dark:text-slate-400">
                     {inv.title ?? "\u2014"}
                   </td>
                   <td className="px-4 py-2">
@@ -378,10 +378,10 @@ function InvitesSection({
                       {pretty(inv.status)}
                     </span>
                   </td>
-                  <td className="px-4 py-2 text-slate-400">
+                  <td className="px-4 py-2 text-slate-500 dark:text-slate-400">
                     {fmtDate(inv.expires_at)}
                   </td>
-                  <td className="px-4 py-2 text-slate-400">
+                  <td className="px-4 py-2 text-slate-500 dark:text-slate-400">
                     {fmtDateTime(inv.accepted_at)}
                   </td>
                   <td className="px-4 py-2 text-right">
@@ -441,17 +441,17 @@ function LinkDrivesSection({
   return (
     <section>
       <h3 className="text-lg font-semibold">🔗 Link drives to a company</h3>
-      <p className="mt-1 text-sm text-slate-400">
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         Once linked, the company&apos;s HR can view that drive&apos;s shortlisted
         and selected candidates.
       </p>
       {err && <p className="mt-2 text-sm text-red-300">{err}</p>}
       {drives.length === 0 ? (
-        <p className="mt-2 text-sm text-slate-400">No drives posted yet.</p>
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">No drives posted yet.</p>
       ) : (
-        <div className="mt-3 overflow-x-auto rounded-2xl border border-white/10">
+        <div className="mt-3 overflow-x-auto rounded-2xl border border-slate-200 dark:border-white/10">
           <table className="w-full text-left text-sm">
-            <thead className="bg-white/5 text-slate-400">
+            <thead className="bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="px-4 py-2 font-medium">Role</th>
                 <th className="px-4 py-2 font-medium">Drive company</th>
@@ -461,16 +461,16 @@ function LinkDrivesSection({
             </thead>
             <tbody>
               {drives.map((d) => (
-                <tr key={d.id} className="border-t border-white/5">
+                <tr key={d.id} className="border-t border-slate-200 dark:border-white/10">
                   <td className="px-4 py-2">{d.role_title}</td>
-                  <td className="px-4 py-2 text-slate-400">{d.company_name}</td>
+                  <td className="px-4 py-2 text-slate-500 dark:text-slate-400">{d.company_name}</td>
                   <td className="px-4 py-2">
                     {d.recruiter_id != null ? (
-                      <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-300">
+                      <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-600 dark:text-emerald-300">
                         {companyName.get(d.recruiter_id) ?? `#${d.recruiter_id}`}
                       </span>
                     ) : (
-                      <span className="text-xs text-slate-500">Not linked</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">Not linked</span>
                     )}
                   </td>
                   <td className="px-4 py-2">
@@ -478,7 +478,7 @@ function LinkDrivesSection({
                       value={d.recruiter_id ?? ""}
                       disabled={busyId === d.id}
                       onChange={(e) => link(d.id, e.target.value)}
-                      className="rounded-lg border border-white/10 bg-slate-900/60 px-2 py-1 text-sm outline-none focus:border-white/30 disabled:opacity-50"
+                      className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-2 py-1 text-sm outline-none focus:border-indigo-400 disabled:opacity-50"
                     >
                       <option value="">Not linked</option>
                       {companies.map((c) => (
@@ -569,13 +569,13 @@ function RevealContactSection({
   return (
     <section>
       <h3 className="text-lg font-semibold">👁️ Reveal candidate contacts</h3>
-      <p className="mt-1 text-sm text-slate-400">
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         Pick a linked drive, then reveal a shortlisted candidate&apos;s contact
         so the company&apos;s HR can reach out.
       </p>
 
       {linkedDrives.length === 0 ? (
-        <p className="mt-2 text-sm text-slate-400">
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
           Link a drive to a company first (section above).
         </p>
       ) : (
@@ -586,7 +586,7 @@ function RevealContactSection({
               onChange={(e) =>
                 setDriveId(e.target.value ? Number(e.target.value) : null)
               }
-              className="rounded-lg border border-white/10 bg-slate-900/60 px-3 py-2 text-sm outline-none focus:border-white/30"
+              className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
             >
               <option value="">Select a drive...</option>
               {linkedDrives.map((d) => (
@@ -601,15 +601,15 @@ function RevealContactSection({
 
           {driveId != null &&
             (loading ? (
-              <p className="mt-3 text-sm text-slate-400">Loading candidates...</p>
+              <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">Loading candidates...</p>
             ) : applicants.length === 0 ? (
-              <p className="mt-3 text-sm text-slate-400">
+              <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
                 No shortlisted or selected candidates on this drive yet.
               </p>
             ) : (
-              <div className="mt-3 overflow-x-auto rounded-2xl border border-white/10">
+              <div className="mt-3 overflow-x-auto rounded-2xl border border-slate-200 dark:border-white/10">
                 <table className="w-full text-left text-sm">
-                  <thead className="bg-white/5 text-slate-400">
+                  <thead className="bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400">
                     <tr>
                       <th className="px-4 py-2 font-medium">Candidate</th>
                       <th className="px-4 py-2 font-medium">Status</th>
@@ -623,7 +623,7 @@ function RevealContactSection({
                     {applicants.map((a) => (
                       <tr
                         key={a.application_id}
-                        className="border-t border-white/5"
+                        className="border-t border-slate-200 dark:border-white/10"
                       >
                         <td className="px-4 py-2">{a.full_name}</td>
                         <td className="px-4 py-2">
@@ -633,18 +633,18 @@ function RevealContactSection({
                             {pretty(a.status)}
                           </span>
                         </td>
-                        <td className="px-4 py-2 text-slate-400">{a.cgpa}</td>
-                        <td className="px-4 py-2 text-slate-400">
+                        <td className="px-4 py-2 text-slate-500 dark:text-slate-400">{a.cgpa}</td>
+                        <td className="px-4 py-2 text-slate-500 dark:text-slate-400">
                           {a.verified_skills} skills · {a.verified_projects}{" "}
                           proj
                         </td>
                         <td className="px-4 py-2">
                           {a.contact_revealed ? (
-                            <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-300">
+                            <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-600 dark:text-emerald-300">
                               Revealed
                             </span>
                           ) : (
-                            <span className="rounded-full bg-slate-500/15 px-2 py-0.5 text-xs text-slate-400">
+                            <span className="rounded-full bg-slate-500/15 px-2 py-0.5 text-xs text-slate-500 dark:text-slate-400">
                               Hidden
                             </span>
                           )}
@@ -656,8 +656,8 @@ function RevealContactSection({
                             disabled={busyId === a.application_id}
                             className={`rounded-lg border px-3 py-1 text-xs disabled:opacity-50 ${
                               a.contact_revealed
-                                ? "border-white/15 hover:bg-white/10"
-                                : "border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10"
+                                ? "border-slate-300 dark:border-white/15 hover:bg-slate-100 dark:hover:bg-white/10"
+                                : "border-emerald-500/30 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-500/10"
                             }`}
                           >
                             {busyId === a.application_id

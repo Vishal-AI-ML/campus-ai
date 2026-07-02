@@ -82,7 +82,7 @@ export default function RecruiterCandidatesPanel() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold">Candidates</h2>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Shortlisted &amp; selected students on your drives. Record a
             decision or extend an offer.
           </p>
@@ -93,7 +93,7 @@ export default function RecruiterCandidatesPanel() {
             onChange={(e) =>
               setDriveId(e.target.value ? Number(e.target.value) : null)
             }
-            className="rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm"
+            className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm"
           >
             <option value="">All drives</option>
             {drives.map((d) => (
@@ -105,7 +105,7 @@ export default function RecruiterCandidatesPanel() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as Filter)}
-            className="rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm"
+            className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm"
           >
             <option value="all">All statuses</option>
             <option value="shortlisted">Shortlisted</option>
@@ -116,10 +116,10 @@ export default function RecruiterCandidatesPanel() {
 
       {/* KPI strip */}
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Kpi label="Total visible" value={summary.total} accent="text-white" />
-        <Kpi label="Shortlisted" value={summary.shortlisted} accent="text-sky-300" />
-        <Kpi label="Selected" value={summary.selected} accent="text-emerald-300" />
-        <Kpi label="With live offer" value={summary.offers} accent="text-indigo-300" />
+        <Kpi label="Total visible" value={summary.total} accent="text-slate-900 dark:text-slate-100" />
+        <Kpi label="Shortlisted" value={summary.shortlisted} accent="text-sky-600 dark:text-sky-300" />
+        <Kpi label="Selected" value={summary.selected} accent="text-emerald-600 dark:text-emerald-300" />
+        <Kpi label="With live offer" value={summary.offers} accent="text-indigo-600 dark:text-indigo-300" />
       </div>
 
       {error && (
@@ -129,9 +129,9 @@ export default function RecruiterCandidatesPanel() {
       )}
 
       {loading ? (
-        <p className="mt-8 text-sm text-slate-400">Loading candidates...</p>
+        <p className="mt-8 text-sm text-slate-500 dark:text-slate-400">Loading candidates...</p>
       ) : candidates.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-8 text-center text-slate-400">
+        <div className="mt-8 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-8 text-center text-slate-500 dark:text-slate-400">
           No candidates are visible yet. The TPO shortlists or selects students
           on your linked drives before they appear here.
         </div>
@@ -173,9 +173,9 @@ function Kpi({
   accent: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+    <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4">
       <div className={`text-2xl font-bold ${accent}`}>{value}</div>
-      <div className="mt-1 text-xs text-slate-400">{label}</div>
+      <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">{label}</div>
     </div>
   );
 }
@@ -217,7 +217,7 @@ function CandidateCard({
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+    <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
@@ -228,7 +228,7 @@ function CandidateCard({
               {pretty(candidate.status)}
             </span>
           </div>
-          <p className="mt-0.5 text-sm text-slate-400">{candidate.drive_role}</p>
+          <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{candidate.drive_role}</p>
         </div>
         <span
           className={`rounded-full px-2 py-0.5 text-xs ${DECISION_STYLES[candidate.recruiter_decision]}`}
@@ -239,12 +239,12 @@ function CandidateCard({
 
       {/* Verified signal (highlighted) */}
       <div className="mt-4">
-        <div className="text-xs uppercase tracking-wide text-slate-500">
+        <div className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
           Verified skills
         </div>
         <div className="mt-1 flex flex-wrap gap-1.5">
           {candidate.verified_skills.length === 0 ? (
-            <span className="text-sm text-slate-500">None verified yet</span>
+            <span className="text-sm text-slate-500 dark:text-slate-400">None verified yet</span>
           ) : (
             candidate.verified_skills.map((s) => (
               <span
@@ -257,14 +257,14 @@ function CandidateCard({
           )}
         </div>
         <div className="mt-3 flex items-center gap-4">
-          <div className="rounded-lg bg-white/5 px-3 py-2">
-            <span className="text-lg font-semibold text-violet-300">
+          <div className="rounded-lg bg-white dark:bg-slate-900 px-3 py-2">
+            <span className="text-lg font-semibold text-violet-600 dark:text-violet-300">
               {candidate.verified_projects}
             </span>{" "}
-            <span className="text-xs text-slate-400">verified projects</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">verified projects</span>
           </div>
           {/* CGPA is secondary, muted context only */}
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-slate-500 dark:text-slate-400">
             CGPA {candidate.cgpa.toFixed(2)}
           </span>
         </div>
@@ -272,12 +272,12 @@ function CandidateCard({
 
       {/* Verified extra-curriculars (well-rounded signal) */}
       <div className="mt-4">
-        <div className="text-xs uppercase tracking-wide text-slate-500">
+        <div className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
           Verified activities
         </div>
         <div className="mt-1 flex flex-wrap gap-1.5">
           {(candidate.verified_eca ?? []).length === 0 ? (
-            <span className="text-sm text-slate-500">None verified yet</span>
+            <span className="text-sm text-slate-500 dark:text-slate-400">None verified yet</span>
           ) : (
             (candidate.verified_eca ?? []).map((a) => (
               <span
@@ -293,12 +293,12 @@ function CandidateCard({
 
       {/* Verified internships / OJT (real work experience) */}
       <div className="mt-4">
-        <div className="text-xs uppercase tracking-wide text-slate-500">
+        <div className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
           Verified internships
         </div>
         <div className="mt-1 flex flex-wrap gap-1.5">
           {(candidate.verified_internships ?? []).length === 0 ? (
-            <span className="text-sm text-slate-500">None verified yet</span>
+            <span className="text-sm text-slate-500 dark:text-slate-400">None verified yet</span>
           ) : (
             (candidate.verified_internships ?? []).map((i) => (
               <span
@@ -317,22 +317,22 @@ function CandidateCard({
         {candidate.contact_revealed && candidate.email ? (
           <a
             href={`mailto:${candidate.email}`}
-            className="text-indigo-300 hover:underline"
+            className="text-indigo-600 dark:text-indigo-300 hover:underline"
           >
             {candidate.email}
           </a>
         ) : (
-          <span className="text-slate-500">Contact hidden by TPO</span>
+          <span className="text-slate-500 dark:text-slate-400">Contact hidden by TPO</span>
         )}
       </div>
 
       {/* Decision controls */}
-      <div className="mt-4 border-t border-white/10 pt-4">
+      <div className="mt-4 border-t border-slate-200 dark:border-white/10 pt-4">
         <input
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="Decision note (optional)"
-          className="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm"
+          className="w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm"
         />
         <div className="mt-2 flex flex-wrap items-center gap-2">
           {DECISIONS.map((d) => (
@@ -343,7 +343,7 @@ function CandidateCard({
               className={`rounded-lg px-3 py-1.5 text-sm transition disabled:opacity-50 ${
                 candidate.recruiter_decision === d
                   ? "bg-indigo-500 text-white"
-                  : "border border-white/15 hover:bg-white/5"
+                  : "border border-slate-300 dark:border-white/15 hover:bg-slate-100 dark:hover:bg-white/10"
               }`}
             >
               {saving === d ? "Saving..." : pretty(d)}
@@ -409,9 +409,9 @@ function OfferModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-900 p-6">
+      <div className="w-full max-w-md rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6">
         <h3 className="text-lg font-semibold">Extend offer</h3>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           To {candidate.full_name} — blanks fall back to the drive&apos;s
           terms.
         </p>
@@ -421,7 +421,7 @@ function OfferModal({
             <input
               value={roleTitle}
               onChange={(e) => setRoleTitle(e.target.value)}
-              className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm"
             />
           </Field>
           <div className="grid grid-cols-2 gap-3">
@@ -432,14 +432,14 @@ function OfferModal({
                 min="0"
                 value={packageLpa}
                 onChange={(e) => setPackageLpa(e.target.value)}
-                className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm"
               />
             </Field>
             <Field label="Location">
               <input
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm"
               />
             </Field>
           </div>
@@ -449,7 +449,7 @@ function OfferModal({
                 type="date"
                 value={joiningDate}
                 onChange={(e) => setJoiningDate(e.target.value)}
-                className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm"
               />
             </Field>
             <Field label="Expires on">
@@ -457,7 +457,7 @@ function OfferModal({
                 type="date"
                 value={expiresOn}
                 onChange={(e) => setExpiresOn(e.target.value)}
-                className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm"
               />
             </Field>
           </div>
@@ -466,7 +466,7 @@ function OfferModal({
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows={2}
-              className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm"
             />
           </Field>
         </div>
@@ -477,7 +477,7 @@ function OfferModal({
           <button
             onClick={onClose}
             disabled={saving}
-            className="rounded-lg border border-white/15 px-4 py-2 text-sm hover:bg-white/5 disabled:opacity-50"
+            className="rounded-lg border border-slate-300 dark:border-white/15 px-4 py-2 text-sm hover:bg-slate-100 dark:hover:bg-white/10 disabled:opacity-50"
           >
             Cancel
           </button>
@@ -505,7 +505,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="block text-xs font-medium text-slate-400">{label}</span>
+      <span className="block text-xs font-medium text-slate-500 dark:text-slate-400">{label}</span>
       <div className="mt-1">{children}</div>
     </label>
   );

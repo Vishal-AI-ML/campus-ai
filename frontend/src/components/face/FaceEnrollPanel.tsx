@@ -97,7 +97,7 @@ export default function FaceEnrollPanel() {
 
 	return (
 		<div className="space-y-4">
-			<div className="rounded-lg border border-gray-200 bg-white p-4">
+			<div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4">
 				<SectionPicker onSectionChange={(id) => loadRoster(id)} />
 			</div>
 
@@ -112,35 +112,35 @@ export default function FaceEnrollPanel() {
 				</p>
 			)}
 
-			{loading && <p className="text-sm text-gray-500">Loading roster...</p>}
+			{loading && <p className="text-sm text-gray-500 dark:text-slate-400">Loading roster...</p>}
 
 			{sectionId !== null && !loading && roster.length === 0 && (
-				<p className="text-sm text-gray-500">
+				<p className="text-sm text-gray-500 dark:text-slate-400">
 					No students are assigned to this section yet.
 				</p>
 			)}
 
 			{roster.length > 0 && (
-				<div className="rounded-lg border border-gray-200 bg-white">
-					<div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-						<h3 className="text-sm font-semibold text-gray-800">
+				<div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-900">
+					<div className="flex items-center justify-between border-b border-gray-100 dark:border-white/10 px-4 py-3">
+						<h3 className="text-sm font-semibold text-gray-800 dark:text-slate-200">
 							Enrollment roster
 						</h3>
-						<span className="text-sm text-gray-500">
+						<span className="text-sm text-gray-500 dark:text-slate-400">
 							{enrolledCount} / {roster.length} enrolled
 						</span>
 					</div>
-					<ul className="divide-y divide-gray-100">
+					<ul className="divide-y divide-gray-100 dark:divide-white/10">
 						{roster.map((s) => (
 							<li
 								key={s.student_id}
 							className="flex flex-wrap items-center gap-3 px-4 py-3"
 						>
 								<div className="min-w-[180px] flex-1">
-									<p className="text-sm font-medium text-gray-900">
+									<p className="text-sm font-medium text-gray-900 dark:text-slate-100">
 										{s.full_name}
 									</p>
-									<p className="text-xs text-gray-500">{s.email}</p>
+									<p className="text-xs text-gray-500 dark:text-slate-400">{s.email}</p>
 								</div>
 
 								{s.enrolled ? (
@@ -151,7 +151,7 @@ export default function FaceEnrollPanel() {
 											: ""}
 									</span>
 								) : (
-									<span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+									<span className="rounded-full bg-gray-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium text-gray-600 dark:text-slate-300">
 										Not enrolled
 									</span>
 								)}
@@ -197,7 +197,7 @@ export default function FaceEnrollPanel() {
 				</div>
 			)}
 
-			<p className="text-xs text-gray-400">
+			<p className="text-xs text-gray-400 dark:text-slate-500">
 				Tip: use a clear, well-lit photo with exactly one face. The face
 				embedding is stored in Qdrant; only a small status record is kept in
 				the app database.

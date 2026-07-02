@@ -20,11 +20,11 @@ export default function TimetableStudentPanel() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <p className="text-sm text-gray-500">Loading...</p>
+  if (loading) return <p className="text-sm text-gray-500 dark:text-slate-400">Loading...</p>
   if (error) return <p className="text-sm text-red-600">{error}</p>
   if (entries.length === 0) {
     return (
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-gray-500 dark:text-slate-400">
         No classes scheduled yet. If you have not been assigned to a section,
         ask your admin.
       </p>
@@ -40,22 +40,22 @@ export default function TimetableStudentPanel() {
         if (dayEntries.length === 0) return null
         return (
           <div key={idx}>
-            <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500">
+            <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400">
               {dayName}
             </h3>
             <ul className="space-y-2">
               {dayEntries.map((e) => (
                 <li
                   key={e.id}
-                  className="rounded border border-gray-200 px-3 py-2"
+                  className="rounded border border-gray-200 dark:border-white/10 px-3 py-2"
                 >
-                  <span className="font-medium text-gray-800">
+                  <span className="font-medium text-gray-800 dark:text-slate-200">
                     {formatTime(e.start_time)} - {formatTime(e.end_time)}
                   </span>
                   {e.subject_name && (
-                    <span className="ml-2 text-gray-700">{e.subject_name}</span>
+                    <span className="ml-2 text-gray-700 dark:text-slate-300">{e.subject_name}</span>
                   )}
-                  <span className="ml-2 text-sm text-gray-500">
+                  <span className="ml-2 text-sm text-gray-500 dark:text-slate-400">
                     {e.room ? `Room: ${e.room}` : ""}
                     {e.teacher_name ? ` - ${e.teacher_name}` : ""}
                   </span>

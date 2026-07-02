@@ -92,23 +92,23 @@ export default function RecruiterOffersPanel() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold">Offers</h2>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Offers your company has extended and their current status.
           </p>
         </div>
         <button
           onClick={load}
-          className="rounded-lg border border-white/15 px-3 py-2 text-sm hover:bg-white/5"
+          className="rounded-lg border border-slate-300 dark:border-white/15 px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-white/10"
         >
           Refresh
         </button>
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Kpi label="Extended" value={counts.extended} accent="text-indigo-300" />
-        <Kpi label="Accepted" value={counts.accepted} accent="text-emerald-300" />
+        <Kpi label="Extended" value={counts.extended} accent="text-indigo-600 dark:text-indigo-300" />
+        <Kpi label="Accepted" value={counts.accepted} accent="text-emerald-600 dark:text-emerald-300" />
         <Kpi label="Declined" value={counts.declined} accent="text-red-300" />
-        <Kpi label="Withdrawn" value={counts.withdrawn} accent="text-slate-400" />
+        <Kpi label="Withdrawn" value={counts.withdrawn} accent="text-slate-500 dark:text-slate-400" />
       </div>
 
       <div className="mt-6 flex flex-wrap gap-2">
@@ -119,7 +119,7 @@ export default function RecruiterOffersPanel() {
             className={`rounded-lg px-3 py-1.5 text-sm transition ${
               filter === f
                 ? "bg-indigo-500 text-white"
-                : "border border-white/15 hover:bg-white/5"
+                : "border border-slate-300 dark:border-white/15 hover:bg-slate-100 dark:hover:bg-white/10"
             }`}
           >
             {f === "all" ? "All" : pretty(f)}
@@ -134,15 +134,15 @@ export default function RecruiterOffersPanel() {
       )}
 
       {loading ? (
-        <p className="mt-8 text-sm text-slate-400">Loading offers...</p>
+        <p className="mt-8 text-sm text-slate-500 dark:text-slate-400">Loading offers...</p>
       ) : shown.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-8 text-center text-slate-400">
+        <div className="mt-8 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-8 text-center text-slate-500 dark:text-slate-400">
           No offers to show. Extend an offer from the Candidates page.
         </div>
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-2xl border border-white/10">
+        <div className="mt-6 overflow-x-auto rounded-2xl border border-slate-200 dark:border-white/10">
           <table className="w-full text-left text-sm">
-            <thead className="bg-white/5 text-xs uppercase tracking-wide text-slate-400">
+            <thead className="bg-white dark:bg-slate-900 text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="px-4 py-3">Candidate</th>
                 <th className="px-4 py-3">Role</th>
@@ -155,13 +155,13 @@ export default function RecruiterOffersPanel() {
             </thead>
             <tbody>
               {shown.map((o) => (
-                <tr key={o.id} className="border-t border-white/5">
+                <tr key={o.id} className="border-t border-slate-200 dark:border-white/10">
                   <td className="px-4 py-3 font-medium">{o.student_name}</td>
-                  <td className="px-4 py-3 text-slate-300">{o.role_title}</td>
-                  <td className="px-4 py-3 text-slate-300">
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{o.role_title}</td>
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                     {fmtPackage(o.package_lpa)}
                   </td>
-                  <td className="px-4 py-3 text-slate-300">
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                     {o.location ?? "\u2014"}
                   </td>
                   <td className="px-4 py-3">
@@ -171,7 +171,7 @@ export default function RecruiterOffersPanel() {
                       {pretty(o.status)}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-slate-400">
+                  <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
                     {o.responded_at ? (
                       <span>
                         {fmtDate(o.responded_at)}
@@ -193,7 +193,7 @@ export default function RecruiterOffersPanel() {
                         {busy === o.id ? "..." : "Withdraw"}
                       </button>
                     ) : (
-                      <span className="text-xs text-slate-600">—</span>
+                      <span className="text-xs text-slate-600 dark:text-slate-300">—</span>
                     )}
                     {rowErr[o.id] && (
                       <p className="mt-1 text-xs text-red-300">{rowErr[o.id]}</p>
@@ -219,9 +219,9 @@ function Kpi({
   accent: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+    <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4">
       <div className={`text-2xl font-bold ${accent}`}>{value}</div>
-      <div className="mt-1 text-xs text-slate-400">{label}</div>
+      <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">{label}</div>
     </div>
   );
 }

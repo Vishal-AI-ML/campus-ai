@@ -2,7 +2,8 @@
 
 Ek hi command me poore backend ko auto-check karta hai: har role se login,
 saare major endpoints (reads) hit, aur key WRITE + AI flows (skill->verify,
-leave, doubt, resume-AI, mentor-AI) run karke ek clean PASS/FAIL report deta hai.
+leave, doubt, resume-AI, mentor-AI + file-upload signed-URL chain) run karke
+ek clean PASS/FAIL report deta hai.
 
 Chalane ka tareeka (backend folder me, jahan pyproject.toml hai):
 
@@ -228,7 +229,8 @@ def writes_and_ai():
 
     # 3) INTERNSHIP create + cleanup
     r = check("student", "POST", "/internships",
-              json_body={"organization": "E2E Corp", "role_title": "SDE Intern",
+              json_body={"organization": f"E2E Corp {int(time.time())}",
+                         "role_title": "SDE Intern",
                          "internship_type": "internship", "is_ongoing": True},
               label="moat:internship-create")
     iid = r.json().get("id") if (r is not None and r.status_code in (200, 201)) else None
@@ -286,6 +288,115 @@ def writes_and_ai():
                         "label": "AI:mentor-chat"})
 
 
+def file_uploads():
+    """Section 7 Part B: poora Supabase signed-URL storage chain auto-check.
+
+    sign-upload -> direct PUT to Supabase -> sign-download -> GET (bytes match)
+    -> uploaded path ko internship.certificate_url + leave.proof_url me wire
+    karke persist verify -> sab cleanup. Storage off (503) ho to gracefully skip.
+    """
+    role = "student"
+    blob = b"%PDF-1.4\n% Campus-AI e2e smoke upload\n"
+
+    # Probe: sign-upload (yeh bhi bata deta hai storage enabled hai ya nahi)
+    r = check(role, "POST", "/files/sign-upload",
+              json_body={"filename": "e2e-smoke.pdf", "kind": "certificate"},
+              expect=(200,), label="files:sign-upload")
+    if r is None:
+        return
+    if r.status_code == 503:
+        results.append({"status": "WARN", "role": role, "m": "INFO",
+                        "p": "storage disabled (SUPABASE_* env missing) -> upload chain skipped",
+                        "code": 503, "ms": 0, "note": "", "label": "files:storage"})
+        return
+    if r.status_code != 200:
+        return
+    signed = r.json()
+    path = signed["path"]
+    upload_url = signed["upload_url"]
+
+    # Storage confirmed ON -> ab validation guards asli 4xx dete hain
+    check(role, "POST", "/files/sign-upload",
+          json_body={"filename": "x.pdf", "kind": "not-a-kind"},
+          expect=(400,), label="files:bad-kind->400")
+    check(role, "POST", "/files/sign-upload",
+          json_body={"filename": "x.exe", "kind": "certificate"},
+          expect=(415,), label="files:bad-ext->415")
+    # Tenant isolation: doosre tenant ka path sign karne pe 403 aana chahiye
+    check(role, "POST", "/files/sign-download",
+          json_body={"path": "999999/certificate/1/deadbeef-x.pdf"},
+          expect=(403,), label="files:cross-tenant->403")
+
+    # PUT raw bytes seedha Supabase ko (browser jaisa, API ko bypass karke)
+    t0 = time.time()
+    try:
+        pr = httpx.put(upload_url, content=blob,
+                       headers={"content-type": "application/pdf", "x-upsert": "true"},
+                       timeout=60)
+        put_code = pr.status_code
+        put_status = ("PASS" if put_code in (200, 201)
+                      else "FAIL" if put_code >= 500 else "WARN")
+        note = "" if put_status == "PASS" else (pr.text or "")[:130]
+    except Exception as e:
+        put_code, put_status, note = "EXC", "ERROR", f"{type(e).__name__}: {e}"[:110]
+    results.append({"status": put_status, "role": role, "m": "PUT",
+                    "p": "Supabase upload (direct)", "code": put_code,
+                    "ms": int((time.time() - t0) * 1000), "note": note,
+                    "label": "files:supabase-put"})
+
+    # sign-download for the same path
+    dr = check(role, "POST", "/files/sign-download",
+               json_body={"path": path}, expect=(200,), label="files:sign-download")
+    download_url = (dr.json().get("download_url")
+                    if (dr is not None and dr.status_code == 200) else None)
+
+    # GET the file back + verify bytes round-trip exactly
+    if download_url:
+        t0 = time.time()
+        try:
+            gr = httpx.get(download_url, timeout=60)
+            ok = gr.status_code == 200 and gr.content == blob
+            gstatus = "PASS" if ok else "FAIL" if gr.status_code >= 500 else "WARN"
+            gnote = "" if ok else f"code={gr.status_code} bytes_match={gr.content == blob}"
+        except Exception as e:
+            gstatus, gnote = "ERROR", f"{type(e).__name__}: {e}"[:110]
+        results.append({"status": gstatus, "role": role, "m": "GET",
+                        "p": "Supabase download (bytes round-trip)", "code": "-",
+                        "ms": int((time.time() - t0) * 1000), "note": gnote,
+                        "label": "files:supabase-get"})
+
+    # Wire uploaded path -> INTERNSHIP.certificate_url, verify persist, cleanup
+    r = check(role, "POST", "/internships",
+              json_body={"organization": f"E2E Upload Corp {int(time.time())}",
+                         "role_title": "Intern",
+                         "internship_type": "internship", "is_ongoing": True,
+                         "certificate_url": path},
+              expect=(200, 201), label="files:internship+certificate")
+    iid = r.json().get("id") if (r is not None and r.status_code in (200, 201)) else None
+    if iid:
+        mine = check(role, "GET", "/internships/me", label="files:internship-read")
+        saved = mine is not None and mine.status_code == 200 and any(
+            x.get("id") == iid and x.get("certificate_url") == path for x in mine.json())
+        results.append({"status": "PASS" if saved else "FAIL", "role": role,
+                        "m": "CHECK", "p": "internship.certificate_url persisted",
+                        "code": "-", "ms": 0,
+                        "note": "" if saved else "certificate_url stored/returned nahi hua",
+                        "label": "files:internship-persist"})
+        check(role, "DELETE", f"/internships/{iid}", label="cleanup:internship-upload")
+
+    # Wire uploaded path -> LEAVE.proof_url, cleanup
+    r = check(role, "POST", "/leave",
+              json_body={"request_type": "leave", "category": "medical",
+                         "title": "E2E upload leave", "reason": "auto",
+                         "start_date": (date.today() + timedelta(days=4)).isoformat(),
+                         "end_date": (date.today() + timedelta(days=4)).isoformat(),
+                         "proof_url": path},
+              expect=(200, 201), label="files:leave+proof")
+    lid = r.json().get("id") if (r is not None and r.status_code in (200, 201)) else None
+    if lid:
+        check(role, "DELETE", f"/leave/{lid}", label="cleanup:leave-upload")
+
+
 def report():
     order = {"FAIL": 0, "ERROR": 1, "WARN": 2, "PASS": 3}
     color = {"PASS": C_GREEN, "FAIL": C_RED, "ERROR": C_RED, "WARN": C_YEL}
@@ -329,6 +440,7 @@ def main():
         report(); return
     reads()
     writes_and_ai()
+    file_uploads()
     report()
 
 

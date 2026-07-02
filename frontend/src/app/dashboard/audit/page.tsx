@@ -32,19 +32,19 @@ type AuditLog = {
 // Known action keys -> friendly label + badge colour. Unknown keys fall back
 // to the raw key with a neutral style, so new server actions still render.
 const ACTION_META: Record<string, { label: string; style: string }> = {
-	"user.create": { label: "User created", style: "bg-emerald-500/15 text-emerald-300" },
-	"user.role_change": { label: "Role changed", style: "bg-indigo-500/15 text-indigo-300" },
-	"user.status_change": { label: "Status changed", style: "bg-amber-500/15 text-amber-300" },
-	"user.section_assign": { label: "Section assigned", style: "bg-sky-500/15 text-sky-300" },
-	"department.create": { label: "Department created", style: "bg-violet-500/15 text-violet-300" },
-	"section.create": { label: "Section created", style: "bg-violet-500/15 text-violet-300" },
+	"user.create": { label: "User created", style: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300" },
+	"user.role_change": { label: "Role changed", style: "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300" },
+	"user.status_change": { label: "Status changed", style: "bg-amber-500/15 text-amber-600 dark:text-amber-300" },
+	"user.section_assign": { label: "Section assigned", style: "bg-sky-500/15 text-sky-600 dark:text-sky-300" },
+	"department.create": { label: "Department created", style: "bg-violet-500/15 text-violet-600 dark:text-violet-300" },
+	"section.create": { label: "Section created", style: "bg-violet-500/15 text-violet-600 dark:text-violet-300" },
 }
 
 function actionMeta(action: string): { label: string; style: string } {
 	return (
 		ACTION_META[action] ?? {
 			label: action,
-			style: "bg-white/10 text-slate-300",
+			style: "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300",
 		}
 	)
 }
@@ -60,7 +60,7 @@ const FILTERS: { value: string; label: string }[] = [
 ]
 
 const inputClass =
-	"rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+	"rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
 
 function formatWhen(iso: string): string {
 	const d = new Date(iso)
@@ -105,7 +105,7 @@ export default function AuditLogPage() {
 		return (
 			<div>
 				<h2 className="text-2xl font-bold">Audit Log</h2>
-				<p className="mt-2 text-slate-400">
+				<p className="mt-2 text-slate-500 dark:text-slate-400">
 					The audit log is available to admins only.
 				</p>
 			</div>
@@ -117,7 +117,7 @@ export default function AuditLogPage() {
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<div>
 					<h2 className="text-2xl font-bold">Audit Log</h2>
-					<p className="mt-1 text-sm text-slate-400">
+					<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
 						Append-only trail of governance actions, newest first.
 					</p>
 				</div>
@@ -141,9 +141,9 @@ export default function AuditLogPage() {
 			)}
 
 			{loading ? (
-				<p className="mt-6 text-slate-400">Loading...</p>
+				<p className="mt-6 text-slate-500 dark:text-slate-400">Loading...</p>
 			) : items.length === 0 ? (
-				<p className="mt-6 text-slate-400">No audit entries yet.</p>
+				<p className="mt-6 text-slate-500 dark:text-slate-400">No audit entries yet.</p>
 			) : (
 				<div className="mt-6 space-y-3">
 					{items.map((entry) => {
@@ -151,7 +151,7 @@ export default function AuditLogPage() {
 						return (
 							<div
 								key={entry.id}
-								className="rounded-2xl border border-white/10 bg-white/5 p-5"
+								className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-5"
 							>
 								<div className="flex flex-wrap items-center gap-2">
 									<span
@@ -159,12 +159,12 @@ export default function AuditLogPage() {
 									>
 										{meta.label}
 									</span>
-									<span className="text-xs text-slate-500">
+									<span className="text-xs text-slate-500 dark:text-slate-400">
 										{formatWhen(entry.created_at)}
 									</span>
 								</div>
-								<p className="mt-2 text-sm text-slate-200">{entry.summary}</p>
-								<p className="mt-1 text-xs text-slate-500">
+								<p className="mt-2 text-sm text-slate-700 dark:text-slate-200">{entry.summary}</p>
+								<p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
 									by {entry.actor_email ?? "(deleted user)"}
 									{entry.target_type
 										? ` \u2022 ${entry.target_type}${entry.target_id ? ` #${entry.target_id}` : ""}`

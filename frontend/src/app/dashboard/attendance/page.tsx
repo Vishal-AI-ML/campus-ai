@@ -28,15 +28,15 @@ import { useCurrentUser } from "@/lib/auth"
 type AttendanceStatus = "present" | "absent" | "late"
 
 const STATUS_STYLES: Record<AttendanceStatus, string> = {
-	present: "bg-emerald-500/15 text-emerald-300",
-	late: "bg-amber-500/15 text-amber-300",
+	present: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300",
+	late: "bg-amber-500/15 text-amber-600 dark:text-amber-300",
 	absent: "bg-red-500/15 text-red-300",
 }
 
 const STATUS_ORDER: AttendanceStatus[] = ["present", "late", "absent"]
 
 function percentColor(pct: number): string {
-	if (pct >= 75) return "text-emerald-400"
+	if (pct >= 75) return "text-emerald-600 dark:text-emerald-300"
 	if (pct >= 60) return "text-amber-400"
 	return "text-red-400"
 }
@@ -46,7 +46,7 @@ export default function AttendancePage() {
 	const { user, loading } = useCurrentUser()
 
 	if (loading || !user) {
-		return <p className="text-slate-400">Loading...</p>
+		return <p className="text-slate-500 dark:text-slate-400">Loading...</p>
 	}
 
 	if (user.role === "teacher" || user.role === "admin") {
@@ -182,7 +182,7 @@ function TeacherAttendance() {
 	}
 
 	const selectClass =
-		"mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+		"mt-1 w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
 
 	const counts = STATUS_ORDER.reduce<Record<AttendanceStatus, number>>(
 		(acc, st) => {
@@ -197,7 +197,7 @@ function TeacherAttendance() {
 	return (
 		<div>
 			<h2 className="text-2xl font-bold">Take Attendance</h2>
-			<p className="mt-1 text-sm text-slate-400">
+			<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
 				Pick a section and date, then mark each student. Saving again for the
 				same date updates those records.
 			</p>
@@ -205,7 +205,7 @@ function TeacherAttendance() {
 			{/* Selectors */}
 			<div className="mt-6 grid gap-4 sm:grid-cols-3">
 				<div>
-					<label className="text-sm text-slate-400">Department</label>
+					<label className="text-sm text-slate-500 dark:text-slate-400">Department</label>
 					<select
 						value={deptId ?? ""}
 						onChange={(e) =>
@@ -222,7 +222,7 @@ function TeacherAttendance() {
 					</select>
 				</div>
 				<div>
-					<label className="text-sm text-slate-400">Section</label>
+					<label className="text-sm text-slate-500 dark:text-slate-400">Section</label>
 					<select
 						value={sectionId ?? ""}
 						onChange={(e) =>
@@ -241,7 +241,7 @@ function TeacherAttendance() {
 					</select>
 				</div>
 				<div>
-					<label className="text-sm text-slate-400">Date</label>
+					<label className="text-sm text-slate-500 dark:text-slate-400">Date</label>
 					<input
 						type="date"
 						value={date}
@@ -257,20 +257,20 @@ function TeacherAttendance() {
 				</p>
 			)}
 			{success && (
-				<p className="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
+				<p className="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-600 dark:text-emerald-300">
 					{success}
 				</p>
 			)}
 
 			{/* Roster */}
 			{loadingRoster ? (
-				<p className="mt-6 text-slate-400">Loading roster...</p>
+				<p className="mt-6 text-slate-500 dark:text-slate-400">Loading roster...</p>
 			) : sectionId == null ? (
-				<p className="mt-6 text-slate-400">
+				<p className="mt-6 text-slate-500 dark:text-slate-400">
 					Select a section to load its students.
 				</p>
 			) : roster.length === 0 ? (
-				<p className="mt-6 text-slate-400">
+				<p className="mt-6 text-slate-500 dark:text-slate-400">
 					No students assigned to this section yet. An admin can assign students
 					to a section from the Users area.
 				</p>
@@ -278,12 +278,12 @@ function TeacherAttendance() {
 				<>
 					{/* Bulk actions + live counts */}
 					<div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-						<div className="text-sm text-slate-400">
-							<span className="text-emerald-300">
+						<div className="text-sm text-slate-500 dark:text-slate-400">
+							<span className="text-emerald-600 dark:text-emerald-300">
 								{counts.present} present
 							</span>
 							{" / "}
-							<span className="text-amber-300">{counts.late} late</span>
+							<span className="text-amber-600 dark:text-amber-300">{counts.late} late</span>
 							{" / "}
 							<span className="text-red-300">{counts.absent} absent</span>
 						</div>
@@ -292,7 +292,7 @@ function TeacherAttendance() {
 								<button
 									key={st}
 									onClick={() => markAll(st)}
-									className="rounded-lg border border-white/10 px-3 py-1.5 text-xs capitalize text-slate-300 transition hover:bg-white/5"
+									className="rounded-lg border border-slate-200 dark:border-white/10 px-3 py-1.5 text-xs capitalize text-slate-600 dark:text-slate-300 transition hover:bg-slate-100 dark:hover:bg-white/10"
 								>
 									All {st}
 								</button>
@@ -304,11 +304,11 @@ function TeacherAttendance() {
 						{roster.map((s) => (
 							<div
 								key={s.id}
-								className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3"
+								className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-4 py-3"
 							>
 								<div>
 									<p className="font-medium">{s.full_name}</p>
-									<p className="text-xs text-slate-500">{s.email}</p>
+									<p className="text-xs text-slate-500 dark:text-slate-400">{s.email}</p>
 								</div>
 								<div className="flex gap-2">
 									{STATUS_ORDER.map((st) => {
@@ -320,7 +320,7 @@ function TeacherAttendance() {
 												className={`rounded-lg px-3 py-1.5 text-xs capitalize transition ${
 													active
 														? STATUS_STYLES[st]
-														: "text-slate-400 hover:bg-white/5"
+														: "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10"
 												}`}
 											>
 												{st}
@@ -398,7 +398,7 @@ function StudentAttendance() {
 	return (
 		<div>
 			<h2 className="text-2xl font-bold">My Attendance</h2>
-			<p className="mt-1 text-sm text-slate-400">
+			<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
 				Your overall attendance. 'Late' is counted as attended.
 			</p>
 
@@ -409,16 +409,16 @@ function StudentAttendance() {
 			)}
 
 			{loading ? (
-				<p className="mt-6 text-slate-400">Loading your attendance...</p>
+				<p className="mt-6 text-slate-500 dark:text-slate-400">Loading your attendance...</p>
 			) : summary && summary.total === 0 ? (
-				<p className="mt-6 text-slate-400">No attendance records yet.</p>
+				<p className="mt-6 text-slate-500 dark:text-slate-400">No attendance records yet.</p>
 			) : (
 				summary && (
 					<>
 						{/* Summary */}
 						<div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-							<div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-								<p className="text-sm text-slate-400">Overall</p>
+							<div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6">
+								<p className="text-sm text-slate-500 dark:text-slate-400">Overall</p>
 								<p
 									className={`mt-1 text-4xl font-bold ${percentColor(
 										summary.percentage,
@@ -426,24 +426,24 @@ function StudentAttendance() {
 								>
 									{summary.percentage}%
 								</p>
-								<p className="mt-1 text-xs text-slate-500">
+								<p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
 									{summary.present + summary.late}/{summary.total} classes
 								</p>
 							</div>
-							<div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-								<p className="text-sm text-slate-400">Present</p>
-								<p className="mt-1 text-4xl font-bold text-emerald-400">
+							<div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6">
+								<p className="text-sm text-slate-500 dark:text-slate-400">Present</p>
+								<p className="mt-1 text-4xl font-bold text-emerald-600 dark:text-emerald-300">
 									{summary.present}
 								</p>
 							</div>
-							<div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-								<p className="text-sm text-slate-400">Late</p>
+							<div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6">
+								<p className="text-sm text-slate-500 dark:text-slate-400">Late</p>
 								<p className="mt-1 text-4xl font-bold text-amber-400">
 									{summary.late}
 								</p>
 							</div>
-							<div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-								<p className="text-sm text-slate-400">Absent</p>
+							<div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6">
+								<p className="text-sm text-slate-500 dark:text-slate-400">Absent</p>
 								<p className="mt-1 text-4xl font-bold text-red-400">
 									{summary.absent}
 								</p>
@@ -457,9 +457,9 @@ function StudentAttendance() {
 								{records.map((record) => (
 									<div
 										key={record.id}
-										className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3"
+										className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-4 py-3"
 									>
-										<span className="text-sm text-slate-300">
+										<span className="text-sm text-slate-600 dark:text-slate-300">
 											{record.date}
 										</span>
 										<span

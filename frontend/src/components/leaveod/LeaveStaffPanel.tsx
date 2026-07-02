@@ -136,9 +136,9 @@ export default function LeaveStaffPanel() {
   return (
     <div className="space-y-6">
       {/* Approval inbox */}
-      <div className="rounded-lg border border-gray-200 p-4">
+      <div className="rounded-lg border border-gray-200 dark:border-white/10 p-4">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold text-gray-700">
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-300">
             Approval inbox
           </h2>
           <select
@@ -146,7 +146,7 @@ export default function LeaveStaffPanel() {
             onChange={(e) =>
               setStatusFilter(e.target.value as LeaveStatus | "all")
             }
-            className="rounded border border-gray-300 px-2 py-1 text-sm"
+            className="rounded border border-gray-300 dark:border-white/15 px-2 py-1 text-sm"
           >
             {STATUS_FILTERS.map((s) => (
               <option key={s} value={s}>
@@ -161,26 +161,26 @@ export default function LeaveStaffPanel() {
 
         {error && <p className="text-sm text-red-600">{error}</p>}
         {loading ? (
-          <p className="text-sm text-gray-500">Loading...</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400">Loading...</p>
         ) : requests.length === 0 ? (
-          <p className="text-sm text-gray-500">No requests.</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400">No requests.</p>
         ) : (
           <ul className="space-y-2">
             {requests.map((r) => (
               <li
                 key={r.id}
-                className="rounded border border-gray-200 px-3 py-2"
+                className="rounded border border-gray-200 dark:border-white/10 px-3 py-2"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-semibold uppercase text-gray-600">
+                    <span className="rounded bg-gray-100 dark:bg-slate-800 px-1.5 py-0.5 text-xs font-semibold uppercase text-gray-600 dark:text-slate-300">
                       {r.request_type}
                     </span>
-                    <span className="font-medium text-gray-800">{r.title}</span>
+                    <span className="font-medium text-gray-800 dark:text-slate-200">{r.title}</span>
                   </div>
                   <StatusBadge status={r.status} />
                 </div>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
                   {r.student_name ?? `Student #${r.student_id}`}
                   {r.section_name ? ` - ${r.section_name}` : ""} -{" "}
                   {prettyCategory(r.category)}
@@ -206,7 +206,7 @@ export default function LeaveStaffPanel() {
                   </div>
                 )}
                 {r.review_note && (
-                  <p className="mt-1 text-xs text-gray-400">
+                  <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
                     Note: {r.review_note}
                   </p>
                 )}
@@ -219,12 +219,12 @@ export default function LeaveStaffPanel() {
       {/* Bulk OD */}
       <form
         onSubmit={onBulk}
-        className="space-y-3 rounded-lg border border-gray-200 p-4"
+        className="space-y-3 rounded-lg border border-gray-200 dark:border-white/10 p-4"
       >
-        <h2 className="text-sm font-semibold text-gray-700">
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-300">
           Bulk OD (fest / group event)
         </h2>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-500 dark:text-slate-400">
           Raise auto-approved on-duty for many students at once. Each gets their
           own record, so attendance condonation stays per-student.
         </p>
@@ -232,24 +232,24 @@ export default function LeaveStaffPanel() {
         {bulkMsg && <p className="text-sm text-green-700">{bulkMsg}</p>}
 
         <label className="block text-sm">
-          <span className="block text-gray-600">
+          <span className="block text-gray-600 dark:text-slate-300">
             Student IDs (comma or space separated)
           </span>
           <input
             value={studentIds}
             onChange={(e) => setStudentIds(e.target.value)}
             placeholder="6, 7, 8"
-            className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+            className="mt-1 w-full rounded border border-gray-300 dark:border-white/15 px-2 py-1"
           />
         </label>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="text-sm">
-            <span className="block text-gray-600">Category</span>
+            <span className="block text-gray-600 dark:text-slate-300">Category</span>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+              className="mt-1 w-full rounded border border-gray-300 dark:border-white/15 px-2 py-1"
             >
               {OD_CATEGORIES.map((c) => (
                 <option key={c} value={c}>
@@ -259,43 +259,43 @@ export default function LeaveStaffPanel() {
             </select>
           </label>
           <label className="text-sm">
-            <span className="block text-gray-600">Event name</span>
+            <span className="block text-gray-600 dark:text-slate-300">Event name</span>
             <input
               value={eventName}
               onChange={(e) => setEventName(e.target.value)}
               placeholder="State Meet 2026"
-              className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+              className="mt-1 w-full rounded border border-gray-300 dark:border-white/15 px-2 py-1"
             />
           </label>
         </div>
 
         <label className="block text-sm">
-          <span className="block text-gray-600">Title</span>
+          <span className="block text-gray-600 dark:text-slate-300">Title</span>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Inter-college tournament"
-            className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+            className="mt-1 w-full rounded border border-gray-300 dark:border-white/15 px-2 py-1"
           />
         </label>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="text-sm">
-            <span className="block text-gray-600">Start date</span>
+            <span className="block text-gray-600 dark:text-slate-300">Start date</span>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+              className="mt-1 w-full rounded border border-gray-300 dark:border-white/15 px-2 py-1"
             />
           </label>
           <label className="text-sm">
-            <span className="block text-gray-600">End date</span>
+            <span className="block text-gray-600 dark:text-slate-300">End date</span>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+              className="mt-1 w-full rounded border border-gray-300 dark:border-white/15 px-2 py-1"
             />
           </label>
         </div>

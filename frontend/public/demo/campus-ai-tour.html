@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Campus AI — Live Product Demo</title>
+<style>
+:root{--acc:#6366f1;--acc2:#8b5cf6}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif;background:#020617;-webkit-font-smoothing:antialiased;overflow:hidden}
+#tourRoot{position:fixed;inset:0;display:flex;--abg:#020617;--panel:rgba(255,255,255,.05);--bd:rgba(255,255,255,.10);--tx:#e2e8f0;--mut:#94a3b8;--side:#0b1220;--chrome:#0b1220;--sideactive:rgba(99,102,241,.20)}
+#tourRoot[data-theme="light"]{--abg:#f6f8fc;--panel:#ffffff;--bd:#e6ebf2;--tx:#0f172a;--mut:#64748b;--side:#ffffff;--chrome:#eef2f7;--sideactive:#eef0ff}
+.muted{color:var(--mut)}
+.frame{position:relative;flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--abg)}
+.frametop{height:38px;background:var(--chrome);display:flex;align-items:center;gap:8px;padding:0 14px;border-bottom:1px solid var(--bd);flex:none}
+.dots{display:flex;gap:6px}
+.dots i{width:11px;height:11px;border-radius:50%;display:block}
+.d1{background:#ff5f57}.d2{background:#febc2e}.d3{background:#28c840}
+.url{flex:1;text-align:center;font-size:12px;color:var(--mut)}
+.app{flex:1;display:flex;min-height:0}
+.side{width:232px;flex:none;background:var(--side);border-right:1px solid var(--bd);padding:14px 12px;overflow-y:auto}
+.sbrand{display:flex;align-items:center;gap:9px;font-weight:700;color:var(--tx);padding:4px 8px 10px}
+.logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;display:grid;place-items:center;font-weight:800}
+.snav{display:flex;flex-direction:column;gap:2px}
+.sitem{display:flex;align-items:center;gap:11px;padding:8px 10px;border-radius:9px;font-size:13.5px;color:var(--mut);cursor:pointer}
+.sitem:hover{background:var(--sideactive);color:var(--tx)}
+.sitem.on{background:var(--sideactive);color:var(--tx);font-weight:600}
+.sitem .em{width:18px;text-align:center}
+.suser{margin-top:14px;padding:12px 8px 4px;border-top:1px solid var(--bd);font-size:12px;color:var(--mut);line-height:1.5}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.apptop{height:56px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--bd)}
+.apptop .title{font-weight:700;color:var(--tx);font-size:15px}
+.demoflag{margin-left:12px;font-size:11px;font-weight:600;color:var(--mut);background:var(--panel);border:1px solid var(--bd);padding:3px 10px;border-radius:999px;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.apptop .right{display:flex;align-items:center;gap:12px}
+.selrole{background:var(--panel);border:1px solid var(--bd);color:var(--tx);border-radius:8px;padding:6px 10px;font-size:13px;outline:none}
+.tbtn{width:34px;height:34px;border-radius:8px;border:1px solid var(--bd);background:var(--panel);color:var(--tx);cursor:pointer;font-size:15px}
+.rolepill{background:var(--panel);border:1px solid var(--bd);color:var(--tx);border-radius:999px;padding:5px 12px;font-size:12px}
+.bell{position:relative;font-size:16px;color:var(--mut);cursor:default}
+.bell b{position:absolute;top:-7px;right:-8px;background:#ef4444;color:#fff;font-size:9px;border-radius:999px;padding:1px 4px}
+.av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700}
+.screen{flex:1;overflow-y:auto;padding:24px 24px 104px}
+.sh{font-size:20px;font-weight:700;color:var(--tx)}
+.ssub{margin:4px 0 18px;font-size:13.5px;color:var(--mut);line-height:1.5}
+.fade{animation:fade .5s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.stat2{background:var(--panel);border:1px solid var(--bd);border-radius:14px;padding:15px}
+.stat2 .v{font-size:23px;font-weight:800}
+.stat2 .l{margin-top:4px;font-size:12px;color:var(--mut)}
+.c-emerald{color:#34d399}.c-indigo{color:#818cf8}.c-violet{color:#a78bfa}.c-amber{color:#fbbf24}.c-sky{color:#38bdf8}.c-pink{color:#f472b6}.c-white{color:var(--tx)}
+.panel{background:var(--panel);border:1px solid var(--bd);border-radius:14px;padding:16px;margin-bottom:16px}
+.panel .pt{font-size:14px;font-weight:600;color:var(--tx);margin-bottom:12px}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+table.tbl th{text-align:left;color:var(--mut);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.04em;padding:0 10px 8px}
+table.tbl td{padding:9px 10px;border-top:1px solid var(--bd);color:var(--tx)}
+.chip{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11.5px;font-weight:600}
+.chip-ok{background:rgba(16,185,129,.16);color:#34d399}
+.chip-warn{background:rgba(245,158,11,.16);color:#fbbf24}
+.chip-bad{background:rgba(239,68,68,.16);color:#f87171}
+.chip-info{background:rgba(99,102,241,.16);color:#818cf8}
+.chip-neutral{background:rgba(148,163,184,.16);color:var(--mut)}
+#tourRoot[data-theme="light"] .chip-ok{background:#d1fae5;color:#047857}
+#tourRoot[data-theme="light"] .chip-warn{background:#fef3c7;color:#b45309}
+#tourRoot[data-theme="light"] .chip-bad{background:#fee2e2;color:#b91c1c}
+#tourRoot[data-theme="light"] .chip-info{background:#e0e7ff;color:#4338ca}
+#tourRoot[data-theme="light"] .chip-neutral{background:#eef2f7;color:#475569}
+.kvc{display:flex;flex-wrap:wrap;gap:8px}
+.kv{background:var(--panel);border:1px solid var(--bd);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--tx)}
+#tourRoot[data-theme="light"] .kv{background:#f8fafc}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.mini{background:var(--panel);border:1px solid var(--bd);border-radius:14px;padding:16px}
+.mini .mi{font-size:21px}
+.mini .mt{margin-top:8px;font-weight:600;color:var(--tx);font-size:14px}
+.mini .md{margin-top:4px;font-size:12.5px;color:var(--mut);line-height:1.5}
+.chat{display:flex;flex-direction:column;gap:12px}
+.msg{max-width:78%;padding:10px 14px;border-radius:14px;font-size:13.5px;line-height:1.55}
+.msg.u{align-self:flex-end;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff}
+.msg.b{align-self:flex-start;background:var(--panel);border:1px solid var(--bd);color:var(--tx)}
+.elig{margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.auditrow{border-top:1px solid var(--bd);padding:12px 0}
+.auditrow:first-child{border-top:none;padding-top:0}
+.player{position:absolute;left:50%;transform:translateX(-50%);bottom:18px;z-index:8;width:min(580px,92%);background:rgba(15,23,42,.93);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:13px;box-shadow:0 14px 34px rgba(0,0,0,.45)}
+.pbtn{width:38px;height:38px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;font-size:14px;flex:none}
+.pinfo{flex:1;min-width:0;color:#fff}
+.pstep{font-size:10px;letter-spacing:.06em;color:#a5b4fc;text-transform:uppercase}
+.ptitle{font-size:13px;font-weight:700;margin-top:2px}
+.psub{font-size:11px;color:#cbd5e1;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pprog{margin-top:7px;height:3px;border-radius:999px;background:rgba(255,255,255,.16);overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .4s ease}
+.pnav{display:flex;gap:6px;flex:none}
+.pnav button{height:32px;min-width:32px;padding:0 8px;border-radius:8px;border:1px solid rgba(255,255,255,.16);background:transparent;color:#fff;cursor:pointer;font-size:13px}
+@media(max-width:720px){.side{display:none}}
+</style>
+</head>
+<body>
+<div id="tourRoot">
+  <div class="frame">
+    <div class="frametop">
+      <div class="dots"><i class="d1"></i><i class="d2"></i><i class="d3"></i></div>
+      <div class="url">campus-ai.app/dashboard</div>
+    </div>
+    <div class="app">
+      <div class="side" id="side"></div>
+      <div class="main">
+        <div class="apptop">
+          <div style="display:flex;align-items:center;gap:10px;min-width:0"><div class="title" id="apptitle">Dashboard</div><span class="demoflag">🧪 Demo preview · sample data</span></div>
+          <div class="right">
+            <select class="selrole" id="selrole" onchange="switchRole(this.value)" title="Choose which role demo to watch">
+              <option value="student">🎓 Student</option>
+              <option value="teacher">👩‍🏫 Teacher</option>
+              <option value="tpo">🏢 Placement Cell</option>
+              <option value="recruiter">🤝 Recruiter</option>
+              <option value="admin">🛠️ Admin</option>
+            </select>
+            <button class="tbtn" id="tbtn" onclick="toggleTheme()" title="Toggle light / dark">☀</button>
+            <span class="bell">🔔<b>3</b></span>
+            <span class="rolepill" id="rolepill">Student</span>
+            <span class="av" id="av">RS</span>
+          </div>
+        </div>
+        <div class="screen" id="screen"></div>
+      </div>
+    </div>
+    <div class="player">
+      <button class="pbtn" id="pbtn" onclick="togglePlay()">⏸</button>
+      <div class="pinfo">
+        <div class="pstep" id="pstep"></div>
+        <div class="ptitle" id="ptitle"></div>
+        <div class="psub" id="psub"></div>
+        <div class="pprog"><div class="pfill" id="pfill"></div></div>
+      </div>
+      <div class="pnav">
+        <button onclick="prev()">‹</button>
+        <button onclick="next2()">›</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function kpis(a){return '<div class="kpis">'+a.map(function(x){return '<div class="stat2"><div class="v '+x[2]+'">'+x[0]+'</div><div class="l">'+x[1]+'</div></div>';}).join('')+'</div>';}
+function panel(t,inner){return '<div class="panel"><div class="pt">'+t+'</div>'+inner+'</div>';}
+function table(h,rows){return '<table class="tbl"><thead><tr>'+h.map(function(x){return '<th>'+x+'</th>';}).join('')+'</tr></thead><tbody>'+rows.map(function(r){return '<tr>'+r.map(function(c){return '<td>'+c+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table>';}
+function chip(t,k){return '<span class="chip chip-'+k+'">'+t+'</span>';}
+function kvc(a){return '<div class="kvc">'+a.map(function(x){return '<span class="kv">'+x+'</span>';}).join('')+'</div>';}
+function list(a){return '<ul style="margin:0;padding-left:18px;color:var(--tx);font-size:13.5px;line-height:1.8">'+a.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul>';}
+function cards3(a){return '<div class="grid3">'+a.map(function(x){return '<div class="mini"><div class="mi">'+x[0]+'</div><div class="mt">'+x[1]+'</div><div class="md">'+x[2]+'</div></div>';}).join('')+'</div>';}
+function chat(a){return '<div class="chat">'+a.map(function(x){return '<div class="msg '+(x[0]==="u"?"u":"b")+'">'+x[1]+'</div>';}).join('')+'</div>';}
+function audit(a){return a.map(function(x){return '<div class="auditrow">'+chip(x[0],x[1])+' <span class="muted" style="font-size:12px">'+x[2]+'</span><div style="margin-top:5px;font-size:13.5px;color:var(--tx)">'+x[3]+'</div><div style="margin-top:3px;font-size:12px;color:var(--mut)">'+x[4]+'</div></div>';}).join('');}
+</script>
+<script>
+function bar(l,p,c){return '<div style="display:flex;align-items:center;gap:10px;margin:9px 0"><span style="width:150px;font-size:12.5px;color:var(--tx)">'+l+'</span><div style="flex:1;height:9px;border-radius:999px;background:var(--bd)"><div style="width:'+p+'%;height:100%;border-radius:999px;background:'+(c||'linear-gradient(90deg,var(--acc),var(--acc2))')+'"></div></div><span style="width:44px;text-align:right;font-size:12px;color:var(--mut)">'+p+'%</span></div>';}
+var ROLES={
+student:{name:"Rahul Sharma",sub:"CSE · Section A",pill:"Student",initials:"RS",dash:"Student Dashboard",
+ nav:[["overview","Overview","🏠"],["attendance","Attendance","🗓️"],["academics","Academics","📊"],["timetable","Timetable","📅"],["assignments","Assignments","📝"],["studyhub","Study Hub","📚"],["doubts","Doubts","💬"],["resume","Resume","📄"],["skills","Skills","🛡️"],["projects","Projects","🧩"],["activities","Activities","🏆"],["internships","Internships","💼"],["placements","Placements","🏢"],["leave","Leave & OD","🏖️"],["risk","My Risk","📈"],["mentor","AI Mentor","🤖"]],
+ order:["overview","attendance","academics","timetable","assignments","studyhub","doubts","resume","skills","projects","activities","internships","placements","leave","risk","mentor"],
+ screens:{
+  overview:{t:"Welcome, Rahul Sharma",s:"Build a verified profile and stay placement-ready.",b:panel("📣 Latest announcements",table(["Announcement","When","Audience"],[["TCS drive registration opens Monday","2 Jul 2026",chip("Students","ok")],["Mid-sem timetable published","1 Jul 2026",chip("Everyone","info")],["Resume workshop this Friday","30 Jun 2026",chip("Students","ok")]]))+cards3([["🗓️","Attendance","Your attendance record and percentage."],["🛡️","Skills","Claim skills with proof and track verification."],["🧩","Projects","Your projects and verified contributions."]])+cards3([["📄","Resume","ATS-ready resume from verified data."],["🏢","Placements","Browse drives and check eligibility."],["🤖","AI Mentor","Ask the mentor, grounded on your profile."]])},
+  attendance:{t:"Attendance",s:"Your attendance record and percentage.",b:kpis([["86%","Percentage","c-emerald"],["142","Present","c-indigo"],["12","Absent","c-pink"],["4","Late","c-amber"]])+panel("Recent records",table(["Date","Status"],[["1 Jul 2026",chip("Present","ok")],["30 Jun 2026",chip("Present","ok")],["29 Jun 2026",chip("Late","warn")],["28 Jun 2026",chip("Absent","bad")],["27 Jun 2026",chip("Present","ok")]]))},
+  academics:{t:"Academics & Results",s:"Credit-weighted SGPA and CGPA, computed automatically from your results.",b:kpis([["8.4","CGPA","c-emerald"],["8.6","Latest SGPA","c-indigo"],["3","Semester","c-violet"],["18","Credits (sem)","c-amber"]])+panel("Semester-wise results",table(["Semester","SGPA","Credits","Status"],[["Semester 1","8.1","20",chip("Completed","ok")],["Semester 2","8.3","22",chip("Completed","ok")],["Semester 3","8.6","18",chip("Current","info")]]))+panel("Current subjects",table(["Subject","Code","Credits","Internal"],[["Data Structures","CS201","4","27 / 30"],["DBMS","CS202","4","25 / 30"],["Operating Systems","CS203","3","24 / 30"],["Maths IV","MA201","3","22 / 30"]]))},
+  timetable:{t:"📅 Timetable",s:"Your weekly class schedule.",b:panel("This week",table(["Day","09:00","10:00","11:00","12:00"],[["Mon","Data Structures","DBMS","Operating Systems","Maths IV"],["Tue","Computer Networks","DBMS Lab","DBMS Lab","AI"],["Wed","Operating Systems","Data Structures","Maths IV","Elective"],["Thu","AI","Computer Networks","DS Lab","DS Lab"],["Fri","DBMS","Operating Systems","Seminar","Mentoring"]]))},
+  assignments:{t:"Assignments",s:"Submit assignments and track grades in one place.",b:kpis([["2","Pending","c-amber"],["9","Submitted","c-emerald"],["1","Graded today","c-indigo"]])+panel("My assignments",table(["Title","Subject","Due","Status"],[["ER Diagram design","DBMS","4 Jul 2026",chip("Pending","warn")],["CPU Scheduling report","Operating Systems","6 Jul 2026",chip("Pending","warn")],["Binary trees worksheet","Data Structures","28 Jun 2026",chip("Graded 9/10","ok")],["Normalization exercise","DBMS","25 Jun 2026",chip("Submitted","info")]]))},
+  studyhub:{t:"Study Hub",s:"Course materials, notes and resources shared by your faculty.",b:cards3([["📘","Lecture notes","42 files across your 4 subjects."],["🎥","Recorded classes","18 recordings available to revise."],["📝","Question banks","Previous-year papers and solutions."]])+panel("Recently added",table(["Material","Subject","Type","Added by"],[["Transactions & Locks","DBMS",chip("PDF","info"),"Dr. Meera Nair"],["Page Replacement","Operating Systems",chip("Slides","info"),"Prof. Rao"],["AVL Trees","Data Structures",chip("Video","info"),"Dr. Meera Nair"]]))},
+  doubts:{t:"Doubt Forum",s:"Ask questions, get answers from faculty and peers — verified answers are marked.",b:kpis([["4","My questions","c-indigo"],["12","Answers received","c-emerald"],["2","Unresolved","c-amber"]])+panel("Recent threads",table(["Question","Subject","Replies","Status"],[["Difference between clustered & non-clustered index?","DBMS","3",chip("Resolved","ok")],["When does deadlock actually occur?","Operating Systems","2",chip("Resolved","ok")],["Time complexity of AVL rotation?","Data Structures","1",chip("Open","warn")]]))},
+  resume:{t:"AI Resume",s:"ATS-ready resume generated only from your verified achievements.",b:kpis([["82","ATS score","c-emerald"],["Strong","Verdict","c-indigo"],["3","Versions","c-violet"]])+panel("Matched keywords",kvc(["Python","FastAPI","REST APIs","PostgreSQL","Docker"]))+panel("Missing keywords",kvc(["Kubernetes","System Design","GraphQL"]))+panel("Suggestions",list(["Add a cloud-deployment project to cover Docker and Kubernetes.","Quantify impact in your project bullets (users, latency, cost).","Get your React skill mentor-verified to unlock front-end roles."]))},
+  skills:{t:"My Skills",s:"Claim a skill with proof. The AI scores it and a mentor verifies — only verified skills count.",b:panel("Skill claims",table(["Skill","Proof","AI score","Status"],[["Python","GitHub repo","92",chip("Verified","ok")],["FastAPI","Project + certificate","88",chip("Verified","ok")],["PostgreSQL","Course certificate","76",chip("Pending","warn")],["React","Portfolio site","64",chip("Flagged","bad")]]))},
+  projects:{t:"My Projects",s:"Add a project with proof links. A mentor verifies each contribution — only verified work counts.",b:panel("Campus Attendance API · FastAPI, PostgreSQL, Docker",'<div class="muted" style="font-size:12.5px;margin-bottom:10px">Group project · Repo linked · Demo linked</div>'+table(["Member","Contribution","AI score","Status"],[["Rahul Sharma (owner)","Backend APIs & auth","90",chip("Verified","ok")],["Priya Kumari","Database & RLS","86",chip("Verified","ok")],["Aman Mishra","Frontend","64",chip("Flagged","bad")]]))+panel("Skill Verifier (ML) · Python, scikit-learn",'<div class="muted" style="font-size:12.5px;margin-bottom:10px">Solo project · Repo linked</div>'+table(["Member","Contribution","AI score","Status"],[["Rahul Sharma (owner)","Model + API","—",chip("Pending","warn")]]))},
+  activities:{t:"Activities & Achievements",s:"Extra-curricular achievements — each backed by proof and mentor-verified.",b:panel("My activities",table(["Activity","Type","Date","Status"],[["SIH 2025 — Finalist","Hackathon","Mar 2026",chip("Verified","ok")],["Coding Club — Core member","Club","2025–26",chip("Verified","ok")],["NSS — Blood donation drive","Social","Jan 2026",chip("Verified","ok")],["Inter-college football","Sports","Feb 2026",chip("Pending","warn")]]))},
+  internships:{t:"Internships",s:"Your internship experiences, verified from offer letters and certificates.",b:kpis([["1","Completed","c-emerald"],["1","Ongoing","c-indigo"],["2","Applications","c-amber"]])+panel("My internships",table(["Company","Role","Duration","Status"],[["Startify Labs","Backend Intern","May–Jun 2026",chip("Ongoing","info")],["CodeWorks","Web Dev Intern","Dec 2025",chip("Verified","ok")]]))},
+  placements:{t:"Placements",s:"Browse open drives, check your eligibility on verified data, and apply.",b:panel("TCS · Software Engineer · Bangalore · 7 LPA",kvc(["Min CGPA: 7","Min attendance: 75%","Min projects: 1","Skills: Python, DBMS","Deadline: 10 Jul 2026"])+'<div style="margin-top:10px">'+chip("You are eligible","ok")+'</div>')+panel("Infosys · Systems Engineer · Pune · 5 LPA",kvc(["Min CGPA: 6.5","Min attendance: 70%","Min projects: 2"])+'<div style="margin-top:10px">'+chip("Not eligible — needs 2 verified projects","bad")+'</div>')},
+  leave:{t:"Leave & OD",s:"Apply for leave or on-duty and track approvals from your faculty.",b:kpis([["1","Pending","c-amber"],["5","Approved","c-emerald"],["18","Leave balance","c-indigo"]])+panel("My requests",table(["Type","From","To","Reason","Status"],[[chip("OD","info"),"3 Jul","3 Jul","SIH finals",chip("Pending","warn")],[chip("Leave","neutral"),"20 Jun","22 Jun","Medical",chip("Approved","ok")],[chip("OD","info"),"12 Jun","12 Jun","Workshop",chip("Approved","ok")]]))},
+  risk:{t:"My Risk",s:"An early-warning view so you can fix problems before they hurt your placement chances.",b:kpis([["Low","Risk level","c-emerald"],["86%","Attendance","c-indigo"],["8.4","CGPA","c-violet"]])+panel("Risk factors",bar("Attendance",86)+bar("Academics (CGPA)",84)+bar("Verified skills",70,"linear-gradient(90deg,#f59e0b,#f97316)")+bar("Assignment submission",90))+panel("Suggestions",list(["Get PostgreSQL and React skills mentor-verified to lift your skills score.","Keep attendance above 85% to stay eligible for all drives."]))},
+  mentor:{t:"AI Career Mentor",s:"Grounded only on your verified profile — skills, projects, attendance, and CGPA.",b:chat([["u","What is my skill gap for a backend role?"],["b","From your verified profile, Python and FastAPI are both mentor-verified and strong. For backend roles, add depth in System Design and containerization. Your React skill is still flagged, so it will not count yet — ship one Dockerized project and get it verified."],["u","Which jobs suit my verified projects?"],["b","Your verified Campus Attendance API (FastAPI + PostgreSQL) maps well to Backend Engineer and API Developer roles. You already meet the bar for the TCS Software Engineer drive."]])}
+ }
+},
+teacher:{name:"Dr. Meera Nair",sub:"Faculty · Computer Science",pill:"Teacher",initials:"MN",dash:"Teacher Dashboard",
+ nav:[["overview","Overview","🏠"],["verify","Verifications","✅"],["attendance","Attendance","🗓️"],["faceenroll","Face Enroll","🧑"],["faceatt","Face Attendance","📸"],["assignments","Assignments","📝"],["studyhub","Study Hub","📚"],["doubts","Doubts","💬"],["timetable","Timetable","📅"],["gradebook","Gradebook","📗"],["analytics","Analytics","📈"],["leave","Leave Approvals","🏖️"]],
+ order:["overview","verify","attendance","faceenroll","faceatt","assignments","studyhub","doubts","timetable","gradebook","analytics","leave"],
+ screens:{
+  overview:{t:"Welcome, Dr. Meera Nair",s:"Verify student work, run attendance, and track your classes.",b:kpis([["12","Pending verifications","c-amber"],["88%","Class attendance","c-emerald"],["3","Classes today","c-indigo"],["6","Open doubts","c-pink"]])+cards3([["✅","Verifications","Approve or flag student skills & projects."],["📸","Face Attendance","Run a face-recognition attendance session."],["📈","Analytics","See at-risk students and subject trends."]])},
+  verify:{t:"Verifications",s:"Approve or flag student skills and project contributions — this is what powers the verified-data moat.",b:kpis([["12","Pending","c-amber"],["148","Approved","c-emerald"],["9","Flagged","c-pink"]])+panel("Pending queue",table(["Student","Item","Type","AI score","Action"],[["Rahul Sharma","PostgreSQL","Skill","76",chip("Review","warn")],["Priya Kumari","Campus Attendance API","Project","86",chip("Review","warn")],["Aman Mishra","React","Skill","64",chip("Likely flag","bad")],["Neha Gupta","SIH Finalist","Activity","90",chip("Review","warn")]]))},
+  attendance:{t:"Class Attendance",s:"Mark and monitor attendance for your classes.",b:kpis([["88%","Class average","c-emerald"],["58","Present today","c-indigo"],["4","Absent","c-pink"]])+panel("By class",bar("CSE-A · Data Structures",91)+bar("CSE-A · DBMS",88)+bar("CSE-B · DBMS",83)+bar("CSE-A · Operating Systems",79,"linear-gradient(90deg,#f59e0b,#f97316)"))},
+  faceenroll:{t:"Face Enrollment",s:"Enroll student faces once — embeddings are stored securely for recognition.",b:kpis([["58 / 62","Enrolled","c-emerald"],["4","Pending","c-amber"],["512","Embedding dims","c-indigo"]])+panel("Not yet enrolled",table(["Student","Roll no","Status"],[["Aman Mishra","CSE-A 21",chip("Pending","warn")],["Neha Gupta","CSE-A 27",chip("Pending","warn")],["Kabir Singh","CSE-A 33",chip("Pending","warn")],["Sara Khan","CSE-A 41",chip("Pending","warn")]]))},
+  faceatt:{t:"Face Attendance Session",s:"Point the camera at the class — recognized students are marked present automatically.",b:kpis([["Live","Session","c-emerald"],["54","Recognized","c-indigo"],["4","Unmatched","c-amber"]])+panel("Recognition log",table(["Time","Student","Confidence","Result"],[["09:01:12","Rahul Sharma","0.94",chip("Present","ok")],["09:01:15","Priya Kumari","0.91",chip("Present","ok")],["09:01:19","Unknown","0.42",chip("Unmatched","warn")],["09:01:23","Kabir Singh","0.88",chip("Present","ok")]]))},
+  assignments:{t:"Assignments",s:"Create assignments, collect submissions, and grade them.",b:kpis([["3","Active","c-indigo"],["41","Submissions","c-emerald"],["7","To grade","c-amber"]])+panel("My assignments",table(["Title","Class","Due","Submissions","Status"],[["ER Diagram design","CSE-A DBMS","4 Jul 2026","18 / 30",chip("Open","info")],["CPU Scheduling report","CSE-A OS","6 Jul 2026","9 / 30",chip("Open","info")],["Binary trees worksheet","CSE-A DS","28 Jun 2026","30 / 30",chip("Grading","warn")]]))},
+  studyhub:{t:"Study Hub",s:"Upload and manage course materials for your students.",b:kpis([["42","Materials","c-indigo"],["3","Subjects","c-violet"],["310","Downloads","c-emerald"]])+panel("My uploads",table(["Material","Subject","Type","Downloads"],[["Transactions & Locks","DBMS",chip("PDF","info"),"86"],["AVL Trees","Data Structures",chip("Video","info"),"74"],["Normalization notes","DBMS",chip("PDF","info"),"63"]]))},
+  doubts:{t:"Doubt Forum",s:"Answer student questions — your answers are marked as faculty-verified.",b:kpis([["6","Unanswered","c-amber"],["38","Answered","c-emerald"],["4.8","Avg rating","c-indigo"]])+panel("Needs your answer",table(["Question","Subject","Asked by","Age"],[["Time complexity of AVL rotation?","Data Structures","Rahul Sharma","2h"],["How to pick isolation level?","DBMS","Priya Kumari","5h"],["Difference: paging vs segmentation?","Operating Systems","Kabir Singh","1d"]]))},
+  timetable:{t:"📅 My Timetable",s:"Your teaching schedule for the week.",b:panel("This week",table(["Day","09:00","10:00","11:00"],[["Mon","DBMS (CSE-A)","—","DBMS (CSE-B)"],["Tue","DBMS Lab (CSE-A)","DBMS Lab (CSE-A)","—"],["Wed","Data Structures (CSE-A)","—","Mentoring"],["Thu","—","DBMS (CSE-A)","DS Lab (CSE-A)"],["Fri","DBMS (CSE-A)","Seminar","—"]]))},
+  gradebook:{t:"Gradebook",s:"Internal marks and grades for your classes.",b:panel("CSE-A · DBMS · Internal 1",table(["Student","Marks","Grade"],[["Rahul Sharma","25 / 30",chip("A","ok")],["Priya Kumari","28 / 30",chip("A+","ok")],["Aman Mishra","17 / 30",chip("C","warn")],["Neha Gupta","22 / 30",chip("B","info")],["Kabir Singh","14 / 30",chip("D","bad")]]))},
+  analytics:{t:"Class Analytics",s:"Spot trends and at-risk students early.",b:panel("Average score by subject",bar("Data Structures",82)+bar("DBMS",78)+bar("Operating Systems",71,"linear-gradient(90deg,#f59e0b,#f97316)"))+panel("At-risk students",table(["Student","Attendance","Avg score","Risk"],[["Aman Mishra","68%","56",chip("High","bad")],["Neha Gupta","74%","63",chip("Medium","warn")],["Kabir Singh","71%","52",chip("High","bad")]]))},
+  leave:{t:"Leave Approvals",s:"Review and act on leave and on-duty requests from your students.",b:kpis([["3","Pending","c-amber"],["22","Approved","c-emerald"],["2","Rejected","c-pink"]])+panel("Pending requests",table(["Student","Type","Dates","Reason","Action"],[["Rahul Sharma",chip("OD","info"),"3 Jul","SIH finals",chip("Review","warn")],["Priya Kumari",chip("Leave","neutral"),"5–6 Jul","Family function",chip("Review","warn")],["Sara Khan",chip("OD","info"),"7 Jul","Paper presentation",chip("Review","warn")]]))}
+ }
+},
+tpo:{name:"Placement Cell",sub:"Training & Placement Office",pill:"TPO",initials:"PC",dash:"Placement Dashboard",
+ nav:[["overview","Overview","🏠"],["drives","Drives","🏢"],["analytics","Analytics","📈"],["applications","Applications","📥"],["recruiters","Recruiters","🤝"]],
+ order:["overview","drives","analytics","applications","recruiters"],
+ screens:{
+  overview:{t:"Placement Overview",s:"Manage drives, track applications, and report placement outcomes on verified data.",b:kpis([["3","Active drives","c-indigo"],["212","Eligible students","c-emerald"],["148","Applications","c-violet"],["71%","Placement rate","c-amber"]])+cards3([["🏢","Drives","Create drives with eligibility rules."],["📥","Applications","See ranked, verified applicants."],["🤝","Recruiters","Companies visiting campus."]])},
+  drives:{t:"Placement Drives",s:"Open drives with eligibility computed from verified student data.",b:panel("Active drives",table(["Company","Role","CTC","Eligible","Status"],[["TCS","Software Engineer","7 LPA","212",chip("Open","ok")],["Infosys","Systems Engineer","5 LPA","186",chip("Open","ok")],["KPMG","Analyst","6.5 LPA","94",chip("Closing soon","warn")]]))},
+  analytics:{t:"Placement Analytics",s:"Placement rate by department — computed from verified offers.",b:panel("Placement rate by department",bar("Computer Science",82)+bar("Information Tech",76)+bar("Electronics",64,"linear-gradient(90deg,#f59e0b,#f97316)")+bar("Mechanical",51,"linear-gradient(90deg,#f59e0b,#f97316)"))+kpis([["11.2 LPA","Highest CTC","c-emerald"],["6.1 LPA","Average CTC","c-indigo"],["38","Recruiters","c-violet"]])},
+  applications:{t:"Applications · TCS",s:"Applicants ranked on verified profile strength — no self-reported inflation.",b:panel("Ranked applicants",table(["Rank","Student","CGPA","Verified skills","Status"],[["1","Priya Kumari","9.1","6",chip("Shortlisted","ok")],["2","Rahul Sharma","8.4","4",chip("Shortlisted","ok")],["3","Sara Khan","8.2","4",chip("Under review","info")],["4","Kabir Singh","7.3","2",chip("Under review","info")]]))},
+  recruiters:{t:"Recruiters",s:"Companies engaged with your campus this season.",b:panel("Visiting companies",table(["Company","Roles","Drives","Offers made"],[["TCS","Software Engineer","1","24"],["Infosys","Systems Engineer","1","18"],["KPMG","Analyst","1","9"],["Acme Corp","Backend Engineer","1","3"]]))}
+ }
+},
+recruiter:{name:"Acme Corp",sub:"Recruiting Partner",pill:"Recruiter",initials:"AC",dash:"Recruiter Dashboard",
+ nav:[["overview","Overview","🏠"],["candidates","Candidates","👥"],["offers","Offers","📜"]],
+ order:["overview","candidates","offers"],
+ screens:{
+  overview:{t:"Welcome, Acme Corp",s:"Shortlist candidates on verified skills and projects — no unverifiable claims.",b:kpis([["48","Matched candidates","c-indigo"],["12","Shortlisted","c-emerald"],["3","Offers","c-violet"]])+cards3([["👥","Candidates","Browse verified-only profiles."],["✅","Verified data","Every skill & project is faculty-checked."],["📜","Offers","Track offers you have extended."]])},
+  candidates:{t:"Candidates",s:"Only verified skills and projects are shown — what you see is what is real.",b:panel("Matched for Backend Engineer",table(["Candidate","CGPA","Verified skills","Verified projects","Match"],[["Priya Kumari","9.1","Python, FastAPI, PostgreSQL","2",chip("94%","ok")],["Rahul Sharma","8.4","Python, FastAPI","1",chip("88%","ok")],["Sara Khan","8.2","Java, SQL","1",chip("73%","info")]]))},
+  offers:{t:"Offers",s:"Offers you have extended and their current status.",b:kpis([["3","Extended","c-indigo"],["1","Accepted","c-emerald"],["1","Declined","c-pink"]])+panel("Offer status",table(["Candidate","Role","CTC","Status"],[["Priya Kumari","Backend Engineer","9 LPA",chip("Accepted","ok")],["Rahul Sharma","Backend Engineer","8.5 LPA",chip("Extended","warn")],["Neha Gupta","QA Engineer","6 LPA",chip("Declined","bad")]]))}
+ }
+},
+admin:{name:"System Admin",sub:"Demo Institute",pill:"Admin",initials:"SA",dash:"Admin Dashboard",
+ nav:[["overview","Overview","🏠"],["institute","Institute","🏛️"],["users","Users","👤"],["departments","Departments","🏫"],["announcements","Announcements","📣"],["calendar","Calendar","📅"],["analytics","Analytics","📈"],["placementstats","Placement Stats","🎯"],["audit","Audit Log","🧾"]],
+ order:["overview","institute","users","departments","announcements","calendar","analytics","placementstats","audit"],
+ screens:{
+  overview:{t:"Admin Overview",s:"Run the institute — users, departments, and role-based access, all tenant-isolated.",b:kpis([["842","Users","c-indigo"],["8","Departments","c-violet"],["3 / 12","Active drives","c-amber"],["99.9%","Uptime","c-emerald"]])+cards3([["🏛️","Institute","Institute-wide configuration & counts."],["👤","Users","Manage users and role assignments."],["🧾","Audit Log","Every sensitive action is logged."]])},
+  institute:{t:"Institute",s:"High-level configuration and headcount for Demo Institute.",b:kpis([["842","Total users","c-indigo"],["760","Students","c-emerald"],["64","Teachers","c-violet"],["6","TPOs","c-amber"]])+panel("Structure",kvc(["8 departments","24 sections","3 of 12 drives active","Tenant: demo (RLS-isolated)"]))},
+  users:{t:"Users",s:"Manage accounts and role-based access across the institute.",b:kpis([["842","Total","c-indigo"],["7","Added this week","c-emerald"],["2","Suspended","c-pink"]])+panel("Recent users",table(["Name","Role","Department","Status"],[["Rahul Sharma",chip("Student","info"),"CSE",chip("Active","ok")],["Dr. Meera Nair",chip("Teacher","neutral"),"CSE",chip("Active","ok")],["Placement Cell",chip("TPO","neutral"),"—",chip("Active","ok")],["Old Account",chip("Student","info"),"ECE",chip("Suspended","bad")]]))},
+  departments:{t:"Departments",s:"Departments and their heads.",b:panel("All departments",table(["Department","Sections","Students","HOD"],[["Computer Science","4","210","Dr. S. Verma"],["Information Tech","3","168","Dr. A. Iyer"],["Electronics","3","152","Dr. P. Rao"],["Mechanical","3","128","Dr. R. Menon"]]))},
+  announcements:{t:"Announcements",s:"Broadcast to the whole institute or specific roles.",b:kpis([["18","This month","c-indigo"],["3","Scheduled","c-amber"],["760","Reached","c-emerald"]])+panel("Recent",table(["Title","Audience","Date","Status"],[["TCS drive registration opens",chip("Students","info"),"2 Jul 2026",chip("Sent","ok")],["Mid-sem timetable published",chip("Everyone","neutral"),"1 Jul 2026",chip("Sent","ok")],["Faculty meeting agenda",chip("Teachers","neutral"),"5 Jul 2026",chip("Scheduled","warn")]]))},
+  calendar:{t:"Academic Calendar",s:"Institute-wide academic and placement events.",b:panel("Upcoming events",table(["Date","Event","Type"],[["4 Jul 2026","TCS drive — online test",chip("Placement","info")],["8 Jul 2026","Mid-semester exams begin",chip("Academic","neutral")],["15 Jul 2026","Resume workshop",chip("Training","ok")],["22 Jul 2026","Infosys campus drive",chip("Placement","info")]]))},
+  analytics:{t:"Institute Analytics",s:"Attendance and engagement across departments.",b:panel("Average attendance by department",bar("Computer Science",88)+bar("Information Tech",85)+bar("Electronics",79)+bar("Mechanical",72,"linear-gradient(90deg,#f59e0b,#f97316)"))+kpis([["83%","Institute average","c-emerald"],["760","Active students","c-indigo"],["64","Active teachers","c-violet"]])},
+  placementstats:{t:"Placement Stats",s:"Placed students by department — from verified offer data.",b:panel("Placed by department",bar("Computer Science",82)+bar("Information Tech",76)+bar("Electronics",64,"linear-gradient(90deg,#f59e0b,#f97316)")+bar("Mechanical",51,"linear-gradient(90deg,#f59e0b,#f97316)"))+kpis([["71%","Overall placed","c-emerald"],["11.2 LPA","Highest CTC","c-indigo"],["6.1 LPA","Average CTC","c-violet"]])},
+  audit:{t:"Audit Log",s:"Every sensitive action is recorded for accountability.",b:audit([["Verify","ok","2 Jul 2026 · 10:42","Dr. Meera Nair approved skill 'Python' for Rahul Sharma","role: teacher · ip: 10.0.2.14"],["Login","info","2 Jul 2026 · 09:01","Placement Cell signed in","role: tpo · ip: 10.0.2.31"],["Drive","neutral","1 Jul 2026 · 16:20","TCS drive created with eligibility rules","role: tpo"],["Flag","bad","1 Jul 2026 · 14:05","Skill 'React' flagged for Aman Mishra","role: teacher"],["Role","warn","30 Jun 2026 · 11:12","Account suspended by admin","role: admin"]])}
+ }
+}};
+var PLAYLIST=[],cur=0,playing=true,timer=null,CURSCOPE="full";
+function buildPlaylist(scope){var out=[];var rs=(scope==="full")?["student","teacher","tpo","recruiter","admin"]:[scope];rs.forEach(function(r){ROLES[r].order.forEach(function(k){out.push({role:r,key:k});});});return out;}
+function render(){
+  var e=PLAYLIST[cur];var role=ROLES[e.role];var sc=role.screens[e.key];
+  var nav=role.nav.map(function(it){var k=it[0],label=it[1],icon=it[2];var on=(k===e.key)?" on":"";var has=!!role.screens[k];return '<div class="sitem'+on+'" data-r="'+e.role+'" data-k="'+k+'"'+(has?'':' data-x="1"')+'><span class="em">'+icon+'</span>'+label+'</div>';}).join('');
+  var side=document.getElementById("side");
+  side.innerHTML='<div class="sbrand"><span class="logo" style="width:26px;height:26px;font-size:13px">C</span>Campus AI</div><div class="snav">'+nav+'</div><div class="suser"><b style="color:var(--tx)">'+role.name+'</b><br>'+role.sub+'</div>';
+  side.querySelectorAll(".sitem").forEach(function(el){if(!el.getAttribute("data-x")){el.onclick=function(){jump(el.getAttribute("data-r"),el.getAttribute("data-k"));};}});
+  document.getElementById("apptitle").textContent=role.dash;
+  document.getElementById("selrole").value=e.role;
+  document.getElementById("rolepill").textContent=role.pill;
+  document.getElementById("av").textContent=role.initials;
+  var scr=document.getElementById("screen");
+  scr.innerHTML='<div class="fade"><div class="sh">'+sc.t+'</div><div class="ssub">'+sc.s+'</div>'+sc.b+'</div>';
+  scr.scrollTop=0;
+  document.getElementById("pstep").textContent="Step "+(cur+1)+" / "+PLAYLIST.length+" · "+role.pill;
+  document.getElementById("ptitle").textContent=sc.t;
+  document.getElementById("psub").textContent=sc.s;
+  document.getElementById("pfill").style.width=((cur+1)/PLAYLIST.length*100)+"%";
+}
+function schedule(){clearTimeout(timer);if(!playing)return;timer=setTimeout(function(){cur=(cur+1)%PLAYLIST.length;render();schedule();},4600);}
+function togglePlay(){playing=!playing;document.getElementById("pbtn").textContent=playing?"⏸":"▶";schedule();}
+function next2(){cur=(cur+1)%PLAYLIST.length;render();schedule();}
+function prev(){cur=(cur-1+PLAYLIST.length)%PLAYLIST.length;render();schedule();}
+function jump(r,k){var i=-1;for(var j=0;j<PLAYLIST.length;j++){if(PLAYLIST[j].role===r&&PLAYLIST[j].key===k){i=j;break;}}if(i>=0){cur=i;render();schedule();}}
+function switchRole(r){CURSCOPE=r;PLAYLIST=buildPlaylist(r);cur=0;render();schedule();}
+function toggleTheme(){var r=document.getElementById("tourRoot");if(r.getAttribute("data-theme")==="light"){r.removeAttribute("data-theme");document.getElementById("tbtn").textContent="☀";}else{r.setAttribute("data-theme","light");document.getElementById("tbtn").textContent="🌙";}}
+function getParam(n){var m=new RegExp("[?&]"+n+"=([^&]+)").exec(location.search);return m?decodeURIComponent(m[1]):null;}
+(function(){
+  var scope=(getParam("tour")||getParam("role")||"full").toLowerCase();
+  if(!ROLES[scope]&&scope!=="full")scope="full";
+  if(getParam("theme")==="light")toggleTheme();
+  CURSCOPE=scope;PLAYLIST=buildPlaylist(scope);cur=0;playing=true;render();schedule();
+})();
+</script>
+</body>
+</html>

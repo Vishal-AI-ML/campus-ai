@@ -42,9 +42,9 @@ type Applicant = {
 }
 
 const STATUS_STYLES: Record<AppStatus, string> = {
-	applied: "bg-slate-500/15 text-slate-300",
-	shortlisted: "bg-amber-500/15 text-amber-300",
-	selected: "bg-emerald-500/15 text-emerald-300",
+	applied: "bg-slate-500/15 text-slate-600 dark:text-slate-300",
+	shortlisted: "bg-amber-500/15 text-amber-600 dark:text-amber-300",
+	selected: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300",
 	rejected: "bg-red-500/15 text-red-300",
 }
 
@@ -119,12 +119,12 @@ export default function ApplicationsPage() {
 	}
 
 	const selectClass =
-		"rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+		"rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
 
 	return (
 		<div>
 			<h2 className="text-2xl font-bold">Applications</h2>
-			<p className="mt-1 text-sm text-slate-400">
+			<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
 				Review applicants per drive and decide who moves forward.
 			</p>
 
@@ -135,11 +135,11 @@ export default function ApplicationsPage() {
 			)}
 
 			{loading ? (
-				<p className="mt-6 text-slate-400">Loading drives...</p>
+				<p className="mt-6 text-slate-500 dark:text-slate-400">Loading drives...</p>
 			) : drives.length === 0 ? (
-				<p className="mt-6 text-slate-400">
+				<p className="mt-6 text-slate-500 dark:text-slate-400">
 					No drives yet. Create one on the{" "}
-					<Link href="/dashboard/drives" className="text-indigo-300 underline">
+					<Link href="/dashboard/drives" className="text-indigo-600 dark:text-indigo-300 underline">
 						Drives
 					</Link>{" "}
 					page first.
@@ -178,7 +178,7 @@ export default function ApplicationsPage() {
 						{selectedDriveId != null && (
 							<Link
 								href={`/dashboard/drives/${selectedDriveId}`}
-								className="text-sm text-slate-400 transition hover:text-white"
+								className="text-sm text-slate-500 dark:text-slate-400 transition hover:text-slate-900 dark:hover:text-white"
 							>
 								Open drive detail →
 							</Link>
@@ -188,9 +188,9 @@ export default function ApplicationsPage() {
 					{/* Applicants */}
 					<div className="mt-6">
 						{loadingApps ? (
-							<p className="text-slate-400">Loading applicants...</p>
+							<p className="text-slate-500 dark:text-slate-400">Loading applicants...</p>
 						) : applicants.length === 0 ? (
-							<p className="text-slate-400">
+							<p className="text-slate-500 dark:text-slate-400">
 								No applications for this drive yet.
 							</p>
 						) : (
@@ -198,7 +198,7 @@ export default function ApplicationsPage() {
 								{applicants.map((applicant) => (
 									<div
 										key={applicant.application_id}
-										className="rounded-xl border border-white/10 bg-white/5 p-4"
+										className="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4"
 									>
 										<div className="flex flex-wrap items-center justify-between gap-2">
 											<div className="font-medium">{applicant.full_name}</div>
@@ -208,7 +208,7 @@ export default function ApplicationsPage() {
 												{applicant.status}
 											</span>
 										</div>
-										<div className="mt-1 text-xs text-slate-400">
+										<div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
 											CGPA {applicant.cgpa} · Attendance {applicant.attendance}% ·
 											Verified skills {applicant.verified_skills} · Verified
 											projects {applicant.verified_projects}
@@ -218,14 +218,14 @@ export default function ApplicationsPage() {
 											<button
 												onClick={() => decide(applicant, "shortlisted")}
 												disabled={applicant.status === "shortlisted"}
-												className="rounded-lg border border-amber-400/30 px-3 py-1.5 text-sm text-amber-300 transition hover:bg-amber-400/10 disabled:opacity-40"
+												className="rounded-lg border border-amber-400/30 px-3 py-1.5 text-sm text-amber-600 dark:text-amber-300 transition hover:bg-amber-400/10 disabled:opacity-40"
 											>
 												Shortlist
 											</button>
 											<button
 												onClick={() => decide(applicant, "selected")}
 												disabled={applicant.status === "selected"}
-												className="rounded-lg border border-emerald-400/30 px-3 py-1.5 text-sm text-emerald-300 transition hover:bg-emerald-400/10 disabled:opacity-40"
+												className="rounded-lg border border-emerald-400/30 px-3 py-1.5 text-sm text-emerald-600 dark:text-emerald-300 transition hover:bg-emerald-400/10 disabled:opacity-40"
 											>
 												Select
 											</button>

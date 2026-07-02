@@ -111,31 +111,31 @@ export default function LeaveStudentPanel() {
     <div className="space-y-6">
       <form
         onSubmit={onSubmit}
-        className="space-y-3 rounded-lg border border-gray-200 p-4"
+        className="space-y-3 rounded-lg border border-gray-200 dark:border-white/10 p-4"
       >
-        <h2 className="text-sm font-semibold text-gray-700">
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-300">
           Apply for leave / OD
         </h2>
         {formError && <p className="text-sm text-red-600">{formError}</p>}
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="text-sm">
-            <span className="block text-gray-600">Type</span>
+            <span className="block text-gray-600 dark:text-slate-300">Type</span>
             <select
               value={requestType}
               onChange={(e) => setRequestType(e.target.value as RequestType)}
-              className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+              className="mt-1 w-full rounded border border-gray-300 dark:border-white/15 px-2 py-1"
             >
               <option value="leave">Leave (personal)</option>
               <option value="od">OD (official duty)</option>
             </select>
           </label>
           <label className="text-sm">
-            <span className="block text-gray-600">Category</span>
+            <span className="block text-gray-600 dark:text-slate-300">Category</span>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+              className="mt-1 w-full rounded border border-gray-300 dark:border-white/15 px-2 py-1"
             >
               {categories.map((c) => (
                 <option key={c} value={c}>
@@ -147,7 +147,7 @@ export default function LeaveStudentPanel() {
         </div>
 
         <label className="block text-sm">
-          <span className="block text-gray-600">Title</span>
+          <span className="block text-gray-600 dark:text-slate-300">Title</span>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -156,58 +156,58 @@ export default function LeaveStudentPanel() {
                 ? "Volunteer at Spring Fest"
                 : "Fever - need rest"
             }
-            className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+            className="mt-1 w-full rounded border border-gray-300 dark:border-white/15 px-2 py-1"
           />
         </label>
 
         {requestType === "od" && (
           <label className="block text-sm">
-            <span className="block text-gray-600">Event name</span>
+            <span className="block text-gray-600 dark:text-slate-300">Event name</span>
             <input
               value={eventName}
               onChange={(e) => setEventName(e.target.value)}
               placeholder="Spring Fest 2026"
-              className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+              className="mt-1 w-full rounded border border-gray-300 dark:border-white/15 px-2 py-1"
             />
           </label>
         )}
 
         <label className="block text-sm">
-          <span className="block text-gray-600">Reason (optional)</span>
+          <span className="block text-gray-600 dark:text-slate-300">Reason (optional)</span>
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             rows={2}
-            className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+            className="mt-1 w-full rounded border border-gray-300 dark:border-white/15 px-2 py-1"
           />
         </label>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <label className="text-sm">
-            <span className="block text-gray-600">Start date</span>
+            <span className="block text-gray-600 dark:text-slate-300">Start date</span>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+              className="mt-1 w-full rounded border border-gray-300 dark:border-white/15 px-2 py-1"
             />
           </label>
           <label className="text-sm">
-            <span className="block text-gray-600">End date</span>
+            <span className="block text-gray-600 dark:text-slate-300">End date</span>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+              className="mt-1 w-full rounded border border-gray-300 dark:border-white/15 px-2 py-1"
             />
           </label>
           <label className="text-sm">
-            <span className="block text-gray-600">Proof URL (optional)</span>
+            <span className="block text-gray-600 dark:text-slate-300">Proof URL (optional)</span>
             <input
               value={proofUrl}
               onChange={(e) => setProofUrl(e.target.value)}
               placeholder="https://..."
-              className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+              className="mt-1 w-full rounded border border-gray-300 dark:border-white/15 px-2 py-1"
             />
           </label>
         </div>
@@ -223,37 +223,37 @@ export default function LeaveStudentPanel() {
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      <div className="rounded-lg border border-gray-200 p-4">
-        <h2 className="mb-3 text-sm font-semibold text-gray-700">
+      <div className="rounded-lg border border-gray-200 dark:border-white/10 p-4">
+        <h2 className="mb-3 text-sm font-semibold text-gray-700 dark:text-slate-300">
           My requests
         </h2>
         {loading ? (
-          <p className="text-sm text-gray-500">Loading...</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400">Loading...</p>
         ) : requests.length === 0 ? (
-          <p className="text-sm text-gray-500">No requests yet.</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400">No requests yet.</p>
         ) : (
           <ul className="space-y-2">
             {requests.map((r) => (
               <li
                 key={r.id}
-                className="rounded border border-gray-200 px-3 py-2"
+                className="rounded border border-gray-200 dark:border-white/10 px-3 py-2"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-semibold uppercase text-gray-600">
+                    <span className="rounded bg-gray-100 dark:bg-slate-800 px-1.5 py-0.5 text-xs font-semibold uppercase text-gray-600 dark:text-slate-300">
                       {r.request_type}
                     </span>
-                    <span className="font-medium text-gray-800">{r.title}</span>
+                    <span className="font-medium text-gray-800 dark:text-slate-200">{r.title}</span>
                   </div>
                   <StatusBadge status={r.status} />
                 </div>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
                   {prettyCategory(r.category)}
                   {r.event_name ? ` - ${r.event_name}` : ""} - {r.start_date} to{" "}
                   {r.end_date} ({r.days} day{r.days > 1 ? "s" : ""})
                 </p>
                 {r.review_note && (
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
                     Note: {r.review_note}
                     {r.reviewer_name ? ` - ${r.reviewer_name}` : ""}
                   </p>

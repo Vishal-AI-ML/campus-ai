@@ -50,9 +50,9 @@ const AUDIENCES: { value: Audience; label: string }[] = [
 
 const CATEGORY_STYLE: Record<Category, string> = {
 	holiday: "bg-rose-500/15 text-rose-300",
-	exam: "bg-amber-500/15 text-amber-300",
-	event: "bg-indigo-500/15 text-indigo-300",
-	deadline: "bg-pink-500/15 text-pink-300",
+	exam: "bg-amber-500/15 text-amber-600 dark:text-amber-300",
+	event: "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300",
+	deadline: "bg-pink-500/15 text-pink-600 dark:text-pink-300",
 }
 
 const CATEGORY_LABEL: Record<Category, string> = {
@@ -70,7 +70,7 @@ const AUDIENCE_LABEL: Record<Audience, string> = {
 }
 
 const inputClass =
-	"mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+	"mt-1 w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
 
 // Treat a "YYYY-MM-DD" value as a local day (avoid UTC shifting it a day back).
 function formatDay(iso: string): string {
@@ -182,7 +182,7 @@ export default function CalendarPage() {
 		return (
 			<div>
 				<h2 className="text-2xl font-bold">Academic Calendar</h2>
-				<p className="mt-2 text-slate-400">
+				<p className="mt-2 text-slate-500 dark:text-slate-400">
 					Only admins can manage the calendar. Your upcoming events appear on
 					your Overview.
 				</p>
@@ -193,17 +193,17 @@ export default function CalendarPage() {
 	return (
 		<div>
 			<h2 className="text-2xl font-bold">Academic Calendar</h2>
-			<p className="mt-1 text-sm text-slate-400">
+			<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
 				Add holidays, exams, events and deadlines for the whole institute or a
 				single role.
 			</p>
 
 			{/* Composer */}
-			<div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6">
+			<div className="mt-6 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6">
 				<h3 className="text-lg font-semibold">New calendar entry</h3>
 				<div className="mt-3 grid gap-3">
 					<div>
-						<label className="text-sm text-slate-400">Title</label>
+						<label className="text-sm text-slate-500 dark:text-slate-400">Title</label>
 						<input
 							value={title}
 							onChange={(e) => setTitle(e.target.value)}
@@ -212,7 +212,7 @@ export default function CalendarPage() {
 						/>
 					</div>
 					<div>
-						<label className="text-sm text-slate-400">
+						<label className="text-sm text-slate-500 dark:text-slate-400">
 							Description (optional)
 						</label>
 						<textarea
@@ -225,7 +225,7 @@ export default function CalendarPage() {
 					</div>
 					<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 						<div>
-							<label className="text-sm text-slate-400">Start date</label>
+							<label className="text-sm text-slate-500 dark:text-slate-400">Start date</label>
 							<input
 								type="date"
 								value={eventDate}
@@ -234,7 +234,7 @@ export default function CalendarPage() {
 							/>
 						</div>
 						<div>
-							<label className="text-sm text-slate-400">
+							<label className="text-sm text-slate-500 dark:text-slate-400">
 								End date (optional)
 							</label>
 							<input
@@ -245,7 +245,7 @@ export default function CalendarPage() {
 							/>
 						</div>
 						<div>
-							<label className="text-sm text-slate-400">Category</label>
+							<label className="text-sm text-slate-500 dark:text-slate-400">Category</label>
 							<select
 								value={category}
 								onChange={(e) => setCategory(e.target.value as Category)}
@@ -259,7 +259,7 @@ export default function CalendarPage() {
 							</select>
 						</div>
 						<div>
-							<label className="text-sm text-slate-400">Audience</label>
+							<label className="text-sm text-slate-500 dark:text-slate-400">Audience</label>
 							<select
 								value={audience}
 								onChange={(e) => setAudience(e.target.value as Audience)}
@@ -298,15 +298,15 @@ export default function CalendarPage() {
 			<div className="mt-6">
 				<h3 className="text-lg font-semibold">All entries</h3>
 				{loading ? (
-					<p className="mt-3 text-slate-400">Loading...</p>
+					<p className="mt-3 text-slate-500 dark:text-slate-400">Loading...</p>
 				) : items.length === 0 ? (
-					<p className="mt-3 text-slate-400">No calendar entries yet.</p>
+					<p className="mt-3 text-slate-500 dark:text-slate-400">No calendar entries yet.</p>
 				) : (
 					<div className="mt-3 space-y-3">
 						{items.map((ev) => (
 							<div
 								key={ev.id}
-								className="rounded-2xl border border-white/10 bg-white/5 p-5"
+								className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-5"
 							>
 								<div className="flex items-start justify-between gap-3">
 									<div>
@@ -317,11 +317,11 @@ export default function CalendarPage() {
 											>
 												{CATEGORY_LABEL[ev.category]}
 											</span>
-											<span className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-slate-300">
+											<span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs text-slate-600 dark:text-slate-300">
 												{AUDIENCE_LABEL[ev.audience]}
 											</span>
 										</div>
-										<p className="mt-1 text-xs text-slate-400">
+										<p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
 											{dateRange(ev)}
 										</p>
 									</div>
@@ -334,7 +334,7 @@ export default function CalendarPage() {
 									</button>
 								</div>
 								{ev.description && (
-									<p className="mt-2 whitespace-pre-wrap text-sm text-slate-300">
+									<p className="mt-2 whitespace-pre-wrap text-sm text-slate-600 dark:text-slate-300">
 										{ev.description}
 									</p>
 								)}

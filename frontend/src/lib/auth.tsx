@@ -165,7 +165,11 @@ export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
       icon: "\u{1F4E3}",
     },
     { label: "Calendar", href: "/dashboard/calendar", icon: "\u{1F5D3}\uFE0F" },
+    { label: "Assignments", href: "/dashboard/assignments", icon: "\u{1F4DD}" },
+    { label: "Study Hub", href: "/dashboard/study-hub", icon: "\u{1F4DA}" },
+    { label: "Doubts", href: "/dashboard/doubts", icon: "\u{1F4AC}" },
     { label: "Timetable", href: "/dashboard/timetable", icon: "\u{1F4C5}" },
+    { label: "Leave & OD", href: "/dashboard/leave", icon: "\u{1F3D6}\uFE0F" },
     { label: "Analytics", href: "/dashboard/analytics", icon: "\u{1F4C8}" },
     {
       label: "Placement Stats",

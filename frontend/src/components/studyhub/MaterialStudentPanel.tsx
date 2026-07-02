@@ -22,11 +22,11 @@ export default function MaterialStudentPanel() {
 			.finally(() => setLoading(false))
 	}, [])
 
-	if (loading) return <p className="text-sm text-gray-500">Loading...</p>
+	if (loading) return <p className="text-sm text-gray-500 dark:text-slate-400">Loading...</p>
 	if (error) return <p className="text-sm text-red-600">{error}</p>
 	if (materials.length === 0)
 		return (
-			<p className="text-sm text-gray-500">
+			<p className="text-sm text-gray-500 dark:text-slate-400">
 				No study materials shared with your section yet.
 			</p>
 		)
@@ -34,18 +34,18 @@ export default function MaterialStudentPanel() {
 	return (
 		<ul className="space-y-3">
 			{materials.map((m) => (
-				<li key={m.id} className="rounded-lg border border-gray-200 p-4">
-					<p className="font-medium text-gray-900">
+				<li key={m.id} className="rounded-lg border border-gray-200 dark:border-white/10 p-4">
+					<p className="font-medium text-gray-900 dark:text-slate-100">
 						{m.title}{" "}
-						<span className="text-xs text-gray-500">
+						<span className="text-xs text-gray-500 dark:text-slate-400">
 							{CATEGORY_LABEL[m.category]}
 						</span>
 					</p>
 					{m.description ? (
-						<p className="text-sm text-gray-600">{m.description}</p>
+						<p className="text-sm text-gray-600 dark:text-slate-300">{m.description}</p>
 					) : null}
 					{m.content ? (
-						<p className="mt-1 whitespace-pre-wrap text-sm text-gray-700">
+						<p className="mt-1 whitespace-pre-wrap text-sm text-gray-700 dark:text-slate-300">
 							{m.content}
 						</p>
 					) : null}
@@ -59,7 +59,7 @@ export default function MaterialStudentPanel() {
 							Open resource
 						</a>
 					) : null}
-					<p className="mt-1 text-xs text-gray-400">
+					<p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
 						{formatDateTime(m.created_at)}
 					</p>
 				</li>

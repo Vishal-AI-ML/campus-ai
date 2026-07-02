@@ -49,7 +49,7 @@ type Subject = {
 }
 
 function gpaColor(value: number): string {
-	if (value >= 8) return "text-emerald-400"
+	if (value >= 8) return "text-emerald-600 dark:text-emerald-300"
 	if (value >= 6.5) return "text-amber-400"
 	return "text-red-400"
 }
@@ -96,7 +96,7 @@ export default function AcademicsPage() {
 	return (
 		<div>
 			<h2 className="text-2xl font-bold">My Academics</h2>
-			<p className="mt-1 text-sm text-slate-400">
+			<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
 				Your CGPA, per-semester SGPA, and subject results.
 			</p>
 
@@ -107,16 +107,16 @@ export default function AcademicsPage() {
 			)}
 
 			{loading ? (
-				<p className="mt-6 text-slate-400">Loading your academics...</p>
+				<p className="mt-6 text-slate-500 dark:text-slate-400">Loading your academics...</p>
 			) : summary && summary.total_credits === 0 ? (
-				<p className="mt-6 text-slate-400">No results published yet.</p>
+				<p className="mt-6 text-slate-500 dark:text-slate-400">No results published yet.</p>
 			) : (
 				summary && (
 					<>
 						{/* CGPA + per-semester SGPA */}
 						<div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 							<div className="rounded-2xl border border-indigo-400/30 bg-indigo-500/10 p-6">
-								<p className="text-sm text-slate-300">CGPA</p>
+								<p className="text-sm text-slate-600 dark:text-slate-300">CGPA</p>
 								<p
 									className={`mt-1 text-4xl font-bold ${gpaColor(
 										summary.cgpa,
@@ -124,16 +124,16 @@ export default function AcademicsPage() {
 								>
 									{summary.cgpa.toFixed(2)}
 								</p>
-								<p className="mt-1 text-xs text-slate-400">
+								<p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
 									{summary.total_credits} total credits
 								</p>
 							</div>
 							{summary.semesters.map((sem) => (
 								<div
 									key={sem.semester}
-									className="rounded-2xl border border-white/10 bg-white/5 p-6"
+									className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6"
 								>
-									<p className="text-sm text-slate-400">
+									<p className="text-sm text-slate-500 dark:text-slate-400">
 										Semester {sem.semester}
 									</p>
 									<p
@@ -143,7 +143,7 @@ export default function AcademicsPage() {
 									>
 										{sem.sgpa.toFixed(2)}
 									</p>
-									<p className="mt-1 text-xs text-slate-500">
+									<p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
 										{sem.credits} credits
 									</p>
 								</div>
@@ -162,24 +162,24 @@ export default function AcademicsPage() {
 									return (
 										<div
 											key={result.id}
-											className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3"
+											className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-4 py-3"
 										>
 											<div>
-												<p className="text-sm font-medium text-slate-200">
+												<p className="text-sm font-medium text-slate-700 dark:text-slate-200">
 													{subject
 														? `${subject.name} (${subject.code})`
 														: `Subject #${result.subject_id}`}
 												</p>
-												<p className="mt-0.5 text-xs text-slate-500">
+												<p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
 													{subject
 														? `Sem ${subject.semester} \u00b7 ${subject.credits} credits`
 														: ""}
 												</p>
 											</div>
 											<div className="text-right">
-												<p className="text-sm text-slate-300">
+												<p className="text-sm text-slate-600 dark:text-slate-300">
 													{result.marks_obtained}/{result.max_marks}{" "}
-													<span className="text-slate-500">
+													<span className="text-slate-500 dark:text-slate-400">
 														({percentage}%)
 													</span>
 												</p>

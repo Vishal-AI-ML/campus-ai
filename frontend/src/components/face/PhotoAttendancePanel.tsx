@@ -96,7 +96,7 @@ export default function PhotoAttendancePanel() {
 
 	return (
 		<div className="space-y-4">
-			<div className="space-y-3 rounded-lg border border-gray-200 bg-white p-4">
+			<div className="space-y-3 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4">
 				<SectionPicker
 					onSectionChange={(id) => {
 						setSectionId(id)
@@ -106,16 +106,16 @@ export default function PhotoAttendancePanel() {
 				/>
 				<div className="flex flex-wrap items-end gap-3">
 					<label className="flex flex-col gap-1 text-sm">
-						<span className="font-medium text-gray-700">Date</span>
+						<span className="font-medium text-gray-700 dark:text-slate-300">Date</span>
 						<input
 							type="date"
 							value={date}
 							onChange={(e) => setDate(e.target.value)}
-							className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+							className="rounded-md border border-gray-300 dark:border-white/15 px-3 py-2 text-sm"
 						/>
 					</label>
 					<label className="flex flex-col gap-1 text-sm">
-						<span className="font-medium text-gray-700">Class photo</span>
+						<span className="font-medium text-gray-700 dark:text-slate-300">Class photo</span>
 						<input
 							type="file"
 							accept="image/*"
@@ -146,19 +146,19 @@ export default function PhotoAttendancePanel() {
 			)}
 
 			{result && (
-				<div className="space-y-3 rounded-lg border border-gray-200 bg-white p-4">
-					<div className="flex flex-wrap gap-4 text-sm text-gray-600">
+				<div className="space-y-3 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4">
+					<div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-slate-300">
 						<span>
 							Faces detected:{" "}
-							<strong className="text-gray-900">{result.detected_faces}</strong>
+							<strong className="text-gray-900 dark:text-slate-100">{result.detected_faces}</strong>
 						</span>
 						<span>
 							Unmatched faces:{" "}
-							<strong className="text-gray-900">{result.unmatched_faces}</strong>
+							<strong className="text-gray-900 dark:text-slate-100">{result.unmatched_faces}</strong>
 						</span>
 						<span>
 							Threshold:{" "}
-							<strong className="text-gray-900">{result.threshold}</strong>
+							<strong className="text-gray-900 dark:text-slate-100">{result.threshold}</strong>
 						</span>
 					</div>
 
@@ -170,17 +170,17 @@ export default function PhotoAttendancePanel() {
 						</p>
 					)}
 
-					<ul className="divide-y divide-gray-100">
+					<ul className="divide-y divide-gray-100 dark:divide-white/10">
 						{result.suggestions.map((s) => (
 							<li
 								key={s.student_id}
 								className="flex flex-wrap items-center gap-3 py-3"
 							>
 								<div className="min-w-[180px] flex-1">
-									<p className="text-sm font-medium text-gray-900">
+									<p className="text-sm font-medium text-gray-900 dark:text-slate-100">
 										{s.full_name}
 									</p>
-									<p className="text-xs text-gray-500">
+									<p className="text-xs text-gray-500 dark:text-slate-400">
 										{!s.enrolled
 											? "Not enrolled - cannot be auto-matched"
 											: s.matched
@@ -204,7 +204,7 @@ export default function PhotoAttendancePanel() {
 												.value as AttendanceStatusValue,
 										}))
 									}
-									className="rounded-md border border-gray-300 px-2 py-1 text-sm capitalize"
+									className="rounded-md border border-gray-300 dark:border-white/15 px-2 py-1 text-sm capitalize"
 								>
 									{STATUS_OPTIONS.map((opt) => (
 										<option key={opt} value={opt} className="capitalize">
@@ -216,8 +216,8 @@ export default function PhotoAttendancePanel() {
 						))}
 					</ul>
 
-					<div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-3">
-						<p className="text-xs text-gray-400">
+					<div className="flex items-center justify-end gap-3 border-t border-gray-100 dark:border-white/10 pt-3">
+						<p className="text-xs text-gray-400 dark:text-slate-500">
 							Review the suggestions, then confirm to write attendance.
 						</p>
 						<button

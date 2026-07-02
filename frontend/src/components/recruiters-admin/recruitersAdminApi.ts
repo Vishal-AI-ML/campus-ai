@@ -80,22 +80,22 @@ export type Applicant = {
 // ----- presentation helpers ------------------------------------------------
 
 export const COMPANY_STYLES: Record<RecruiterStatus, string> = {
-  pending: "bg-amber-500/15 text-amber-300",
-  active: "bg-emerald-500/15 text-emerald-300",
+  pending: "bg-amber-500/15 text-amber-600 dark:text-amber-300",
+  active: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300",
   suspended: "bg-red-500/15 text-red-300",
 };
 
 export const INVITE_STYLES: Record<InviteStatus, string> = {
-  pending: "bg-amber-500/15 text-amber-300",
-  accepted: "bg-emerald-500/15 text-emerald-300",
-  revoked: "bg-slate-500/15 text-slate-400",
+  pending: "bg-amber-500/15 text-amber-600 dark:text-amber-300",
+  accepted: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300",
+  revoked: "bg-slate-500/15 text-slate-500 dark:text-slate-400",
   expired: "bg-red-500/15 text-red-300",
 };
 
 export const APP_STATUS_STYLES: Record<ApplicationStatus, string> = {
-  applied: "bg-slate-500/15 text-slate-300",
-  shortlisted: "bg-sky-500/15 text-sky-300",
-  selected: "bg-emerald-500/15 text-emerald-300",
+  applied: "bg-slate-500/15 text-slate-600 dark:text-slate-300",
+  shortlisted: "bg-sky-500/15 text-sky-600 dark:text-sky-300",
+  selected: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300",
   rejected: "bg-red-500/15 text-red-300",
 };
 

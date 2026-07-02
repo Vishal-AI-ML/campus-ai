@@ -64,39 +64,39 @@ export default function DoubtTeacherPanel({ me }: { me: MeUser }) {
 	return (
 		<div className="space-y-6">
 			<section>
-				<h2 className="mb-2 text-sm font-semibold text-gray-700">
+				<h2 className="mb-2 text-sm font-semibold text-gray-700 dark:text-slate-300">
 					Pick a section
 				</h2>
 				<SectionPicker onSectionChange={handleSectionChange} />
 			</section>
 
 			{sectionId === null ? (
-				<p className="text-sm text-gray-500">
+				<p className="text-sm text-gray-500 dark:text-slate-400">
 					Select a department and section to view its doubts.
 				</p>
 			) : loading ? (
-				<p className="text-sm text-gray-500">Loading...</p>
+				<p className="text-sm text-gray-500 dark:text-slate-400">Loading...</p>
 			) : error ? (
 				<p className="text-sm text-red-600">{error}</p>
 			) : doubts.length === 0 ? (
-				<p className="text-sm text-gray-500">No doubts in this section yet.</p>
+				<p className="text-sm text-gray-500 dark:text-slate-400">No doubts in this section yet.</p>
 			) : (
 				<ul className="space-y-2">
 					{doubts.map((d) => (
 						<li key={d.id}>
 							<button
 								onClick={() => setSelected(d.id)}
-								className="w-full rounded-lg border border-gray-200 p-3 text-left hover:bg-gray-50"
+								className="w-full rounded-lg border border-gray-200 dark:border-white/10 p-3 text-left hover:bg-gray-50 dark:hover:bg-white/5"
 							>
 								<div className="flex items-center justify-between gap-3">
-									<span className="font-medium text-gray-900">
+									<span className="font-medium text-gray-900 dark:text-slate-100">
 										{d.title}
 									</span>
 									<span className={statusBadge(d.status === "resolved")}>
 										{d.status === "resolved" ? "Resolved" : "Open"}
 									</span>
 								</div>
-								<p className="mt-1 text-xs text-gray-500">
+								<p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
 									{d.answer_count} answer
 									{d.answer_count === 1 ? "" : "s"}
 								</p>

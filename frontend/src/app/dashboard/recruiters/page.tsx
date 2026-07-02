@@ -19,7 +19,7 @@ export default function RecruitersAdminPage() {
     return (
       <div>
         <h2 className="text-2xl font-bold">Recruiters</h2>
-        <p className="mt-2 text-slate-400">
+        <p className="mt-2 text-slate-500 dark:text-slate-400">
           This page is only available to placement staff.
         </p>
       </div>
@@ -29,7 +29,7 @@ export default function RecruitersAdminPage() {
   return (
     <div>
       <h2 className="text-3xl font-bold">Recruiters</h2>
-      <p className="mt-2 text-slate-400">
+      <p className="mt-2 text-slate-500 dark:text-slate-400">
         Onboard companies, link drives and control candidate contact visibility.
       </p>
       <div className="mt-8">

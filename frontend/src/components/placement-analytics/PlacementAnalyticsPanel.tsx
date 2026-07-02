@@ -30,7 +30,7 @@ export default function PlacementAnalyticsPanel() {
   }, []);
 
   if (error) return <p className="text-sm text-red-600">{error}</p>;
-  if (!data) return <p className="text-sm text-gray-500">Loading...</p>;
+  if (!data) return <p className="text-sm text-gray-500 dark:text-slate-400">Loading...</p>;
 
   return (
     <div className="space-y-6">
@@ -81,12 +81,12 @@ function Kpi({
   return (
     <div
       className={`rounded-lg border p-3 ${
-        accent ? "border-green-200 bg-green-50" : "border-gray-200 bg-white"
+        accent ? "border-green-200 bg-green-50" : "border-gray-200 dark:border-white/10 bg-white dark:bg-slate-900"
       }`}
     >
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className="text-xl font-bold text-gray-900">{value}</p>
-      {sub && <p className="mt-0.5 text-xs text-gray-400">{sub}</p>}
+      <p className="text-xs text-gray-500 dark:text-slate-400">{label}</p>
+      <p className="text-xl font-bold text-gray-900 dark:text-slate-100">{value}</p>
+      {sub && <p className="mt-0.5 text-xs text-gray-400 dark:text-slate-500">{sub}</p>}
     </div>
   );
 }
@@ -98,10 +98,10 @@ function Funnel({ data }: { data: PlacementAnalytics }) {
     1;
   return (
     <div>
-      <p className="mb-2 text-sm font-medium text-gray-700">
+      <p className="mb-2 text-sm font-medium text-gray-700 dark:text-slate-300">
         Application funnel
       </p>
-      <div className="flex h-4 w-full overflow-hidden rounded-full bg-gray-100">
+      <div className="flex h-4 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-slate-800">
         {FUNNEL_STEPS.map((s) => {
           const n = counts[s.key];
           return n > 0 ? (
@@ -131,15 +131,15 @@ function Funnel({ data }: { data: PlacementAnalytics }) {
 function DriveTable({ rows }: { rows: DrivePerformance[] }) {
   return (
     <div>
-      <h2 className="mb-2 text-lg font-semibold text-gray-900">
+      <h2 className="mb-2 text-lg font-semibold text-gray-900 dark:text-slate-100">
         Drive performance
       </h2>
       {rows.length === 0 ? (
-        <p className="text-sm text-gray-500">No drives posted yet.</p>
+        <p className="text-sm text-gray-500 dark:text-slate-400">No drives posted yet.</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-gray-200">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
+        <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-white/10">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-white/10 text-sm">
+            <thead className="bg-gray-50 dark:bg-slate-950 text-left text-xs uppercase text-gray-500 dark:text-slate-400">
               <tr>
                 <th className="px-3 py-2">Company</th>
                 <th className="px-3 py-2">Role</th>
@@ -151,20 +151,20 @@ function DriveTable({ rows }: { rows: DrivePerformance[] }) {
                 <th className="px-3 py-2">Sel. rate</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-white/10">
               {rows.map((r) => (
                 <tr key={r.drive_id}>
-                  <td className="px-3 py-2 font-medium text-gray-900">
+                  <td className="px-3 py-2 font-medium text-gray-900 dark:text-slate-100">
                     {r.company_name}
                   </td>
-                  <td className="px-3 py-2 text-gray-600">{r.role_title}</td>
+                  <td className="px-3 py-2 text-gray-600 dark:text-slate-300">{r.role_title}</td>
                   <td className="px-3 py-2">{fmtLpa(r.package_lpa)}</td>
                   <td className="px-3 py-2">
                     <span
                       className={`rounded px-2 py-0.5 text-xs font-medium ${
                         r.is_open
                           ? "bg-green-100 text-green-800"
-                          : "bg-gray-100 text-gray-600"
+                          : "bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300"
                       }`}
                     >
                       {r.is_open ? "open" : "closed"}
@@ -188,12 +188,12 @@ function CompanyTable({ rows }: { rows: CompanyStat[] }) {
   if (rows.length === 0) return null;
   return (
     <div>
-      <h2 className="mb-2 text-lg font-semibold text-gray-900">
+      <h2 className="mb-2 text-lg font-semibold text-gray-900 dark:text-slate-100">
         Company leaderboard
       </h2>
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
+      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-white/10">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-white/10 text-sm">
+          <thead className="bg-gray-50 dark:bg-slate-950 text-left text-xs uppercase text-gray-500 dark:text-slate-400">
             <tr>
               <th className="px-3 py-2">Company</th>
               <th className="px-3 py-2">Drives</th>
@@ -202,10 +202,10 @@ function CompanyTable({ rows }: { rows: CompanyStat[] }) {
               <th className="px-3 py-2">Avg package</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-gray-100 dark:divide-white/10">
             {rows.map((c) => (
               <tr key={c.company_name}>
-                <td className="px-3 py-2 font-medium text-gray-900">
+                <td className="px-3 py-2 font-medium text-gray-900 dark:text-slate-100">
                   {c.company_name}
                 </td>
                 <td className="px-3 py-2">{c.drives}</td>

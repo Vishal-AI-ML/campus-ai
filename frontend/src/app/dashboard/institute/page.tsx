@@ -25,20 +25,20 @@ export default function InstitutePage() {
 
   return (
     <div className="mx-auto max-w-5xl p-6">
-      <h1 className="mb-1 text-2xl font-bold text-gray-900">
+      <h1 className="mb-1 text-2xl font-bold text-gray-900 dark:text-slate-100">
         {ICON} Institute Dashboard
       </h1>
-      <p className="mb-6 text-sm text-gray-500">
+      <p className="mb-6 text-sm text-gray-500 dark:text-slate-400">
         A whole-institute KPI snapshot: people, the verified-data moat,
         academics, placement, engagement, and at-risk students.
       </p>
       {error && <p className="text-sm text-red-600">{error}</p>}
       {!me ? (
-        <p className="text-sm text-gray-500">Loading...</p>
+        <p className="text-sm text-gray-500 dark:text-slate-400">Loading...</p>
       ) : me.role === "admin" ? (
         <InstitutePanel />
       ) : (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-slate-400">
           The institute dashboard is available to administrators only.
         </p>
       )}

@@ -61,9 +61,9 @@ export default function SectionPicker({ onSectionChange }: Props) {
 	return (
 		<div className="flex flex-wrap gap-3">
 			<div className="flex flex-col">
-				<label className="text-xs font-medium text-gray-500">Department</label>
+				<label className="text-xs font-medium text-gray-500 dark:text-slate-400">Department</label>
 				<select
-					className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+					className="rounded-md border border-gray-300 dark:border-white/15 px-3 py-2 text-sm"
 					value={departmentId ?? ""}
 					onChange={(e) => handleDepartment(e.target.value)}
 				>
@@ -76,9 +76,9 @@ export default function SectionPicker({ onSectionChange }: Props) {
 				</select>
 			</div>
 			<div className="flex flex-col">
-				<label className="text-xs font-medium text-gray-500">Section</label>
+				<label className="text-xs font-medium text-gray-500 dark:text-slate-400">Section</label>
 				<select
-					className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+					className="rounded-md border border-gray-300 dark:border-white/15 px-3 py-2 text-sm"
 					value={sectionId ?? ""}
 					onChange={(e) => handleSection(e.target.value)}
 					disabled={departmentId === null}

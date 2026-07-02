@@ -45,14 +45,14 @@ const AUDIENCE_LABEL: Record<Audience, string> = {
 }
 
 const AUDIENCE_STYLE: Record<Audience, string> = {
-	all: "bg-indigo-500/15 text-indigo-300",
-	student: "bg-emerald-500/15 text-emerald-300",
-	teacher: "bg-sky-500/15 text-sky-300",
-	tpo: "bg-violet-500/15 text-violet-300",
+	all: "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300",
+	student: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300",
+	teacher: "bg-sky-500/15 text-sky-600 dark:text-sky-300",
+	tpo: "bg-violet-500/15 text-violet-600 dark:text-violet-300",
 }
 
 const inputClass =
-	"mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+	"mt-1 w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-indigo-400"
 
 function formatWhen(iso: string): string {
 	const d = new Date(iso)
@@ -142,7 +142,7 @@ export default function AnnouncementsPage() {
 		return (
 			<div>
 				<h2 className="text-2xl font-bold">Announcements</h2>
-				<p className="mt-2 text-slate-400">
+				<p className="mt-2 text-slate-500 dark:text-slate-400">
 					Only admins can post announcements. Your announcements appear on your
 					Overview.
 				</p>
@@ -153,16 +153,16 @@ export default function AnnouncementsPage() {
 	return (
 		<div>
 			<h2 className="text-2xl font-bold">Announcements</h2>
-			<p className="mt-1 text-sm text-slate-400">
+			<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
 				Broadcast a message to the whole institute or to a single role.
 			</p>
 
 			{/* Composer */}
-			<div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6">
+			<div className="mt-6 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6">
 				<h3 className="text-lg font-semibold">New announcement</h3>
 				<div className="mt-3 grid gap-3">
 					<div>
-						<label className="text-sm text-slate-400">Title</label>
+						<label className="text-sm text-slate-500 dark:text-slate-400">Title</label>
 						<input
 							value={title}
 							onChange={(e) => setTitle(e.target.value)}
@@ -171,7 +171,7 @@ export default function AnnouncementsPage() {
 						/>
 					</div>
 					<div>
-						<label className="text-sm text-slate-400">Message</label>
+						<label className="text-sm text-slate-500 dark:text-slate-400">Message</label>
 						<textarea
 							value={body}
 							onChange={(e) => setBody(e.target.value)}
@@ -181,7 +181,7 @@ export default function AnnouncementsPage() {
 						/>
 					</div>
 					<div className="max-w-xs">
-						<label className="text-sm text-slate-400">Audience</label>
+						<label className="text-sm text-slate-500 dark:text-slate-400">Audience</label>
 						<select
 							value={audience}
 							onChange={(e) => setAudience(e.target.value as Audience)}
@@ -219,15 +219,15 @@ export default function AnnouncementsPage() {
 			<div className="mt-6">
 				<h3 className="text-lg font-semibold">All announcements</h3>
 				{loading ? (
-					<p className="mt-3 text-slate-400">Loading...</p>
+					<p className="mt-3 text-slate-500 dark:text-slate-400">Loading...</p>
 				) : items.length === 0 ? (
-					<p className="mt-3 text-slate-400">No announcements yet.</p>
+					<p className="mt-3 text-slate-500 dark:text-slate-400">No announcements yet.</p>
 				) : (
 					<div className="mt-3 space-y-3">
 						{items.map((a) => (
 							<div
 								key={a.id}
-								className="rounded-2xl border border-white/10 bg-white/5 p-5"
+								className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-5"
 							>
 								<div className="flex items-start justify-between gap-3">
 									<div>
@@ -239,7 +239,7 @@ export default function AnnouncementsPage() {
 												{AUDIENCE_LABEL[a.audience]}
 											</span>
 										</div>
-										<p className="mt-1 text-xs text-slate-500">
+										<p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
 											{formatWhen(a.created_at)}
 										</p>
 									</div>
@@ -251,7 +251,7 @@ export default function AnnouncementsPage() {
 										{deletingId === a.id ? "Deleting..." : "Delete"}
 									</button>
 								</div>
-								<p className="mt-2 whitespace-pre-wrap text-sm text-slate-300">
+								<p className="mt-2 whitespace-pre-wrap text-sm text-slate-600 dark:text-slate-300">
 									{a.body}
 								</p>
 							</div>

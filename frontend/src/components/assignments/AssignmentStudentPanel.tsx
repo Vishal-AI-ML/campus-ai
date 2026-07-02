@@ -66,13 +66,13 @@ export default function AssignmentStudentPanel() {
 	}
 
 	const gradedBadge =
-		"rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-400"
+		"rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-600 dark:text-emerald-300"
 	const submittedBadge =
 		"rounded-full bg-amber-500/15 px-2 py-0.5 text-xs text-amber-400"
 	const pendingBadge =
-		"rounded-full bg-white/10 px-2 py-0.5 text-xs text-white/60"
+		"rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs text-slate-500 dark:text-slate-400"
 
-	if (loading) return <p className="text-sm text-white/60">Loading…</p>
+	if (loading) return <p className="text-sm text-slate-500 dark:text-slate-400">Loading…</p>
 
 	return (
 		<div className="space-y-4">
@@ -83,7 +83,7 @@ export default function AssignmentStudentPanel() {
 			) : null}
 
 			{items.length === 0 ? (
-				<p className="text-sm text-white/60">
+				<p className="text-sm text-slate-500 dark:text-slate-400">
 					No assignments for your section yet.
 				</p>
 			) : (
@@ -105,15 +105,15 @@ export default function AssignmentStudentPanel() {
 					return (
 						<div
 							key={a.id}
-							className="rounded-lg border border-white/10 bg-white/5 p-4"
+							className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4"
 						>
 							<div className="flex items-start justify-between gap-3">
 								<div>
-									<p className="font-medium text-white">{a.title}</p>
+									<p className="font-medium text-slate-900 dark:text-slate-100">{a.title}</p>
 									{a.description ? (
-										<p className="mt-1 text-sm text-white/60">{a.description}</p>
+										<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{a.description}</p>
 									) : null}
-									<p className="mt-1 text-xs text-white/40">
+									<p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
 										Due {formatDateTime(a.due_date)} · Max {a.max_marks}
 									</p>
 								</div>
@@ -121,7 +121,7 @@ export default function AssignmentStudentPanel() {
 							</div>
 
 							{a.submission_status === "graded" ? (
-								<div className="mt-3 rounded-md bg-emerald-500/10 p-3 text-sm text-emerald-300">
+								<div className="mt-3 rounded-md bg-emerald-500/10 p-3 text-sm text-emerald-600 dark:text-emerald-300">
 									Score: {a.marks} / {a.max_marks}
 									{fb ? (
 										fb.feedback ? (
@@ -152,7 +152,7 @@ export default function AssignmentStudentPanel() {
 										}
 										placeholder="Your answer / notes"
 										rows={2}
-										className="w-full rounded-md border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
+										className="w-full rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
 									/>
 									<input
 										value={form.link}
@@ -163,7 +163,7 @@ export default function AssignmentStudentPanel() {
 											}))
 										}
 										placeholder="Link (Google Drive, GitHub, etc.)"
-										className="w-full rounded-md border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
+										className="w-full rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
 									/>
 									<button
 										onClick={() => handleSubmit(a.id)}

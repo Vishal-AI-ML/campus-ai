@@ -36,13 +36,13 @@ export default function RoleLanding({ slug }: { slug: string }) {
 			<section className="mx-auto max-w-4xl px-6 py-20">
 				<Link
 					href="/"
-					className="text-sm text-slate-400 transition hover:text-white"
+					className="text-sm text-slate-500 dark:text-slate-400 transition hover:text-slate-900 dark:hover:text-white"
 				>
 					← Home
 				</Link>
 				<div className="mt-6 text-5xl">{role.emoji}</div>
 				<h1 className="mt-4 text-4xl font-bold sm:text-5xl">{role.title}</h1>
-				<p className="mt-4 max-w-2xl text-lg text-slate-300">{role.pitch}</p>
+				<p className="mt-4 max-w-2xl text-lg text-slate-600 dark:text-slate-300">{role.pitch}</p>
 				<div className="mt-8 flex flex-wrap gap-4">
 					<Link
 						href="/login"
@@ -52,7 +52,7 @@ export default function RoleLanding({ slug }: { slug: string }) {
 					</Link>
 					<Link
 						href="/contact"
-						className="rounded-lg border border-white/15 px-6 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/5"
+						className="rounded-lg border border-slate-300 dark:border-white/15 px-6 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 transition hover:bg-slate-100 dark:hover:bg-white/10"
 					>
 						Request a demo
 					</Link>
@@ -66,10 +66,10 @@ export default function RoleLanding({ slug }: { slug: string }) {
 					{role.points.map((point) => (
 						<div
 							key={point}
-							className="flex gap-3 rounded-xl border border-white/10 bg-white/5 p-4"
+							className="flex gap-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4"
 						>
-							<span className="text-emerald-400">✓</span>
-							<span className="text-sm text-slate-200">{point}</span>
+							<span className="text-emerald-600 dark:text-emerald-300">✓</span>
+							<span className="text-sm text-slate-700 dark:text-slate-200">{point}</span>
 						</div>
 					))}
 				</div>
@@ -83,12 +83,12 @@ export default function RoleLanding({ slug }: { slug: string }) {
 						<Link
 							key={other.slug}
 							href={`/for-${other.slug}`}
-							className="group rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:border-indigo-400/40 hover:bg-white/10"
+							className="group rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6 transition hover:border-indigo-400/40 hover:bg-slate-100 dark:hover:bg-white/10"
 						>
 							<div className="text-3xl">{other.emoji}</div>
 							<h3 className="mt-3 text-lg font-semibold">{other.title}</h3>
-							<p className="mt-1 text-sm text-slate-400">{other.pitch}</p>
-							<span className="mt-3 inline-block text-sm text-indigo-300 group-hover:text-indigo-200">
+							<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{other.pitch}</p>
+							<span className="mt-3 inline-block text-sm text-indigo-600 dark:text-indigo-300 group-hover:text-indigo-700">
 								Learn more →
 							</span>
 						</Link>

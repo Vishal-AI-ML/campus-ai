@@ -24,7 +24,7 @@ function WeekGrid({
   onDelete?: (id: number) => void
 }) {
   if (entries.length === 0) {
-    return <p className="text-sm text-gray-500">No classes scheduled.</p>
+    return <p className="text-sm text-gray-500 dark:text-slate-400">No classes scheduled.</p>
   }
   return (
     <div className="space-y-4">
@@ -35,23 +35,23 @@ function WeekGrid({
         if (dayEntries.length === 0) return null
         return (
           <div key={idx}>
-            <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500">
+            <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-slate-400">
               {dayName}
             </h3>
             <ul className="space-y-2">
               {dayEntries.map((e) => (
                 <li
                   key={e.id}
-                  className="flex items-center justify-between rounded border border-gray-200 px-3 py-2"
+                  className="flex items-center justify-between rounded border border-gray-200 dark:border-white/10 px-3 py-2"
                 >
                   <div>
-                    <span className="font-medium text-gray-800">
+                    <span className="font-medium text-gray-800 dark:text-slate-200">
                       {formatTime(e.start_time)} - {formatTime(e.end_time)}
                     </span>
                     {e.subject_name && (
-                      <span className="ml-2 text-gray-700">{e.subject_name}</span>
+                      <span className="ml-2 text-gray-700 dark:text-slate-300">{e.subject_name}</span>
                     )}
-                    <span className="ml-2 text-sm text-gray-500">
+                    <span className="ml-2 text-sm text-gray-500 dark:text-slate-400">
                       {e.room ? `Room: ${e.room}` : ""}
                       {e.teacher_name ? ` - ${e.teacher_name}` : ""}
                     </span>
@@ -155,8 +155,8 @@ export default function TimetableManagerPanel({ role }: { role: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border border-gray-200 p-4">
-        <h2 className="mb-3 text-sm font-semibold text-gray-700">
+      <div className="rounded-lg border border-gray-200 dark:border-white/10 p-4">
+        <h2 className="mb-3 text-sm font-semibold text-gray-700 dark:text-slate-300">
           Select a section
         </h2>
         <SectionPicker onSection={setSectionId} />
@@ -165,17 +165,17 @@ export default function TimetableManagerPanel({ role }: { role: string }) {
       {sectionId != null && (
         <form
           onSubmit={onAdd}
-          className="space-y-3 rounded-lg border border-gray-200 p-4"
+          className="space-y-3 rounded-lg border border-gray-200 dark:border-white/10 p-4"
         >
-          <h2 className="text-sm font-semibold text-gray-700">Add a class slot</h2>
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-300">Add a class slot</h2>
           {formError && <p className="text-sm text-red-600">{formError}</p>}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <label className="text-sm">
-              <span className="block text-gray-600">Day</span>
+              <span className="block text-gray-600 dark:text-slate-300">Day</span>
               <select
                 value={day}
                 onChange={(e) => setDay(Number(e.target.value))}
-                className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+                className="mt-1 w-full rounded border border-gray-300 dark:border-white/15 px-2 py-1"
               >
                 {DAYS.map((d, i) => (
                   <option key={i} value={i}>
@@ -185,30 +185,30 @@ export default function TimetableManagerPanel({ role }: { role: string }) {
               </select>
             </label>
             <label className="text-sm">
-              <span className="block text-gray-600">Start</span>
+              <span className="block text-gray-600 dark:text-slate-300">Start</span>
               <input
                 type="time"
                 value={start}
                 onChange={(e) => setStart(e.target.value)}
-                className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+                className="mt-1 w-full rounded border border-gray-300 dark:border-white/15 px-2 py-1"
               />
             </label>
             <label className="text-sm">
-              <span className="block text-gray-600">End</span>
+              <span className="block text-gray-600 dark:text-slate-300">End</span>
               <input
                 type="time"
                 value={end}
                 onChange={(e) => setEnd(e.target.value)}
-                className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+                className="mt-1 w-full rounded border border-gray-300 dark:border-white/15 px-2 py-1"
               />
             </label>
             <label className="text-sm">
-              <span className="block text-gray-600">Room</span>
+              <span className="block text-gray-600 dark:text-slate-300">Room</span>
               <input
                 value={room}
                 onChange={(e) => setRoom(e.target.value)}
                 placeholder="Room 101"
-                className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+                className="mt-1 w-full rounded border border-gray-300 dark:border-white/15 px-2 py-1"
               />
             </label>
           </div>
@@ -226,10 +226,10 @@ export default function TimetableManagerPanel({ role }: { role: string }) {
 
       {sectionId != null &&
         (loading ? (
-          <p className="text-sm text-gray-500">Loading...</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400">Loading...</p>
         ) : (
-          <div className="rounded-lg border border-gray-200 p-4">
-            <h2 className="mb-3 text-sm font-semibold text-gray-700">
+          <div className="rounded-lg border border-gray-200 dark:border-white/10 p-4">
+            <h2 className="mb-3 text-sm font-semibold text-gray-700 dark:text-slate-300">
               Weekly timetable
             </h2>
             <WeekGrid entries={entries} onDelete={onDelete} />
@@ -237,8 +237,8 @@ export default function TimetableManagerPanel({ role }: { role: string }) {
         ))}
 
       {role === "teacher" && teaching.length > 0 && (
-        <div className="rounded-lg border border-gray-200 p-4">
-          <h2 className="mb-3 text-sm font-semibold text-gray-700">
+        <div className="rounded-lg border border-gray-200 dark:border-white/10 p-4">
+          <h2 className="mb-3 text-sm font-semibold text-gray-700 dark:text-slate-300">
             My teaching schedule
           </h2>
           <WeekGrid entries={teaching} />

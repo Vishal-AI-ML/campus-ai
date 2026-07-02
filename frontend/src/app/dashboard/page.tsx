@@ -58,7 +58,7 @@ export default function DashboardHome() {
 	return (
 		<div>
 			<h2 className="text-3xl font-bold">Welcome, {user.full_name}</h2>
-			<p className="mt-2 text-slate-400">{ROLE_TAGLINE[user.role]}</p>
+			<p className="mt-2 text-slate-500 dark:text-slate-400">{ROLE_TAGLINE[user.role]}</p>
 
 			{user.role === "admin" && <AdminStats />}
 
@@ -75,11 +75,11 @@ export default function DashboardHome() {
 					<Link
 						key={item.href}
 						href={item.href}
-						className="rounded-2xl border border-white/10 bg-white/5 p-5 transition hover:border-white/20 hover:bg-white/[0.07]"
+						className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-5 transition hover:border-slate-300 dark:hover:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10"
 					>
 						<div className="text-2xl">{item.icon}</div>
 						<div className="mt-3 text-lg font-semibold">{item.label}</div>
-						<p className="mt-1 text-sm text-slate-400">
+						<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
 							{BLURBS[item.href] ?? ""}
 						</p>
 					</Link>
@@ -159,38 +159,38 @@ function AdminStats() {
 
 	if (loading) {
 		return (
-			<p className="mt-6 text-sm text-slate-400">Loading institute stats...</p>
+			<p className="mt-6 text-sm text-slate-500 dark:text-slate-400">Loading institute stats...</p>
 		)
 	}
 	if (!stats) return null
 
 	const items: { label: string; value: string; accent: string }[] = [
-		{ label: "Total users", value: String(stats.users), accent: "text-white" },
+		{ label: "Total users", value: String(stats.users), accent: "text-slate-900 dark:text-slate-100" },
 		{
 			label: "Students",
 			value: String(stats.students),
-			accent: "text-emerald-300",
+			accent: "text-emerald-600 dark:text-emerald-300",
 		},
 		{
 			label: "Teachers",
 			value: String(stats.teachers),
-			accent: "text-indigo-300",
+			accent: "text-indigo-600 dark:text-indigo-300",
 		},
-		{ label: "TPOs", value: String(stats.tpos), accent: "text-violet-300" },
+		{ label: "TPOs", value: String(stats.tpos), accent: "text-violet-600 dark:text-violet-300" },
 		{
 			label: "Departments",
 			value: String(stats.departments),
-			accent: "text-amber-300",
+			accent: "text-amber-600 dark:text-amber-300",
 		},
 		{
 			label: "Sections",
 			value: String(stats.sections),
-			accent: "text-sky-300",
+			accent: "text-sky-600 dark:text-sky-300",
 		},
 		{
 			label: "Drives (open/total)",
 			value: `${stats.drivesOpen}/${stats.drivesTotal}`,
-			accent: "text-pink-300",
+			accent: "text-pink-600 dark:text-pink-300",
 		},
 	]
 
@@ -199,10 +199,10 @@ function AdminStats() {
 			{items.map((it) => (
 				<div
 					key={it.label}
-					className="rounded-2xl border border-white/10 bg-white/5 p-4"
+					className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4"
 				>
 					<div className={`text-2xl font-bold ${it.accent}`}>{it.value}</div>
-					<div className="mt-1 text-xs text-slate-400">{it.label}</div>
+					<div className="mt-1 text-xs text-slate-500 dark:text-slate-400">{it.label}</div>
 				</div>
 			))}
 		</div>
@@ -231,10 +231,10 @@ const FEED_AUDIENCE_LABEL: Record<FeedAudience, string> = {
 }
 
 const FEED_AUDIENCE_STYLE: Record<FeedAudience, string> = {
-	all: "bg-indigo-500/15 text-indigo-300",
-	student: "bg-emerald-500/15 text-emerald-300",
-	teacher: "bg-sky-500/15 text-sky-300",
-	tpo: "bg-violet-500/15 text-violet-300",
+	all: "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300",
+	student: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300",
+	teacher: "bg-sky-500/15 text-sky-600 dark:text-sky-300",
+	tpo: "bg-violet-500/15 text-violet-600 dark:text-violet-300",
 }
 
 function feedWhen(iso: string): string {
@@ -269,7 +269,7 @@ function AnnouncementsFeed() {
 				{top.map((a) => (
 					<div
 						key={a.id}
-						className="rounded-2xl border border-white/10 bg-white/5 p-4"
+						className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-4"
 					>
 						<div className="flex items-center gap-2">
 							<span className="font-medium">{a.title}</span>
@@ -279,8 +279,8 @@ function AnnouncementsFeed() {
 								{FEED_AUDIENCE_LABEL[a.audience]}
 							</span>
 						</div>
-						<p className="mt-1 text-xs text-slate-500">{feedWhen(a.created_at)}</p>
-						<p className="mt-2 whitespace-pre-wrap text-sm text-slate-300">
+						<p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{feedWhen(a.created_at)}</p>
+						<p className="mt-2 whitespace-pre-wrap text-sm text-slate-600 dark:text-slate-300">
 							{a.body}
 						</p>
 					</div>
@@ -312,9 +312,9 @@ const EVENT_CATEGORY_LABEL: Record<EventCategory, string> = {
 
 const EVENT_CATEGORY_STYLE: Record<EventCategory, string> = {
 	holiday: "bg-rose-500/15 text-rose-300",
-	exam: "bg-amber-500/15 text-amber-300",
-	event: "bg-indigo-500/15 text-indigo-300",
-	deadline: "bg-pink-500/15 text-pink-300",
+	exam: "bg-amber-500/15 text-amber-600 dark:text-amber-300",
+	event: "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300",
+	deadline: "bg-pink-500/15 text-pink-600 dark:text-pink-300",
 }
 
 function eventDay(iso: string): string {
@@ -348,10 +348,10 @@ function UpcomingEvents() {
 				{top.map((ev) => (
 					<div
 						key={ev.id}
-						className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3"
+						className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-4 py-3"
 					>
 						<div className="flex items-center gap-3">
-							<span className="text-sm font-medium text-slate-200">
+							<span className="text-sm font-medium text-slate-700 dark:text-slate-200">
 								{eventDay(ev.event_date)}
 							</span>
 							<span className="text-sm">{ev.title}</span>
